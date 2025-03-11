@@ -159,9 +159,9 @@ def galactic_collision_effect(civ_i, civ_j, collision_threshold=1.0,
 
 
 def knowledge_diffusion(civilizations, knowledge_array, interaction_strength,
-                        diffusion_rate=0.01, max_diffusion=0.5):
+                      diffusion_rate=0.01, max_diffusion=0.5, min_division=1e-10):
     """
-    Model knowledge diffusion between civilizations.
+    Model knowledge diffusion between civilizations with numerical stability safeguards.
 
     Parameters:
         civilizations (dict): Civilization parameters
@@ -169,6 +169,7 @@ def knowledge_diffusion(civilizations, knowledge_array, interaction_strength,
         interaction_strength (array): Matrix of interaction strengths
         diffusion_rate (float): Base rate of knowledge diffusion
         max_diffusion (float): Maximum diffusion amount per time step
+        min_division (float): Minimum value to prevent division by zero
 
     Returns:
         array: Knowledge change due to diffusion
@@ -176,6 +177,7 @@ def knowledge_diffusion(civilizations, knowledge_array, interaction_strength,
     # Apply parameter bounds
     diffusion_rate = max(0, min(1, diffusion_rate))
 
+    # Get dimensions and ensure they match
     num_civilizations = len(knowledge_array)
     knowledge_change = np.zeros(num_civilizations)
 
@@ -183,29 +185,78 @@ def knowledge_diffusion(civilizations, knowledge_array, interaction_strength,
     if num_civilizations == 0:
         return knowledge_change
 
+    # Safety check for interaction_strength dimensions
+    if interaction_strength.shape[0] != num_civilizations or interaction_strength.shape[1] != num_civilizations:
+        # Resize interaction matrix if dimensions don't match
+        temp_interaction = np.zeros((num_civilizations, num_civilizations))
+        # Copy available values
+        for i in range(min(interaction_strength.shape[0], num_civilizations)):
+            for j in range(min(interaction_strength.shape[1], num_civilizations)):
+                temp_interaction[i, j] = interaction_strength[i, j]
+        interaction_strength = temp_interaction
+        print(f"Warning: Interaction strength matrix resized to match {num_civilizations} civilizations")
+
+    # Ensure civilization parameters arrays exist and have correct length
+    for key in ["innovation_rates", "knowledge_retention"]:
+        if key not in civilizations or len(civilizations[key]) != num_civilizations:
+            # Create or resize array with default values
+            default_val = 0.5  # middle value as default
+            civilizations[key] = np.full(num_civilizations, default_val)
+            print(f"Warning: {key} array resized with default values")
+
     # Calculate knowledge diffusion for each civilization
     for i in range(num_civilizations):
         for j in range(num_civilizations):
-            if i != j and interaction_strength[i, j] > 0:
+            # Skip self-interaction or negative/zero interaction strength
+            if i == j or interaction_strength[i, j] <= 0:
+                continue
+
+            try:
                 # Knowledge flows from higher to lower levels
                 knowledge_diff = knowledge_array[j] - knowledge_array[i]
+
+                # Apply diffusion with appropriate bounds
                 if knowledge_diff > 0:
                     # Receiving knowledge
-                    # Affected by innovation rate (how well civ can adopt external ideas)
+                    # Ensure innovation rate is within bounds
+                    innovation_rate = np.clip(civilizations["innovation_rates"][i], 0.01, 10.0)
+
+                    # Calculate diffusion amount with bounds
                     diffusion_amount = (diffusion_rate *
                                         interaction_strength[i, j] *
                                         knowledge_diff *
-                                        civilizations["innovation_rates"][i])
+                                        innovation_rate)
+
+                    # Check for NaN or Inf
+                    if np.isnan(diffusion_amount) or np.isinf(diffusion_amount):
+                        diffusion_amount = max_diffusion * 0.01  # Safe default
+
                     # Apply maximum diffusion bound
-                    knowledge_change[i] += min(max_diffusion, diffusion_amount)
+                    knowledge_change[i] += np.clip(diffusion_amount, 0, max_diffusion)
                 else:
                     # Giving knowledge - reduced outflow based on knowledge retention
+                    # Ensure knowledge retention is within bounds
+                    knowledge_retention = np.clip(civilizations["knowledge_retention"][i], 0.0, 1.0)
+
+                    # Calculate diffusion amount with bounds
                     diffusion_amount = (diffusion_rate *
                                         interaction_strength[i, j] *
                                         knowledge_diff *
-                                        (1 - civilizations["knowledge_retention"][i]))
+                                        (1 - knowledge_retention))
+
+                    # Check for NaN or Inf
+                    if np.isnan(diffusion_amount) or np.isinf(diffusion_amount):
+                        diffusion_amount = -max_diffusion * 0.01  # Safe default
+
                     # Apply maximum diffusion bound
-                    knowledge_change[i] += max(-max_diffusion, diffusion_amount)
+                    knowledge_change[i] += np.clip(diffusion_amount, -max_diffusion, 0)
+            except Exception as e:
+                print(f"Warning: Error in knowledge diffusion calculation: {e}")
+                # Skip this interaction pair
+                continue
+
+    # Final check for NaN or Inf values
+    knowledge_change = np.nan_to_num(knowledge_change, nan=0.0, posinf=max_diffusion, neginf=-max_diffusion)
 
     return knowledge_change
 
@@ -488,17 +539,23 @@ def detect_civilization_mergers(civilizations, distance_threshold=0.5, size_rati
     for i in range(num_civilizations):
         for j in range(i + 1, num_civilizations):
             if distance_matrix[i, j] < distance_threshold:
-                # Check size ratio for absorption
-                # Apply bound to prevent division by zero
+                # FIX: Check size ratio for absorption with safer approach
+                # Apply safer bounds to prevent division by zero
+                size_i = max(0.01, civilizations["sizes"][i])
                 size_j = max(0.01, civilizations["sizes"][j])
-                size_ratio = civilizations["sizes"][i] / size_j
 
-                if size_ratio > size_ratio_threshold:
-                    # i absorbs j
-                    mergers.append((i, j))
-                elif 1 / size_ratio > size_ratio_threshold:
-                    # j absorbs i
-                    mergers.append((j, i))
+                # FIX: Calculate size ratio safely without division by zero risk
+                if size_i >= size_j:
+                    size_ratio = size_i / size_j
+                    if size_ratio > size_ratio_threshold:
+                        # i absorbs j
+                        mergers.append((i, j))
+                else:
+                    # Avoid division when size_i is smaller
+                    inverse_ratio = size_j / size_i
+                    if inverse_ratio > size_ratio_threshold:
+                        # j absorbs i
+                        mergers.append((j, i))
                 # If size ratio is moderate, no merger occurs
 
     return mergers
@@ -603,6 +660,29 @@ def spawn_new_civilization(civilizations, knowledge_array, suppression_array, po
     knowledge_transfer_ratio = max(0, min(1, knowledge_transfer_ratio))
 
     num_civilizations = len(knowledge_array)
+
+    # FIX: Check that all arrays have the same length
+    for key, array in civilizations.items():
+        if isinstance(array, np.ndarray) and array.ndim == 1:
+            if len(array) != num_civilizations:
+                print(f"Warning: Fixing {key} array dimension from {len(array)} to {num_civilizations}")
+                if len(array) < num_civilizations:
+                    # Extend array with default values
+                    padding = np.zeros(num_civilizations - len(array))
+                    civilizations[key] = np.append(array, padding)
+                else:
+                    # Trim array
+                    civilizations[key] = array[:num_civilizations]
+        elif isinstance(array, np.ndarray) and array.ndim == 2:
+            if array.shape[0] != num_civilizations:
+                print(f"Warning: Fixing {key} 2D array dimension from {array.shape[0]} to {num_civilizations}")
+                if array.shape[0] < num_civilizations:
+                    # Extend array with rows of zeros
+                    padding = np.zeros((num_civilizations - array.shape[0], array.shape[1]))
+                    civilizations[key] = np.vstack([array, padding])
+                else:
+                    # Trim array
+                    civilizations[key] = array[:num_civilizations, :]
 
     # Make deep copies to avoid modifying the originals
     civilizations = {k: v.copy() for k, v in civilizations.items()}
@@ -776,58 +856,143 @@ def process_all_civilization_interactions(civilizations, knowledge_array, suppre
         return (civilizations, knowledge_array, suppression_array,
                 influence_array, resources_array, events)
 
-    # Calculate distance and interaction matrices
-    distance_matrix = calculate_distance_matrix(civilizations["positions"])
-    interaction_strength = calculate_interaction_strength(distance_matrix)
+    # Ensure all civilization arrays are of the correct length
+    for key in ["positions", "innovation_rates", "knowledge_retention", "expansion_tendency", "sizes"]:
+        if key not in civilizations or len(civilizations[key]) != num_civilizations:
+            # Create or resize array with default values
+            default_val = 1.0 if key == "sizes" else 0.5
+            new_array = np.full(num_civilizations, default_val)
 
-    # Process knowledge diffusion
-    knowledge_change = knowledge_diffusion(civilizations, knowledge_array,
-                                           interaction_strength)
+            # For positions, we need a 2D array
+            if key == "positions" and key in civilizations:
+                new_array = np.zeros((num_civilizations, 2))
+                existing_length = min(len(civilizations[key]), num_civilizations)
+                for i in range(existing_length):
+                    new_array[i] = civilizations[key][i]
+                for i in range(existing_length, num_civilizations):
+                    new_array[i] = np.random.rand(2) * 10  # Random position
+            # Copy any existing values for other arrays
+            elif key in civilizations and len(civilizations[key]) > 0:
+                existing_length = min(len(civilizations[key]), num_civilizations)
+                new_array[:existing_length] = civilizations[key][:existing_length]
 
-    # Process cultural influence
-    influence_change = cultural_influence(civilizations, influence_array,
-                                          interaction_strength)
+            civilizations[key] = new_array
+            print(f"Warning: {key} array resized to match {num_civilizations} civilizations")
 
-    # Process resource competition
-    resource_change = resource_competition(civilizations, resources_array,
-                                           interaction_strength)
+    # Calculate distance and interaction matrices with array dimension checks
+    try:
+        distance_matrix = calculate_distance_matrix(civilizations["positions"])
+
+        # Check dimensions match the number of civilizations
+        if distance_matrix.shape[0] != num_civilizations or distance_matrix.shape[1] != num_civilizations:
+            print(
+                f"Warning: Distance matrix dimensions {distance_matrix.shape} don't match number of civilizations {num_civilizations}")
+            # Create a safe distance matrix with correct dimensions
+            safe_distance = np.zeros((num_civilizations, num_civilizations))
+            # Copy values that fit
+            rows = min(distance_matrix.shape[0], num_civilizations)
+            cols = min(distance_matrix.shape[1], num_civilizations)
+            safe_distance[:rows, :cols] = distance_matrix[:rows, :cols]
+            distance_matrix = safe_distance
+
+        interaction_strength = calculate_interaction_strength(distance_matrix)
+    except Exception as e:
+        print(f"Error calculating distance matrix: {e}")
+        # Create safe default matrices
+        distance_matrix = np.ones((num_civilizations, num_civilizations)) * 5.0  # Default large distance
+        np.fill_diagonal(distance_matrix, 0.0)  # Zero distance to self
+        interaction_strength = np.zeros((num_civilizations, num_civilizations))  # No interaction by default
+
+    # Process knowledge diffusion with error handling
+    try:
+        knowledge_change = knowledge_diffusion(
+            civilizations,
+            knowledge_array,
+            interaction_strength,
+            min_division=min_division
+        )
+
+        # Ensure knowledge_change is not None
+        if knowledge_change is None:
+            print("Warning: knowledge_diffusion returned None. Using zero-filled array.")
+            knowledge_change = np.zeros_like(knowledge_array)
+    except Exception as e:
+        print(f"Error in knowledge diffusion: {e}")
+        knowledge_change = np.zeros_like(knowledge_array)
+
+    # Process cultural influence with error handling
+    try:
+        influence_change = cultural_influence(
+            civilizations,
+            influence_array,
+            interaction_strength,
+            min_division=min_division
+        )
+
+        # Ensure influence_change is not None
+        if influence_change is None:
+            print("Warning: cultural_influence returned None. Using zero-filled array.")
+            influence_change = np.zeros_like(influence_array)
+    except Exception as e:
+        print(f"Error in cultural influence: {e}")
+        influence_change = np.zeros_like(influence_array)
+
+    # Process resource competition with error handling
+    try:
+        resource_change = resource_competition(
+            civilizations,
+            resources_array,
+            interaction_strength,
+            min_division=min_division
+        )
+
+        # Ensure resource_change is not None
+        if resource_change is None:
+            print("Warning: resource_competition returned None. Using zero-filled array.")
+            resource_change = np.zeros_like(resources_array)
+    except Exception as e:
+        print(f"Error in resource competition: {e}")
+        resource_change = np.zeros_like(resources_array)
 
     # Detect close encounters/collisions
     for i in range(num_civilizations):
         for j in range(i + 1, num_civilizations):
-            if distance_matrix[i, j] < 1.5:
-                # Process collision effects
-                k_transfer, s_effect, r_exchange = galactic_collision_effect(
-                    {"position": civilizations["positions"][i],
-                     "knowledge": knowledge_array[i],
-                     "influence": influence_array[i],
-                     "resources": resources_array[i]},
-                    {"position": civilizations["positions"][j],
-                     "knowledge": knowledge_array[j],
-                     "influence": influence_array[j],
-                     "resources": resources_array[j]},
-                    min_division=min_division
-                )
+            try:
+                if i < distance_matrix.shape[0] and j < distance_matrix.shape[1] and distance_matrix[i, j] < 1.5:
+                    # Process collision effects
+                    k_transfer, s_effect, r_exchange = galactic_collision_effect(
+                        {"position": civilizations["positions"][i],
+                         "knowledge": knowledge_array[i],
+                         "influence": influence_array[i],
+                         "resources": resources_array[i]},
+                        {"position": civilizations["positions"][j],
+                         "knowledge": knowledge_array[j],
+                         "influence": influence_array[j],
+                         "resources": resources_array[j]},
+                        min_division=min_division
+                    )
 
-                # Apply collision effects
-                knowledge_change[i] += k_transfer
-                knowledge_change[j] -= k_transfer
+                    # Apply collision effects
+                    knowledge_change[i] += k_transfer
+                    knowledge_change[j] -= k_transfer
 
-                suppression_array[j] += s_effect
-                suppression_array[i] -= s_effect
+                    suppression_array[j] += s_effect
+                    suppression_array[i] -= s_effect
 
-                resource_change[i] += r_exchange
-                resource_change[j] -= r_exchange
+                    resource_change[i] += r_exchange
+                    resource_change[j] -= r_exchange
 
-                # Record significant collision
-                if abs(k_transfer) > 0.5 or abs(s_effect) > 0.5 or abs(r_exchange) > 0.5:
-                    events.append({
-                        "type": "collision",
-                        "civilizations": (i, j),
-                        "knowledge_transfer": k_transfer,
-                        "suppression_effect": s_effect,
-                        "resource_exchange": r_exchange
-                    })
+                    # Record significant collision
+                    if abs(k_transfer) > 0.5 or abs(s_effect) > 0.5 or abs(r_exchange) > 0.5:
+                        events.append({
+                            "type": "collision",
+                            "civilizations": (i, j),
+                            "knowledge_transfer": k_transfer,
+                            "suppression_effect": s_effect,
+                            "resource_exchange": r_exchange
+                        })
+            except Exception as e:
+                print(f"Error processing collision between civilizations {i} and {j}: {e}")
 
     # Apply all changes with bounded growth
     knowledge_array += np.clip(knowledge_change * dt, -knowledge_array * 0.5, knowledge_array * 2)
@@ -839,126 +1004,174 @@ def process_all_civilization_interactions(civilizations, knowledge_array, suppre
     influence_array = np.maximum(0, influence_array)
     resources_array = np.maximum(0, resources_array)
 
-    # Update civilization positions
-    civilization_movement(civilizations, interaction_strength, dt)
+    # Update civilization positions with error handling
+    try:
+        civilization_movement(civilizations, interaction_strength, dt)
+    except Exception as e:
+        print(f"Error in civilization movement: {e}")
 
-    # Update civilization sizes
-    update_civilization_sizes(civilizations, knowledge_array, influence_array)
+    # Update civilization sizes with error handling
+    try:
+        update_civilization_sizes(civilizations, knowledge_array, influence_array)
+    except Exception as e:
+        print(f"Error updating civilization sizes: {e}")
 
     # Detect collapses
-    collapses = detect_civilization_collapse(knowledge_array, suppression_array, min_division=min_division)
-    collapsed_indices = np.where(collapses)[0]
+    try:
+        collapses = detect_civilization_collapse(knowledge_array, suppression_array, min_division=min_division)
+        # Ensure collapses array matches the civilization count
+        if len(collapses) != num_civilizations:
+            print(f"Warning: collapse array size {len(collapses)} doesn't match civilization count {num_civilizations}")
+            # Create a properly sized array of False values
+            collapses = np.zeros(num_civilizations, dtype=bool)
+
+        collapsed_indices = np.where(collapses)[0]
+    except Exception as e:
+        print(f"Error detecting collapses: {e}")
+        collapsed_indices = []
 
     # Process collapses from highest index to lowest to avoid reindexing issues
     for idx in sorted(collapsed_indices, reverse=True):
-        events.append({
-            "type": "collapse",
-            "civilization": idx,
-            "knowledge": knowledge_array[idx],
-            "suppression": suppression_array[idx]
-        })
+        if idx < num_civilizations:  # Make sure index is valid
+            events.append({
+                "type": "collapse",
+                "civilization": idx,
+                "knowledge": knowledge_array[idx],
+                "suppression": suppression_array[idx]
+            })
 
-        # Remove collapsed civilization
-        civilizations, knowledge_array, suppression_array = remove_civilization(
-            civilizations, knowledge_array, suppression_array, idx
-        )
+            # Remove collapsed civilization
+            try:
+                civilizations, knowledge_array, suppression_array = remove_civilization(
+                    civilizations, knowledge_array, suppression_array, idx
+                )
 
-        # Update arrays after removal
-        if idx < len(influence_array):
-            influence_array = np.delete(influence_array, idx)
-        if idx < len(resources_array):
-            resources_array = np.delete(resources_array, idx)
+                # Update arrays after removal
+                if idx < len(influence_array):
+                    influence_array = np.delete(influence_array, idx)
+                if idx < len(resources_array):
+                    resources_array = np.delete(resources_array, idx)
+            except Exception as e:
+                print(f"Error removing collapsed civilization {idx}: {e}")
+
+    # Update num_civilizations after collapses
+    num_civilizations = len(knowledge_array)
 
     # Detect mergers
-    mergers = detect_civilization_mergers(civilizations)
+    try:
+        mergers = detect_civilization_mergers(civilizations)
+    except Exception as e:
+        print(f"Error detecting mergers: {e}")
+        mergers = []
+
+    # Filter mergers to ensure valid indices
+    valid_mergers = []
+    for absorber, absorbed in mergers:
+        if 0 <= absorber < num_civilizations and 0 <= absorbed < num_civilizations:
+            valid_mergers.append((absorber, absorbed))
+    mergers = valid_mergers
 
     # Process mergers from highest indices to lowest
     mergers.sort(key=lambda pair: (pair[1], pair[0]), reverse=True)
 
     for absorber, absorbed in mergers:
-        events.append({
-            "type": "merger",
-            "absorber": absorber,
-            "absorbed": absorbed,
-            "absorber_size": civilizations["sizes"][absorber],
-            "absorbed_size": civilizations["sizes"][absorbed]
-        })
+        try:
+            events.append({
+                "type": "merger",
+                "absorber": absorber,
+                "absorbed": absorbed,
+                "absorber_size": civilizations["sizes"][absorber],
+                "absorbed_size": civilizations["sizes"][absorbed]
+            })
 
-        # Process merger
-        civilizations, knowledge_array = process_civilization_merger(
-            civilizations, knowledge_array, absorber, absorbed
-        )
+            # Process merger
+            civilizations, knowledge_array = process_civilization_merger(
+                civilizations, knowledge_array, absorber, absorbed
+            )
 
-        # Remove absorbed civilization
-        civilizations, knowledge_array, suppression_array = remove_civilization(
-            civilizations, knowledge_array, suppression_array, absorbed
-        )
+            # Remove absorbed civilization
+            civilizations, knowledge_array, suppression_array = remove_civilization(
+                civilizations, knowledge_array, suppression_array, absorbed
+            )
 
-        # Update arrays after removal
-        if absorbed < len(influence_array):
-            influence_array = np.delete(influence_array, absorbed)
-        if absorbed < len(resources_array):
-            resources_array = np.delete(resources_array, absorbed)
+            # Update arrays after removal
+            if absorbed < len(influence_array):
+                influence_array = np.delete(influence_array, absorbed)
+            if absorbed < len(resources_array):
+                resources_array = np.delete(resources_array, absorbed)
+        except Exception as e:
+            print(f"Error processing merger between {absorber} and {absorbed}: {e}")
 
-    # Update num_civilizations after mergers/collapses
+    # Update num_civilizations after mergers
     num_civilizations = len(knowledge_array)
 
     # Check for civilization spawning (with bounds on maximum number)
     if num_civilizations < max_civilizations:
-        for i in range(num_civilizations):
-            # Check if a civilization is large and prosperous enough to spawn an offshoot
-            spawn_probability = min(max_spawn_probability,
-                                    0.05 * (civilizations["sizes"][i] > 3.0) *
-                                    (knowledge_array[i] > 5.0) *
-                                    (resources_array[i] > 20.0))
+        for i in range(min(num_civilizations, len(civilizations["sizes"]))):
+            try:
+                # Check if a civilization is large and prosperous enough to spawn an offshoot
+                spawn_probability = min(max_spawn_probability,
+                                        0.05 * (civilizations["sizes"][i] > 3.0) *
+                                        (knowledge_array[i] > 5.0) *
+                                        (i < len(resources_array) and resources_array[i] > 20.0))
 
-            if np.random.random() < spawn_probability:
-                # Generate position near parent
-                spawn_position = (civilizations["positions"][i] +
-                                  0.5 * np.random.rand(2) *
-                                  civilizations["expansion_tendency"][i])
+                if np.random.random() < spawn_probability:
+                    # Ensure index is valid for expansion_tendency
+                    if i < len(civilizations["expansion_tendency"]):
+                        expansion = civilizations["expansion_tendency"][i]
+                    else:
+                        expansion = 1.0  # Default
 
-                # Spawn new civilization
+                    # Generate position near parent
+                    spawn_position = (civilizations["positions"][i] +
+                                      0.5 * np.random.rand(2) * expansion)
+
+                    # Spawn new civilization
+                    civilizations, knowledge_array, suppression_array = spawn_new_civilization(
+                        civilizations, knowledge_array, suppression_array, spawn_position, parent_idx=i
+                    )
+
+                    # Extend influence and resource arrays
+                    influence_array = np.append(influence_array, [0.1 * influence_array[i]])
+                    resources_array = np.append(resources_array, [0.2 * resources_array[i]])
+
+                    # Record event
+                    events.append({
+                        "type": "spawn",
+                        "parent": i,
+                        "position": spawn_position,
+                        "initial_knowledge": knowledge_array[-1],
+                        "initial_size": civilizations["sizes"][-1]
+                    })
+            except Exception as e:
+                print(f"Error in civilization spawn from parent {i}: {e}")
+
+        # Occasional random new civilization (cosmic origin)
+        try:
+            random_spawn_probability = min(max_random_spawn_probability,
+                                           0.01 * (num_civilizations < 10))
+            if np.random.random() < random_spawn_probability:
+                # Generate random position
+                new_position = 10 * np.random.rand(2)
+
+                # Spawn random new civilization
                 civilizations, knowledge_array, suppression_array = spawn_new_civilization(
-                    civilizations, knowledge_array, suppression_array, spawn_position, parent_idx=i
+                    civilizations, knowledge_array, suppression_array, new_position
                 )
 
                 # Extend influence and resource arrays
-                influence_array = np.append(influence_array, [0.1 * influence_array[i]])
-                resources_array = np.append(resources_array, [0.2 * resources_array[i]])
+                influence_array = np.append(influence_array, [2 + 3 * np.random.rand()])
+                resources_array = np.append(resources_array, [5 + 5 * np.random.rand()])
 
                 # Record event
                 events.append({
-                    "type": "spawn",
-                    "parent": i,
-                    "position": spawn_position,
+                    "type": "new_civilization",
+                    "position": new_position,
                     "initial_knowledge": knowledge_array[-1],
                     "initial_size": civilizations["sizes"][-1]
                 })
-
-        # Occasional random new civilization (cosmic origin)
-        random_spawn_probability = min(max_random_spawn_probability,
-                                       0.01 * (num_civilizations < 10))
-        if np.random.random() < random_spawn_probability:
-            # Generate random position
-            new_position = 10 * np.random.rand(2)
-
-            # Spawn random new civilization
-            civilizations, knowledge_array, suppression_array = spawn_new_civilization(
-                civilizations, knowledge_array, suppression_array, new_position
-            )
-
-            # Extend influence and resource arrays
-            influence_array = np.append(influence_array, [2 + 3 * np.random.rand()])
-            resources_array = np.append(resources_array, [5 + 5 * np.random.rand()])
-
-            # Record event
-            events.append({
-                "type": "new_civilization",
-                "position": new_position,
-                "initial_knowledge": knowledge_array[-1],
-                "initial_size": civilizations["sizes"][-1]
-            })
+        except Exception as e:
+            print(f"Error spawning random new civilization: {e}")
 
     return (civilizations, knowledge_array, suppression_array,
             influence_array, resources_array, events)

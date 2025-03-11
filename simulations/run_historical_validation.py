@@ -15,7 +15,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 # Import the historical validation module
 try:
     # First try to import our improved version
-    from config.historical_validation_improved import HistoricalValidationImproved as HistoricalValidation
+    from config.historical_validation_improved import HistoricalValidation as HistoricalValidation
 except ImportError:
     # Fall back to the original implementation if available
     try:

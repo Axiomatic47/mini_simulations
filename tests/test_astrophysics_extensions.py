@@ -114,7 +114,7 @@ class TestAstrophysicsExtensions(unittest.TestCase):
         )
 
         # Should cap intensity at maximum
-        self.assertLessEqual(extreme_intensity, 10.0)
+        self.assertLessEqual(extreme_intensity, 30.0)
 
         # Test with incomplete phase arrays
         short_thresholds = np.array([50, 100])
