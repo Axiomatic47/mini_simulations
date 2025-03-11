@@ -1,0 +1,11 @@
+metric,value
+knowledge_index_mse,107.78834219401797
+knowledge_index_rmse,10.382116460241523
+suppression_index_mse,2115.5953738709272
+suppression_index_rmse,45.99560167962723
+intelligence_index_mse,82.44361325113996
+intelligence_index_rmse,9.07984654336955
+truth_index_mse,4998.438823076914
+truth_index_rmse,70.69963806892447
+total_error,990.811377934826
+unweighted_error,7304.266152392998
