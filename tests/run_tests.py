@@ -16,13 +16,14 @@ from unittest import TestLoader, TestSuite
 sys.path.append(str(Path(__file__).resolve().parent))
 
 
-def run_tests(specific_test=None, test_module=None):
+def run_tests(specific_test=None, test_module=None, check_stability=False):
     """
     Discover and run all tests, or a specific test if specified.
 
     Args:
         specific_test (str): Optional name of a specific test to run
         test_module (str): Optional name of a specific test module to run
+        check_stability (bool): Whether to check for numerical stability issues
 
     Returns:
         int: 0 if all tests passed, 1 otherwise
@@ -52,6 +53,15 @@ def run_tests(specific_test=None, test_module=None):
 
     # Prepare for timing
     start_time = time.time()
+
+    # Set stability flag if requested
+    if check_stability:
+        print(f"{YELLOW}Running tests with numerical stability checks{END}")
+        os.environ['CHECK_NUMERICAL_STABILITY'] = 'true'
+    else:
+        # Ensure the environment variable is unset
+        if 'CHECK_NUMERICAL_STABILITY' in os.environ:
+            del os.environ['CHECK_NUMERICAL_STABILITY']
 
     # Load tests based on input
     if specific_test:
@@ -133,14 +143,31 @@ def run_tests(specific_test=None, test_module=None):
 
     print(f"  • Execution time: {execution_time:.2f} seconds")
 
+    # Check for stability issues if requested
+    stability_issues = 0
+    if check_stability:
+        # Check if any tests reported stability issues via environment variables
+        stability_issues = int(os.environ.get('NUMERICAL_STABILITY_ISSUES', '0'))
+        if stability_issues > 0:
+            print(f"  • {YELLOW}Numerical stability issues detected: {stability_issues}{END}")
+        else:
+            print(f"  • No numerical stability issues detected")
+
     # Overall result
-    if result.wasSuccessful():
+    if result.wasSuccessful() and stability_issues == 0:
         print(f"\n{GREEN}{BOLD}✅ All tests passed successfully!{END}")
+    elif result.wasSuccessful() and stability_issues > 0:
+        print(f"\n{YELLOW}{BOLD}⚠️ Tests passed but with {stability_issues} numerical stability warnings.{END}")
     else:
         print(f"\n{RED}{BOLD}❌ Some tests failed. Please check the output above for details.{END}")
 
     # Return appropriate exit code
-    return 0 if result.wasSuccessful() else 1
+    if not result.wasSuccessful():
+        return 1
+    elif stability_issues > 0 and check_stability:
+        return 2  # Special exit code for stability issues
+    else:
+        return 0
 
 
 if __name__ == '__main__':
@@ -150,8 +177,9 @@ if __name__ == '__main__':
     parser.add_argument('--test', '-t',
                         help='Specific test to run (e.g., "astrophysics_extensions" or "TestAstrophysicsExtensions.test_civilization_lifecycle_phase")')
     parser.add_argument('--module', '-m', help='Test module to run (e.g., "astrophysics_extensions")')
+    parser.add_argument('--check-stability', action='store_true', help='Check for numerical stability issues')
 
     args = parser.parse_args()
 
     # Run the tests
-    sys.exit(run_tests(specific_test=args.test, test_module=args.module))
+    sys.exit(run_tests(specific_test=args.test, test_module=args.module, check_stability=args.check_stability))

@@ -1,12 +1,15 @@
 """
 Centralized parameters for axiomatic simulations.
 Import from this file for consistent parameter settings across simulations.
+Enhanced with numerical stability parameters.
 """
 
 # Standard simulation parameters
 TIMESTEPS = 400
 DT = 1  # Time step size
 NUM_AGENTS = 5
+
+# ===== Core Equation Parameters =====
 
 # Wisdom parameters
 W_0 = 1.0  # Base wisdom level
@@ -43,6 +46,8 @@ T_CRIT_PHASE = 20  # Critical threshold for transition
 GAMMA_OSC = 0.005  # Oscillation damping factor
 OMEGA_OSC = 0.3  # Natural oscillation frequency
 
+# ===== Quantum & EM Extension Parameters =====
+
 # Electromagnetic field parameters
 KAPPA_EM = 0.025  # Knowledge field permeability constant
 
@@ -59,3 +64,38 @@ MOMENTUM_FACTOR = 0.1  # Decision momentum factor
 # External shock parameters
 SHOCK_TIMES = [50, 120]  # Times when external shocks are applied
 SHOCK_MAGNITUDES = [2.5, 3.0]  # Magnitudes of external shocks
+
+# ===== Numerical Stability Parameters =====
+
+# Knowledge and intelligence bounds
+K_MAX = 1000.0  # Maximum knowledge value
+I_MAX = 1000.0  # Maximum intelligence value
+W_MAX = 10.0    # Maximum wisdom value
+
+# Suppression bounds
+S_MAX = 100.0  # Maximum suppression value
+S_MIN = 0.1    # Minimum suppression value
+
+# Resistance bounds
+R_MAX = 100.0  # Maximum resistance value
+R_MIN = 0.0    # Minimum resistance value
+
+# Time bounds for exponential calculations
+T_MAX_EXPONENT = 500.0  # Maximum time value for exponential calculations
+
+# Field parameters bounds
+FIELD_STRENGTH_MAX = 10.0  # Maximum field strength
+GRADIENT_MAX = 10.0       # Maximum gradient magnitude
+MIN_DISTANCE = 0.1        # Minimum distance to prevent division by zero
+
+# Entanglement parameters
+K_DIFF_MAX = 100.0  # Maximum knowledge difference for entanglement calculation
+ENT_MAX = 1.0       # Maximum entanglement value
+
+# Tunneling parameters
+P_MIN = 0.0001  # Minimum tunneling probability
+P_MAX = 0.99    # Maximum tunneling probability
+
+# Time step adaptation
+DT_MIN = 0.01   # Minimum time step
+DT_MAX = 1.0    # Maximum time step

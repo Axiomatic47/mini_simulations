@@ -28,6 +28,9 @@ from config.multi_civilization_extensions import (
     process_all_civilization_interactions
 )
 
+# Import circuit breaker for numerical stability
+from utils.circuit_breaker import CircuitBreaker
+
 # Ensure output directories exist
 BASE_DIR = Path(__file__).resolve().parent.parent
 plots_dir = BASE_DIR / 'outputs' / 'plots'
@@ -42,6 +45,67 @@ print(f"Plots directory: {plots_dir}")
 print(f"Data directory: {data_dir}")
 print(f"Animation directory: {animation_dir}")
 
+# Numerical stability parameters
+MAX_KNOWLEDGE = 100.0
+MAX_SUPPRESSION = 50.0
+MAX_INTELLIGENCE = 100.0
+MAX_TRUTH = 100.0
+MAX_INFLUENCE = 10.0
+MAX_RESOURCES = 1000.0
+MIN_VALUE = 0.0
+MIN_DISTANCE = 0.1
+MAX_CIVILIZATION_SIZE = 20.0
+MIN_CIVILIZATION_SIZE = 0.5
+MAX_POSITION = 10.0
+MIN_POSITION = 0.0
+
+# Initialize circuit breaker
+circuit_breaker = CircuitBreaker(
+    threshold=1e-6,
+    max_value=MAX_KNOWLEDGE,
+    min_value=MIN_VALUE,
+    max_rate_of_change=5.0
+)
+
+# Enable adaptive timestep
+enable_adaptive_timestep = True
+MIN_TIMESTEP = 0.2
+MAX_TIMESTEP = 1.0
+default_dt = 1.0
+adaptive_timestep = default_dt
+
+
+# Safe mathematical operations
+def safe_div(x, y, default=0.0):
+    """Safe division with check for division by zero."""
+    if abs(y) < 1e-10:
+        return default
+    return x / y
+
+
+def safe_exp(x, max_result=1e10):
+    """Apply exponential function with bounds to prevent overflow."""
+    # Limit the exponent to avoid overflow
+    x = np.clip(x, -50.0, 50.0)
+    return np.clip(np.exp(x), 0.0, max_result)
+
+
+def safe_sqrt(x, default=0.0):
+    """Safe square root with check for negative values."""
+    if x <= 0:
+        return default
+    return np.sqrt(x)
+
+
+def safe_distance(p1, p2, min_dist=MIN_DISTANCE):
+    """Calculate distance between points with minimum bound to prevent division by zero."""
+    try:
+        dist = np.linalg.norm(p1 - p2)
+        return max(dist, min_dist)
+    except Exception:
+        return min_dist
+
+
 # Simulation parameters
 timesteps = 150  # Reduced for faster execution
 dt = 1.0
@@ -50,6 +114,9 @@ initial_num_civilizations = 5
 # Initialize event log
 event_log = []
 
+# Stability tracking
+stability_issues = 0
+
 print("Initializing civilizations...")
 # Initialize arrays for all civilizations
 civilizations = initialize_civilizations(initial_num_civilizations)
@@ -57,13 +124,19 @@ civilizations = initialize_civilizations(initial_num_civilizations)
 # Fix: Convert ages to float type to avoid casting error
 civilizations["ages"] = civilizations["ages"].astype(float)
 
-# Initialize knowledge arrays
-knowledge_array = 1.0 + 2.0 * np.random.rand(initial_num_civilizations)
-suppression_array = 3.0 + 3.0 * np.random.rand(initial_num_civilizations)
-intelligence_array = 5.0 + 5.0 * np.random.rand(initial_num_civilizations)
-truth_array = 1.0 + 1.0 * np.random.rand(initial_num_civilizations)
-influence_array = civilizations["influence"].copy()
-resources_array = civilizations["resources"].copy()
+# Ensure positions are within bounds
+civilizations["positions"] = np.clip(civilizations["positions"], MIN_POSITION, MAX_POSITION)
+
+# Ensure sizes are within bounds
+civilizations["sizes"] = np.clip(civilizations["sizes"], MIN_CIVILIZATION_SIZE, MAX_CIVILIZATION_SIZE)
+
+# Initialize knowledge arrays with bounds
+knowledge_array = np.clip(1.0 + 2.0 * np.random.rand(initial_num_civilizations), MIN_VALUE, MAX_KNOWLEDGE)
+suppression_array = np.clip(3.0 + 3.0 * np.random.rand(initial_num_civilizations), MIN_VALUE, MAX_SUPPRESSION)
+intelligence_array = np.clip(5.0 + 5.0 * np.random.rand(initial_num_civilizations), MIN_VALUE, MAX_INTELLIGENCE)
+truth_array = np.clip(1.0 + 1.0 * np.random.rand(initial_num_civilizations), MIN_VALUE, MAX_TRUTH)
+influence_array = np.clip(civilizations["influence"].copy(), MIN_VALUE, MAX_INFLUENCE)
+resources_array = np.clip(civilizations["resources"].copy(), MIN_VALUE, MAX_RESOURCES)
 
 # Arrays to store data for all timesteps
 # These are lists since the number of civilizations can change
@@ -80,6 +153,8 @@ size_history = []
 event_history = []
 age_history = []
 beyond_horizon_history = []
+stability_history = []  # Track stability issues over time
+timestep_history = []  # Track adaptive timestep changes
 
 print("Starting simulation...")
 
@@ -103,14 +178,42 @@ for t in range(timesteps):
         event_history.append([])
         age_history.append([])
         beyond_horizon_history.append([])
+        stability_history.append(stability_issues)
+        timestep_history.append(adaptive_timestep)
         continue
+
+    # Calculate adaptive timestep if enabled and civilization count changes slowly
+    # (abrupt changes in civilization count might need smaller timesteps)
+    if enable_adaptive_timestep and t > 0:
+        # Calculate maximum rate of change
+        if len(knowledge_history[-1]) > 0 and len(knowledge_array) > 0:
+            # If civilization counts match, calculate max change in knowledge
+            if len(knowledge_history[-1]) == len(knowledge_array):
+                max_k_change = np.max(np.abs(np.array(knowledge_array) - np.array(knowledge_history[-1])))
+                # Adjust timestep based on rate of change
+                if max_k_change > 2.0:
+                    adaptive_timestep = max(MIN_TIMESTEP, adaptive_timestep * 0.8)
+                elif max_k_change < 0.5:
+                    adaptive_timestep = min(MAX_TIMESTEP, adaptive_timestep * 1.2)
+            else:
+                # If civilization count changed, use a smaller timestep for stability
+                adaptive_timestep = max(MIN_TIMESTEP, adaptive_timestep * 0.5)
+
+        # Use adaptive timestep
+        current_dt = adaptive_timestep
+    else:
+        current_dt = dt
+
+    # Track timestep
+    timestep_history.append(current_dt)
 
     # Occasionally output progress
     if t % 50 == 0:
-        print(f"Timestep {t}: {current_num_civilizations} civilizations")
+        print(
+            f"Timestep {t}: {current_num_civilizations} civilizations. Current dt: {current_dt:.4f}, Stability issues: {stability_issues}")
 
-    # Increment civilization ages
-    civilizations["ages"] += dt
+    # Increment civilization ages with bounds
+    civilizations["ages"] = np.clip(civilizations["ages"] + current_dt, 0, 1000)
 
     # Calculate civilization lifecycle phases
     lifecycle_intensities = np.zeros(current_num_civilizations)
@@ -122,94 +225,230 @@ for t in range(timesteps):
 
     # Process each civilization's internal dynamics
     for i in range(current_num_civilizations):
-        # Calculate lifecycle phase
-        intensity, phase = civilization_lifecycle_phase(
-            civilizations["ages"][i], 1.0, phase_thresholds, phase_intensities
-        )
-        lifecycle_intensities[i] = intensity
-        lifecycle_phases[i] = phase
+        try:
+            # Calculate lifecycle phase with safety
+            intensity, phase = civilization_lifecycle_phase(
+                civilizations["ages"][i], 1.0, phase_thresholds, phase_intensities
+            )
+            lifecycle_intensities[i] = np.clip(intensity, 0.1, 2.0)  # Bound intensity
+            lifecycle_phases[i] = phase
 
-        # Calculate wisdom field
-        W = wisdom_field(1.0, 0.1, suppression_array[i], 2.0, knowledge_array[i])
-
-        # Update knowledge with civilization's innovation rate
-        knowledge_base_growth = knowledge_array[i] * 0.05 * civilizations["innovation_rates"][i]
-
-        # Add inflation effect for rapidly growing civilizations
-        inflation_multiplier = 1.0
-        if truth_array[i] > 10 and phase == 2:  # High truth in peak phase
-            inflation_multiplier, _ = knowledge_inflation(
-                knowledge_array[i], truth_array[i], inflation_threshold=10,
-                expansion_rate=1.5, duration=10
+            # Calculate wisdom field with bounds
+            W = wisdom_field(
+                1.0,
+                0.1,
+                np.clip(suppression_array[i], MIN_VALUE, MAX_SUPPRESSION),
+                2.0,
+                np.clip(knowledge_array[i], MIN_VALUE, MAX_KNOWLEDGE)
             )
 
-        # Update knowledge
-        knowledge_array[i] += knowledge_base_growth * inflation_multiplier * dt
+            # Update knowledge with civilization's innovation rate
+            # Bound innovation rates
+            innovation_rate = np.clip(civilizations["innovation_rates"][i], 0.01, 10.0)
+            knowledge_base_growth = np.clip(knowledge_array[i] * 0.05 * innovation_rate, -5.0, 5.0)
 
-        # Update suppression based on internal dynamics
-        # Civilizations with high suppression resistance experience less suppression
-        suppression_change = suppression_feedback(
-            0.1, suppression_array[i],
-            0.05 * civilizations["suppression_resistance"][i], knowledge_array[i]
-        )
-        suppression_array[i] += suppression_change * dt
+            # Add inflation effect for rapidly growing civilizations with safety
+            inflation_multiplier = 1.0
+            if truth_array[i] > 10 and phase == 2:  # High truth in peak phase
+                try:
+                    inflation_multiplier, _ = knowledge_inflation(
+                        np.clip(knowledge_array[i], MIN_VALUE, MAX_KNOWLEDGE),
+                        np.clip(truth_array[i], MIN_VALUE, MAX_TRUTH),
+                        inflation_threshold=10,
+                        expansion_rate=1.5,
+                        duration=10
+                    )
+                    # Bound inflation multiplier
+                    inflation_multiplier = np.clip(inflation_multiplier, 1.0, 5.0)
+                except Exception as e:
+                    print(f"Warning: Error in inflation calculation for civilization {i}: {e}")
+                    inflation_multiplier = 1.0
+                    stability_issues += 1
 
-        # Ensure minimum suppression
-        suppression_array[i] = max(0.5, suppression_array[i])
+            # Update knowledge with bounds
+            knowledge_increment = knowledge_base_growth * inflation_multiplier * current_dt
 
-        # Update intelligence
-        intelligence_change = intelligence_growth(
-            knowledge_array[i], W, 2.0, suppression_array[i], 1.5
-        )
-        intelligence_array[i] += intelligence_change * lifecycle_intensities[i] * dt
+            # Check for stability
+            if circuit_breaker.check_value_stability(knowledge_increment):
+                knowledge_increment = np.clip(knowledge_increment, -2.0, 2.0)
+                stability_issues += 1
 
-        # Ensure minimum intelligence
-        intelligence_array[i] = max(0.1, intelligence_array[i])
+            knowledge_array[i] = np.clip(
+                knowledge_array[i] + knowledge_increment,
+                MIN_VALUE,
+                MAX_KNOWLEDGE
+            )
 
-        # Update truth adoption
-        truth_change = truth_adoption(truth_array[i], 0.5, 40.0)
-        truth_array[i] += truth_change * dt
+            # Update suppression based on internal dynamics with bounds
+            # Civilizations with high suppression resistance experience less suppression
+            suppression_resistance = np.clip(civilizations["suppression_resistance"][i], 0.1, 10.0)
+            suppression_change = suppression_feedback(
+                0.1,
+                np.clip(suppression_array[i], MIN_VALUE, MAX_SUPPRESSION),
+                0.05 * suppression_resistance,
+                np.clip(knowledge_array[i], MIN_VALUE, MAX_KNOWLEDGE)
+            )
 
-    # Calculate event horizons for each civilization
+            # Check for stability
+            if circuit_breaker.check_value_stability(suppression_change):
+                suppression_change = np.clip(suppression_change, -2.0, 2.0)
+                stability_issues += 1
+
+            suppression_array[i] = np.clip(
+                suppression_array[i] + suppression_change * current_dt,
+                MIN_VALUE,
+                MAX_SUPPRESSION
+            )
+
+            # Ensure minimum suppression
+            suppression_array[i] = max(0.5, suppression_array[i])
+
+            # Update intelligence with bounds
+            intelligence_change = intelligence_growth(
+                np.clip(knowledge_array[i], MIN_VALUE, MAX_KNOWLEDGE),
+                W,
+                2.0,
+                np.clip(suppression_array[i], MIN_VALUE, MAX_SUPPRESSION),
+                1.5
+            )
+
+            # Check for stability
+            if circuit_breaker.check_value_stability(intelligence_change):
+                intelligence_change = np.clip(intelligence_change, -2.0, 2.0)
+                stability_issues += 1
+
+            intelligence_array[i] = np.clip(
+                intelligence_array[i] + intelligence_change * lifecycle_intensities[i] * current_dt,
+                MIN_VALUE,
+                MAX_INTELLIGENCE
+            )
+
+            # Update truth adoption with bounds
+            truth_change = truth_adoption(
+                np.clip(truth_array[i], MIN_VALUE, MAX_TRUTH),
+                0.5,
+                40.0
+            )
+
+            # Check for stability
+            if circuit_breaker.check_value_stability(truth_change):
+                truth_change = np.clip(truth_change, -2.0, 2.0)
+                stability_issues += 1
+
+            truth_array[i] = np.clip(
+                truth_array[i] + truth_change * current_dt,
+                MIN_VALUE,
+                MAX_TRUTH
+            )
+
+        except Exception as e:
+            print(f"Warning: Error processing internal dynamics for civilization {i}: {e}")
+            stability_issues += 1
+            # If error occurs, keep previous values to maintain stability
+            if i < len(lifecycle_intensities) and i < len(lifecycle_phases):
+                lifecycle_intensities[i] = 1.0  # Fallback to neutral intensity
+                lifecycle_phases[i] = 2  # Fallback to peak phase
+
+    # Calculate event horizons for each civilization with safety
     beyond_horizon = np.zeros(current_num_civilizations, dtype=bool)
     for i in range(current_num_civilizations):
-        _, is_beyond = suppression_event_horizon(
-            suppression_array[i], knowledge_array[i], critical_constant=1.5
-        )
-        beyond_horizon[i] = is_beyond
+        try:
+            _, is_beyond = suppression_event_horizon(
+                np.clip(suppression_array[i], 0.1, MAX_SUPPRESSION),  # Ensure non-zero
+                np.clip(knowledge_array[i], 0.1, MAX_KNOWLEDGE),  # Ensure non-zero
+                critical_constant=1.5
+            )
+            beyond_horizon[i] = is_beyond
+        except Exception as e:
+            print(f"Warning: Error in event horizon calculation for civilization {i}: {e}")
+            beyond_horizon[i] = False  # Safe default
+            stability_issues += 1
 
-    # Process all inter-civilization interactions
-    (civilizations, knowledge_array, suppression_array,
-     influence_array, resources_array, events) = process_all_civilization_interactions(
-        civilizations, knowledge_array, suppression_array,
-        influence_array, resources_array, dt
-    )
+    # Process all inter-civilization interactions with safety
+    try:
+        (civilizations, knowledge_array, suppression_array,
+         influence_array, resources_array, events) = process_all_civilization_interactions(
+            civilizations, knowledge_array, suppression_array,
+            influence_array, resources_array, current_dt,
+            # Add stability parameters
+            min_distance=MIN_DISTANCE,
+            max_change=5.0,
+            max_knowledge=MAX_KNOWLEDGE,
+            max_suppression=MAX_SUPPRESSION,
+            max_influence=MAX_INFLUENCE,
+            max_resources=MAX_RESOURCES,
+            min_division=0.1  # Minimum for division operations
+        )
+
+        # Ensure all values are within bounds after interactions
+        knowledge_array = np.clip(knowledge_array, MIN_VALUE, MAX_KNOWLEDGE)
+        suppression_array = np.clip(suppression_array, MIN_VALUE, MAX_SUPPRESSION)
+        influence_array = np.clip(influence_array, MIN_VALUE, MAX_INFLUENCE)
+        resources_array = np.clip(resources_array, MIN_VALUE, MAX_RESOURCES)
+        civilizations["positions"] = np.clip(civilizations["positions"], MIN_POSITION, MAX_POSITION)
+        civilizations["sizes"] = np.clip(civilizations["sizes"], MIN_CIVILIZATION_SIZE, MAX_CIVILIZATION_SIZE)
+
+    except Exception as e:
+        print(f"Warning: Error in civilization interactions at timestep {t}: {e}")
+        # If interaction processing fails, keep the civilizations unchanged
+        events = []
+        stability_issues += 1
 
     # Record events with timestamp
     for event in events:
         event["time"] = t
         event_log.append(event)
 
-    # Store current state
+    # Store current state with safety for empty arrays
     time_history.append(t)
     civilization_count_history.append(len(knowledge_array))
-    knowledge_history.append(knowledge_array.copy())
-    suppression_history.append(suppression_array.copy())
-    intelligence_history.append(intelligence_array.copy())
-    truth_history.append(truth_array.copy())
-    influence_history.append(influence_array.copy())
-    resources_history.append(resources_array.copy())
-    position_history.append(civilizations["positions"].copy())
-    size_history.append(civilizations["sizes"].copy())
+    knowledge_history.append(knowledge_array.copy() if len(knowledge_array) > 0 else np.array([]))
+    suppression_history.append(suppression_array.copy() if len(suppression_array) > 0 else np.array([]))
+    intelligence_history.append(intelligence_array.copy() if len(intelligence_array) > 0 else np.array([]))
+    truth_history.append(truth_array.copy() if len(truth_array) > 0 else np.array([]))
+    influence_history.append(influence_array.copy() if len(influence_array) > 0 else np.array([]))
+    resources_history.append(resources_array.copy() if len(resources_array) > 0 else np.array([]))
+
+    # Ensure position and size arrays exist before copying
+    if hasattr(civilizations, "positions") and len(civilizations["positions"]) > 0:
+        position_history.append(civilizations["positions"].copy())
+    else:
+        position_history.append(np.array([]))
+
+    if hasattr(civilizations, "sizes") and len(civilizations["sizes"]) > 0:
+        size_history.append(civilizations["sizes"].copy())
+    else:
+        size_history.append(np.array([]))
+
     event_history.append(events)
-    age_history.append(civilizations["ages"].copy())
-    beyond_horizon_history.append(beyond_horizon.copy())
+
+    if hasattr(civilizations, "ages") and len(civilizations["ages"]) > 0:
+        age_history.append(civilizations["ages"].copy())
+    else:
+        age_history.append(np.array([]))
+
+    beyond_horizon_history.append(beyond_horizon.copy() if len(beyond_horizon) > 0 else np.array([]))
+    stability_history.append(stability_issues)
 
 print("Simulation completed.")
 print(f"Final number of civilizations: {len(knowledge_array)}")
 print(f"Total number of events: {len(event_log)}")
+print(f"Total stability issues: {stability_issues}")
 
 print("Preparing visualization...")
+
+# Replace any NaN or inf values that might have slipped through
+for i in range(len(knowledge_history)):
+    if len(knowledge_history[i]) > 0:
+        knowledge_history[i] = np.nan_to_num(knowledge_history[i], nan=1.0, posinf=MAX_KNOWLEDGE, neginf=MIN_VALUE)
+    if len(suppression_history[i]) > 0:
+        suppression_history[i] = np.nan_to_num(suppression_history[i], nan=1.0, posinf=MAX_SUPPRESSION,
+                                               neginf=MIN_VALUE)
+    if len(intelligence_history[i]) > 0:
+        intelligence_history[i] = np.nan_to_num(intelligence_history[i], nan=1.0, posinf=MAX_INTELLIGENCE,
+                                                neginf=MIN_VALUE)
+    if len(truth_history[i]) > 0:
+        truth_history[i] = np.nan_to_num(truth_history[i], nan=1.0, posinf=MAX_TRUTH, neginf=MIN_VALUE)
 
 
 # Create a function to get statistical data across all civilizations
@@ -256,8 +495,8 @@ history_arrays = {
 stats = get_civilization_stats(history_arrays)
 
 # Create a figure for statistical plots
-plt.figure(figsize=(15, 12))
-gs = gridspec.GridSpec(3, 2)
+plt.figure(figsize=(15, 14))  # Increased height for additional subplot
+gs = gridspec.GridSpec(4, 2)  # Added one more row for stability metrics
 
 # 1. Civilization count over time
 ax1 = plt.subplot(gs[0, 0])
@@ -327,13 +566,43 @@ ax6.set_xlabel('Event Type')
 ax6.set_ylabel('Count')
 ax6.grid(True, axis='y')
 
+# 7. Stability Metrics (New)
+ax7 = plt.subplot(gs[3, :])
+ax7.plot(time_history, stability_history, 'r-', linewidth=2, label='Cumulative Stability Issues')
+ax7.plot(time_history, timestep_history, 'b--', linewidth=2, label='Adaptive Timestep')
+
+# Mark major events on the stability plot
+for event_type, times in event_times.items():
+    if times:  # If there are events of this type
+        # Use different markers for different event types
+        marker = 'o' if event_type == 'collision' else '^' if event_type == 'merger' else 's'
+        color = 'red' if event_type == 'collision' else 'purple' if event_type == 'merger' else 'green'
+
+        # Plot small markers at event times
+        for event_time in times:
+            # Find the stability value at this time
+            stability_value = stability_history[time_history.index(event_time)] if event_time in time_history else 0
+            ax7.plot(event_time, stability_value, marker=marker, color=color, markersize=6, alpha=0.7)
+
+ax7.set_title('Numerical Stability Metrics')
+ax7.set_xlabel('Time Steps')
+ax7.set_ylabel('Value')
+ax7.legend()
+ax7.grid(True)
+
+# Add secondary y-axis for timestep
+ax7_twin = ax7.twinx()
+ax7_twin.set_ylabel('Timestep Size (dt)', color='blue')
+ax7_twin.tick_params(axis='y', labelcolor='blue')
+ax7_twin.set_ylim(0, max(timestep_history) * 1.2)
+
 plt.tight_layout()
 stats_plot_file = plots_dir / "multi_civilization_statistics.png"
 plt.savefig(str(stats_plot_file))
 print(f"✅ Statistics plot saved at: {stats_plot_file}")
 
 # Create a spatial visualization of civilization positions and sizes
-plt.figure(figsize=(12, 10))
+plt.figure(figsize=(12, 12))
 
 # Select time points for snapshots
 snapshot_times = [0, int(timesteps * 0.25), int(timesteps * 0.5), int(timesteps * 0.75), timesteps - 1]
@@ -365,7 +634,7 @@ for i, t in enumerate(snapshot_times):
             marker_size = sizes[j] * 100
 
             # Color based on knowledge (green) to suppression (red) ratio
-            if beyond_horizon_values[j]:
+            if j < len(beyond_horizon_values) and beyond_horizon_values[j]:
                 # Black for civilizations beyond event horizon
                 color = 'black'
                 edge_color = 'white'
@@ -434,7 +703,9 @@ else:
 # Prepare statistics dataframe
 stats_data = {
     'Time': time_history,
-    'Civilization_Count': civilization_count_history
+    'Civilization_Count': civilization_count_history,
+    'Stability_Issues': stability_history,
+    'Timestep': timestep_history
 }
 
 # Add all calculated statistics
@@ -446,6 +717,28 @@ stats_df = pd.DataFrame(stats_data)
 stats_csv_file = data_dir / "multi_civilization_statistics.csv"
 stats_df.to_csv(stats_csv_file, index=False)
 print(f"✅ Statistics data saved at: {stats_csv_file}")
+
+# Save stability metrics
+stability_metrics = {
+    'Total_Stability_Issues': stability_issues,
+    'Circuit_Breaker_Triggers': circuit_breaker.trigger_count,
+    'Max_Knowledge': np.max([np.max(k) if len(k) > 0 else 0 for k in knowledge_history]),
+    'Max_Suppression': np.max([np.max(s) if len(s) > 0 else 0 for s in suppression_history]),
+    'Max_Intelligence': np.max([np.max(i) if len(i) > 0 else 0 for i in intelligence_history]),
+    'Max_Truth': np.max([np.max(t) if len(t) > 0 else 0 for t in truth_history]),
+    'Initial_Timestep': dt,
+    'Final_Timestep': timestep_history[-1] if timestep_history else dt,
+    'Min_Timestep_Used': min(timestep_history) if timestep_history else dt,
+    'Total_Collisions': event_counts.get('collision', 0),
+    'Total_Mergers': event_counts.get('merger', 0),
+    'Total_Collapses': event_counts.get('collapse', 0),
+    'Total_Spawns': event_counts.get('spawn', 0),
+    'Total_New_Civilizations': event_counts.get('new_civilization', 0)
+}
+
+stability_df = pd.DataFrame([stability_metrics])
+stability_df.to_csv(data_dir / "multi_civilization_stability.csv", index=False)
+print(f"✅ Stability metrics saved at: {data_dir / 'multi_civilization_stability.csv'}")
 
 print("All visualizations and data exports completed.")
 plt.show()

@@ -1,43 +1,3 @@
-#!/bin/bash
-
-# Change to the project root directory
-cd "$(dirname "$0")"
-
-# Create necessary directories if they don't exist
-mkdir -p tests
-mkdir -p config
-mkdir -p outputs/data
-mkdir -p outputs/plots
-mkdir -p simulations
-mkdir -p utils  # Make sure utils directory exists for circuit breaker
-
-# Set up Python environment
-if [ -d "venv" ]; then
-    echo "Using existing virtual environment..."
-    source venv/bin/activate
-else
-    echo "Creating new virtual environment..."
-    python3 -m venv venv
-    source venv/bin/activate
-
-    # Check if pip install succeeds
-    if ! pip install -r requirements.txt; then
-        echo "Error installing requirements. Please check requirements.txt and your internet connection."
-        exit 1
-    fi
-    echo "Virtual environment created and dependencies installed."
-fi
-
-# Create __init__.py files for proper package structure
-touch config/__init__.py
-touch tests/__init__.py
-touch simulations/__init__.py
-touch utils/__init__.py
-
-# Make sure circuit breaker exists
-if [ ! -f "utils/circuit_breaker.py" ]; then
-    echo "Creating circuit_breaker.py utility for numerical stability..."
-    cat > utils/circuit_breaker.py << 'EOF'
 """
 Circuit breaker utility for detecting and handling numerical instabilities
 in simulations.
@@ -68,6 +28,8 @@ class CircuitBreaker:
         self.trigger_count = 0
         self.was_triggered = False
         self.energy_history = []
+        self.last_trigger_reason = None
+        self.timestep_recommendations = []
 
     def check_value_stability(self, value):
         """
@@ -83,12 +45,14 @@ class CircuitBreaker:
         if np.isnan(value) or np.isinf(value):
             self.trigger_count += 1
             self.was_triggered = True
+            self.last_trigger_reason = "NaN or Infinity detected"
             return True
 
         # Check for values outside allowed range
         if value > self.max_value or value < self.min_value:
             self.trigger_count += 1
             self.was_triggered = True
+            self.last_trigger_reason = f"Value {value} outside allowed range [{self.min_value}, {self.max_value}]"
             return True
 
         return False
@@ -107,12 +71,14 @@ class CircuitBreaker:
         if np.isnan(array).any() or np.isinf(array).any():
             self.trigger_count += 1
             self.was_triggered = True
+            self.last_trigger_reason = "NaN or Infinity detected in array"
             return True
 
         # Check for values outside allowed range
         if (array > self.max_value).any() or (array < self.min_value).any():
             self.trigger_count += 1
             self.was_triggered = True
+            self.last_trigger_reason = f"Array values outside allowed range [{self.min_value}, {self.max_value}]"
             return True
 
         return False
@@ -136,6 +102,13 @@ class CircuitBreaker:
         if rate > self.max_rate_of_change:
             self.trigger_count += 1
             self.was_triggered = True
+            self.last_trigger_reason = f"Rate of change {rate} exceeds maximum {self.max_rate_of_change}"
+
+            # Recommend timestep adjustment based on excessive rate of change
+            if len(self.timestep_recommendations) < 10:  # Limit number of recommendations
+                recommended_dt = 1.0 / (rate / self.max_rate_of_change)
+                self.timestep_recommendations.append(recommended_dt)
+
             return True
 
         return False
@@ -160,6 +133,7 @@ class CircuitBreaker:
         if energy > 1.5 * self.energy_history[-2]:
             self.trigger_count += 1
             self.was_triggered = True
+            self.last_trigger_reason = f"Energy spike detected: {energy} > 1.5 * {self.energy_history[-2]}"
             return True
 
         return False
@@ -177,7 +151,15 @@ class CircuitBreaker:
         """
         # Limit the exponent to avoid overflow
         x = np.clip(x, -50.0, 50.0)
-        return np.clip(np.exp(x), 0.0, max_result)
+        result = np.clip(np.exp(x), 0.0, max_result)
+
+        # Check if clipping was applied
+        if x < -50.0 or x > 50.0 or result == max_result:
+            self.trigger_count += 1
+            self.was_triggered = True
+            self.last_trigger_reason = "Exponential overflow prevented"
+
+        return result
 
     def safe_div(self, x, y, default=0.0):
         """
@@ -192,56 +174,107 @@ class CircuitBreaker:
             float: Division result or default
         """
         if abs(y) < self.threshold:
+            self.trigger_count += 1
+            self.was_triggered = True
+            self.last_trigger_reason = "Division by zero prevented"
             return default
         return x / y
+
+    def safe_sqrt(self, x, default=0.0):
+        """
+        Safe square root function to prevent domain errors.
+
+        Args:
+            x: The input value
+            default: Value to return if input is negative
+
+        Returns:
+            float: Square root result or default
+        """
+        if x < 0:
+            self.trigger_count += 1
+            self.was_triggered = True
+            self.last_trigger_reason = "Negative square root prevented"
+            return default
+        return np.sqrt(x)
+
+    def safe_log(self, x, default=0.0):
+        """
+        Safe logarithm function to prevent domain errors.
+
+        Args:
+            x: The input value
+            default: Value to return if input is negative or zero
+
+        Returns:
+            float: Logarithm result or default
+        """
+        if x <= 0:
+            self.trigger_count += 1
+            self.was_triggered = True
+            self.last_trigger_reason = "Invalid logarithm input prevented"
+            return default
+        return np.log(x)
+
+    def recommend_timestep(self, current_dt):
+        """
+        Recommend a timestep based on collected stability information.
+
+        Args:
+            current_dt: Current timestep being used
+
+        Returns:
+            float: Recommended timestep for stability
+        """
+        if not self.timestep_recommendations:
+            return current_dt
+
+        # Average the recommendations, but ensure it's not too small
+        avg_recommendation = np.mean(self.timestep_recommendations)
+        recommended_dt = max(0.01 * current_dt, min(avg_recommendation, current_dt))
+
+        # Clear recommendations after providing advice
+        self.timestep_recommendations = []
+
+        return recommended_dt
+
+    def check_gradients(self, gradients, threshold=10.0):
+        """
+        Check for excessively steep gradients that might cause instability.
+
+        Args:
+            gradients: Array of gradient values
+            threshold: Maximum allowed gradient magnitude
+
+        Returns:
+            bool: True if gradients exceed threshold, False otherwise
+        """
+        if np.any(np.abs(gradients) > threshold):
+            self.trigger_count += 1
+            self.was_triggered = True
+            self.last_trigger_reason = f"Gradient magnitude exceeds threshold {threshold}"
+            return True
+        return False
+
+    def get_status_report(self):
+        """
+        Get a report of the circuit breaker's status.
+
+        Returns:
+            dict: Status report with trigger count, last reason, etc.
+        """
+        return {
+            "triggers": self.trigger_count,
+            "was_triggered": self.was_triggered,
+            "last_reason": self.last_trigger_reason,
+            "energy_stability": len(self.energy_history) > 2 and
+                               abs(self.energy_history[-1] - self.energy_history[-2]) < 0.1 * self.energy_history[-2]
+        }
 
     def reset(self):
         """Reset the circuit breaker state."""
         self.trigger_count = 0
         self.was_triggered = False
         self.energy_history = []
-EOF
-
-    echo "Circuit breaker utility created."
-fi
-
-# Check if specific test is provided
-if [ $# -eq 1 ]; then
-    test_file=$1
-
-    # Check if the file exists
-    if [ ! -f "$test_file" ]; then
-        echo "Error: Test file $test_file does not exist"
-        exit 1
-    fi
-
-    # Check for stability flag
-    if [ "$2" == "--check-stability" ]; then
-        echo "Running specific test with stability checks: $test_file"
-        python -m unittest $test_file --check-stability
-    else
-        echo "Running specific test: $test_file"
-        python -m unittest $test_file
-    fi
-    exit_code=$?
-else
-    # Run all tests using standard unittest module
-    if [ "$1" == "--check-stability" ]; then
-        echo "Running all tests with stability checks..."
-        python -m unittest discover -s tests --check-stability
-    else
-        echo "Running all tests..."
-        python -m unittest discover -s tests
-    fi
-    exit_code=$?
-fi
-
-# Print success/failure message
-if [ $exit_code -eq 0 ]; then
-    echo -e "\n\033[0;32m✅ All tests passed successfully!\033[0m"
-else
-    echo -e "\n\033[0;31m❌ Some tests failed. Please check the output above for details.\033[0m"
-fi
-
-# Exit with the same status as the Python script
-exit $exit_code
+        self.last_trigger_reason = None
+        self.timestep_recommendations = []

@@ -1,165 +1,146 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
-Script to run the historical validation module for the Axiomatic Intelligence Growth Simulation.
-This compares simulation results with historical data and optimizes parameters.
+Run script for the improved historical validation module.
+This script allows testing the axiomatic model against historical data and optimizing parameters.
+With added numerical stability options.
 """
 
-import sys
-import os
-from pathlib import Path
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
 import argparse
+from pathlib import Path
+import sys
 
-# Add parent directory to path
+# Add parent directory to path to find modules
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-# Import validation module
-from config.historical_validation import HistoricalValidation
+# Import the historical validation module
+try:
+    # First try to import our improved version
+    from config.historical_validation_improved import HistoricalValidationImproved as HistoricalValidation
+except ImportError:
+    # Fall back to the original implementation if available
+    try:
+        from config.historical_validation import HistoricalValidation
+    except ImportError:
+        print("Error: Neither historical_validation.py nor historical_validation_improved.py found.")
+        print("Please create one of these files in the config directory.")
+        sys.exit(1)
 
-# Import data generator (for creating example data if needed)
-from config.historical_data_generator import generate_historical_data, visualize_historical_data
 
+def main():
+    """Main function to run historical validation."""
+    parser = argparse.ArgumentParser(
+        description="Run historical validation for the Axiomatic Intelligence Growth Simulation.")
 
-def main(args):
-    """Run the historical validation process."""
-    # Ensure output directories exist
-    plots_dir = Path(args.output_dir) / 'plots'
-    data_dir = Path(args.output_dir) / 'data'
-    plots_dir.mkdir(parents=True, exist_ok=True)
-    data_dir.mkdir(parents=True, exist_ok=True)
+    parser.add_argument("--data", type=str, help="Path to historical data CSV file (optional)")
+    parser.add_argument("--start-year", type=int, default=1000, help="Start year for validation")
+    parser.add_argument("--end-year", type=int, default=2020, help="End year for validation")
+    parser.add_argument("--interval", type=int, default=10, help="Year interval between data points")
+    parser.add_argument("--output-dir", type=str, default="outputs/historical_validation",
+                        help="Output directory for results")
+    parser.add_argument("--optimize", action="store_true", help="Optimize parameters to fit historical data")
+    parser.add_argument("--optimize-params", type=str, help="Comma-separated list of parameters to optimize")
+    parser.add_argument("--default", action="store_true", help="Run with default parameters only (no optimization)")
+    parser.add_argument("--generate-data", action="store_true", help="Generate synthetic historical data")
+    parser.add_argument("--verbose", action="store_true", help="Print detailed information during execution")
 
-    # Check if historical data exists, generate if it doesn't
-    historical_data_path = args.data
-    if not os.path.exists(historical_data_path):
-        print(f"Historical data file not found at {historical_data_path}")
+    # New numerical stability parameters
+    parser.add_argument("--max-knowledge", type=float, default=100.0, help="Maximum knowledge value")
+    parser.add_argument("--max-suppression", type=float, default=100.0, help="Maximum suppression value")
+    parser.add_argument("--max-intelligence", type=float, default=100.0, help="Maximum intelligence value")
+    parser.add_argument("--max-truth", type=float, default=100.0, help="Maximum truth value")
+    parser.add_argument("--enable-circuit-breaker", action="store_true", help="Enable circuit breaker for stability")
+    parser.add_argument("--stability-threshold", type=float, default=1e-6,
+                        help="Threshold for stability detection")
+    parser.add_argument("--enable-adaptive-timestep", action="store_true",
+                        help="Enable adaptive timestep for stability")
+    parser.add_argument("--min-timestep", type=float, default=0.1, help="Minimum timestep for adaptive calculations")
+    parser.add_argument("--max-timestep", type=float, default=5.0, help="Maximum timestep for adaptive calculations")
 
-        if args.generate_data:
-            print("Generating synthetic historical data...")
-            data = generate_historical_data(
-                start_year=args.start_year,
-                end_year=args.end_year,
-                interval=args.interval,
-                add_noise=True,
-                save_path=historical_data_path
-            )
+    args = parser.parse_args()
 
-            # Visualize generated data
-            visualize_historical_data(
-                data,
-                save_path=plots_dir / "historical_data_visualization.png"
-            )
-        else:
-            print("Use --generate-data flag to create synthetic historical data, or provide existing data with --data")
-            return 1
+    # Create output directory
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Create validation object
-    print(f"Creating historical validation object with data from {historical_data_path}")
+    # Determine data source
+    data_source = None
+    if args.data:
+        data_source = args.data
+    elif args.generate_data:
+        print("Generating synthetic historical data...")
+    else:
+        print("No data provided. Generating synthetic historical data by default...")
+
+    # Initialize historical validation with numerical stability parameters
+    print(f"Initializing historical validation ({args.start_year}-{args.end_year}, interval: {args.interval} years)...")
     validator = HistoricalValidation(
-        data_source=historical_data_path,
+        data_source=data_source,
         start_year=args.start_year,
         end_year=args.end_year,
-        interval=args.interval
+        interval=args.interval,
+        # New numerical stability parameters
+        max_knowledge=args.max_knowledge,
+        max_suppression=args.max_suppression,
+        max_intelligence=args.max_intelligence,
+        max_truth=args.max_truth,
+        enable_circuit_breaker=args.enable_circuit_breaker,
+        stability_threshold=args.stability_threshold,
+        enable_adaptive_timestep=args.enable_adaptive_timestep,
+        min_timestep=args.min_timestep,
+        max_timestep=args.max_timestep
     )
 
-    # Run initial simulation
-    print("Running simulation with default parameters...")
-    validator.run_simulation()
+    # Parse parameters to optimize
+    if args.optimize_params:
+        params_to_optimize = args.optimize_params.split(",")
+        # Verify that parameters exist
+        for param in params_to_optimize:
+            if param not in validator.default_params:
+                print(f"Warning: Parameter '{param}' not found. Ignoring.")
+                params_to_optimize.remove(param)
+    else:
+        # Default parameters to optimize
+        params_to_optimize = [
+            "K_0", "S_0", "knowledge_growth_rate", "truth_adoption_rate",
+            "suppression_decay", "medieval_knowledge_mult", "renaissance_knowledge_mult",
+            "enlightenment_knowledge_mult", "industrial_knowledge_mult",
+            "modern_knowledge_mult", "scientific_revolution_effect",
+            "cultural_diffusion_rate", "truth_knowledge_synergy",
+            "war_suppression_multiplier"
+        ]
 
-    # Calculate initial error
-    initial_error = validator.calculate_error()
-    print(f"Error with default parameters: {initial_error:.4f}")
+    # Run comprehensive analysis
+    if args.default:
+        # Run without optimization
+        print("Running simulation with default parameters only...")
+        validator.run_simulation()
+        validator.save_results(output_dir=str(output_dir / "default"))
+        validator.visualize_comparison(save_path=str(output_dir / "default" / "comparison.png"))
+        validator.visualize_periods(save_path=str(output_dir / "default" / "periods.png"))
+        validator.visualize_events(save_path=str(output_dir / "default" / "events.png"))
 
-    # Create initial comparison visualization
-    print("Generating initial comparison visualization...")
-    validator.visualize_comparison(
-        save_path=plots_dir / "historical_validation_initial.png"
-    )
+        # Save stability metrics if circuit breaker was enabled
+        if args.enable_circuit_breaker and hasattr(validator, 'circuit_breaker'):
+            validator.save_stability_metrics(save_path=str(output_dir / "default" / "stability_metrics.csv"))
+    else:
+        # Run comprehensive analysis
+        print("Running comprehensive analysis...")
+        results = validator.run_comprehensive_analysis(
+            output_dir=str(output_dir),
+            optimize=args.optimize
+        )
 
-    # Optimize parameters if requested
-    if args.optimize:
-        print("Optimizing parameters...")
+    print("\nValidation complete!")
+    print(f"Results saved to: {output_dir}")
 
-        # Define parameters to optimize based on command line arguments
-        if args.optimize_params:
-            params_to_optimize = args.optimize_params.split(',')
-            print(f"Optimizing specified parameters: {params_to_optimize}")
+    # Print stability information if circuit breaker was enabled
+    if args.enable_circuit_breaker and hasattr(validator, 'circuit_breaker'):
+        if validator.circuit_breaker.was_triggered:
+            print("WARNING: Circuit breaker was triggered during simulation!")
+            print(f"Number of instabilities detected: {validator.circuit_breaker.trigger_count}")
         else:
-            # Default parameters to optimize
-            params_to_optimize = [
-                "K_0", "S_0", "knowledge_growth_rate", "truth_adoption_rate",
-                "suppression_decay", "alpha_feedback", "beta_feedback"
-            ]
-            print(f"Optimizing default parameters: {params_to_optimize}")
-
-        # Run optimization
-        optimized_params = validator.optimize_parameters(
-            params_to_optimize=params_to_optimize,
-            method=args.optimize_method
-        )
-
-        # Calculate final error
-        final_error = validator.calculate_error()
-        print(f"Error after optimization: {final_error:.4f}")
-        print(f"Improvement: {initial_error - final_error:.4f} ({(1 - final_error / initial_error) * 100:.1f}%)")
-
-        # Save optimized parameters
-        pd.DataFrame([optimized_params]).to_csv(
-            data_dir / "optimized_parameters.csv", index=False
-        )
-        print(f"Optimized parameters saved to {data_dir / 'optimized_parameters.csv'}")
-
-    # Generate final visualizations
-    print("Generating final visualizations...")
-    validator.visualize_comparison(
-        save_path=plots_dir / "historical_validation_comparison.png"
-    )
-    validator.visualize_key_periods(
-        save_path=plots_dir / "historical_validation_periods.png"
-    )
-
-    # Export results
-    print("Exporting simulation results...")
-    validator.export_to_csv(
-        data_dir / "historical_validation_results.csv"
-    )
-
-    print("Historical validation complete!")
-    return 0
+            print("Simulation completed without numerical instabilities.")
 
 
 if __name__ == "__main__":
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description="Run historical validation for the simulation framework")
-
-    # Data parameters
-    parser.add_argument('--data', default='outputs/data/historical_data.csv',
-                        help='Path to historical data CSV file')
-    parser.add_argument('--generate-data', action='store_true',
-                        help='Generate synthetic historical data if none exists')
-    parser.add_argument('--start-year', type=int, default=1000,
-                        help='Start year for historical comparison')
-    parser.add_argument('--end-year', type=int, default=2020,
-                        help='End year for historical comparison')
-    parser.add_argument('--interval', type=int, default=10,
-                        help='Year interval for data points')
-
-    # Optimization parameters
-    parser.add_argument('--optimize', action='store_true',
-                        help='Run parameter optimization')
-    parser.add_argument('--optimize-params', type=str,
-                        help='Comma-separated list of parameters to optimize')
-    parser.add_argument('--optimize-method', default='SLSQP',
-                        choices=['SLSQP', 'L-BFGS-B', 'TNC', 'COBYLA'],
-                        help='Optimization method to use')
-
-    # Output parameters
-    parser.add_argument('--output-dir', default='outputs',
-                        help='Directory for output files')
-
-    # Parse arguments
-    args = parser.parse_args()
-
-    # Run main function
-    sys.exit(main(args))
+    main()

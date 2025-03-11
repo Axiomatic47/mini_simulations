@@ -9,7 +9,8 @@ In a real-world scenario, you would replace this with actual historical data.
 """
 
 
-def generate_historical_data(start_year=1000, end_year=2020, interval=10, add_noise=True, save_path=None):
+def generate_historical_data(start_year=1000, end_year=2020, interval=10, add_noise=True, save_path=None,
+                             max_noise=2.0, max_index_value=100.0, min_index_value=0.0):
     """
     Generate synthetic historical data with realistic patterns.
 
@@ -19,22 +20,33 @@ def generate_historical_data(start_year=1000, end_year=2020, interval=10, add_no
         interval (int): Year interval between data points
         add_noise (bool): Whether to add random noise to data
         save_path (str): Path to save CSV file, or None to return only
+        max_noise (float): Maximum amplitude of random noise
+        max_index_value (float): Maximum value for any index
+        min_index_value (float): Minimum value for any index
 
     Returns:
         pd.DataFrame: Generated historical data
     """
+    # Apply parameter bounds
+    start_year = max(0, min(end_year - 1, start_year))
+    end_year = max(start_year + 1, end_year)
+    interval = max(1, interval)
+    max_noise = max(0, max_noise)
+
     # Generate year range
     years = np.arange(start_year, end_year + 1, interval)
     num_years = len(years)
 
     # Time scale for calculations (0 to 1)
-    time_scale = (years - start_year) / (end_year - start_year)
+    time_scale = (years - start_year) / max(1, (end_year - start_year))
 
     # Generate historical knowledge index with key periods
     # 1. Knowledge Index - Growth of human knowledge and technology
 
     # Base exponential growth with periods of acceleration
-    knowledge = 10 * (np.exp(3 * time_scale) - 1) / (np.exp(3) - 1)
+    # Use bounded exponential to prevent overflow
+    exp_input = np.minimum(3 * time_scale, 10)  # Cap at 10 to prevent exp overflow
+    knowledge = 10 * (np.exp(exp_input) - 1) / (np.exp(3) - 1)
 
     # Add key historical periods
 
@@ -43,7 +55,7 @@ def generate_historical_data(start_year=1000, end_year=2020, interval=10, add_no
         dark_ages_mask = (years >= start_year) & (years < 1400)
         if np.any(dark_ages_mask):
             # Slow growth during Dark Ages
-            dark_ages_scale = (years[dark_ages_mask] - start_year) / (1400 - start_year)
+            dark_ages_scale = (years[dark_ages_mask] - start_year) / max(1, 1400 - start_year)
             knowledge[dark_ages_mask] = 1 + 2 * dark_ages_scale
 
     # Renaissance effect (1400-1600)
@@ -71,21 +83,26 @@ def generate_historical_data(start_year=1000, end_year=2020, interval=10, add_no
     info_age_mask = (years >= 1950)
     if np.any(info_age_mask):
         info_age_scale = (years[info_age_mask] - 1950) / 70
-        info_age_effect = 15 * (1 - np.exp(-3 * info_age_scale))
+        # Bound exponential input to prevent overflow
+        exp_input = np.minimum(-3 * info_age_scale, 0)  # Cap at 0 (since it's negative)
+        info_age_effect = 15 * (1 - np.exp(exp_input))
         knowledge[info_age_mask] += info_age_effect
 
     # Add noise if requested
     if add_noise:
-        knowledge += np.random.normal(0, 0.5, num_years)
+        noise = np.random.normal(0, min(0.5, max_noise / 2), num_years)
+        knowledge += noise
 
     # Ensure knowledge is positive and normalized to 0-100 scale
-    knowledge = np.maximum(0, knowledge)
-    knowledge = 100 * knowledge / np.max(knowledge)
+    knowledge = np.maximum(min_index_value, knowledge)
+    knowledge = min_index_value + (max_index_value - min_index_value) * knowledge / np.max(knowledge)
 
     # 2. Suppression Index - Resistance to new knowledge and freedom
 
     # Base suppression starts high and generally decreases
-    suppression = 80 * np.exp(-2 * time_scale) + 20
+    # Bound exponential input to prevent overflow
+    exp_input = np.minimum(-2 * time_scale, 0)  # Cap at 0 (since it's negative)
+    suppression = 80 * np.exp(exp_input) + 20
 
     # Add specific historical periods of high suppression
 
@@ -118,15 +135,16 @@ def generate_historical_data(start_year=1000, end_year=2020, interval=10, add_no
 
     # Add noise if requested
     if add_noise:
-        suppression += np.random.normal(0, 1.5, num_years)
+        noise = np.random.normal(0, min(1.5, max_noise), num_years)
+        suppression += noise
 
     # Ensure suppression is in 0-100 range
-    suppression = np.clip(suppression, 0, 100)
+    suppression = np.clip(suppression, min_index_value, max_index_value)
 
     # 3. Intelligence Index - Effective knowledge application
 
     # Intelligence is related to knowledge but reduced by suppression
-    intelligence = knowledge * (1 - 0.5 * suppression / 100)
+    intelligence = knowledge * (1 - 0.5 * suppression / max_index_value)
 
     # Add specific intelligence boosts during certain periods
 
@@ -144,22 +162,28 @@ def generate_historical_data(start_year=1000, end_year=2020, interval=10, add_no
     # Modern scientific methods (1850-present)
     modern_science_mask = (years >= 1850)
     if np.any(modern_science_mask):
-        modern_science_scale = (years[modern_science_mask] - 1850) / (end_year - 1850)
-        modern_science_effect = 10 * (1 - np.exp(-2 * modern_science_scale))
+        modern_science_scale = (years[modern_science_mask] - 1850) / max(1, end_year - 1850)
+        # Bound exponential input to prevent overflow
+        exp_input = np.minimum(-2 * modern_science_scale, 0)  # Cap at 0 (since it's negative)
+        modern_science_effect = 10 * (1 - np.exp(exp_input))
         intelligence[modern_science_mask] += modern_science_effect
 
     # Add noise if requested
     if add_noise:
-        intelligence += np.random.normal(0, 1.0, num_years)
+        noise = np.random.normal(0, min(1.0, max_noise / 1.5), num_years)
+        intelligence += noise
 
     # Normalize to 0-100 scale
-    intelligence = np.clip(intelligence, 0, None)
-    intelligence = 100 * intelligence / np.max(intelligence)
+    intelligence = np.clip(intelligence, min_index_value, None)
+    if np.max(intelligence) > 0:  # Prevent division by zero
+        intelligence = min_index_value + (max_index_value - min_index_value) * intelligence / np.max(intelligence)
 
     # 4. Truth Index - Factual accuracy and consensus reality
 
     # Truth starts low and gradually increases over time
-    truth = 20 + 80 * (1 - np.exp(-3 * time_scale))
+    # Bound exponential input to prevent overflow
+    exp_input = np.minimum(-3 * time_scale, 0)  # Cap at 0 (since it's negative)
+    truth = 20 + 80 * (1 - np.exp(exp_input))
 
     # Add specific truth fluctuations
 
@@ -178,24 +202,27 @@ def generate_historical_data(start_year=1000, end_year=2020, interval=10, add_no
     # Modern empiricism boosts truth (1850-present)
     modern_empiric_mask = (years >= 1850)
     if np.any(modern_empiric_mask):
-        modern_empiric_scale = (years[modern_empiric_mask] - 1850) / (end_year - 1850)
-        modern_empiric_effect = 20 * (1 - np.exp(-2 * modern_empiric_scale))
+        modern_empiric_scale = (years[modern_empiric_mask] - 1850) / max(1, end_year - 1850)
+        # Bound exponential input to prevent overflow
+        exp_input = np.minimum(-2 * modern_empiric_scale, 0)  # Cap at 0 (since it's negative)
+        modern_empiric_effect = 20 * (1 - np.exp(exp_input))
         truth[modern_empiric_mask] += modern_empiric_effect
 
     # Information age brings both truth and misinformation (post-1990)
     info_chaos_mask = (years >= 1990)
     if np.any(info_chaos_mask):
-        info_chaos_scale = (years[info_chaos_mask] - 1990) / (end_year - 1990)
+        info_chaos_scale = (years[info_chaos_mask] - 1990) / max(1, end_year - 1990)
         # Initial boost followed by slight decline due to misinformation
         info_chaos_effect = 5 * np.sin(np.pi * info_chaos_scale)
         truth[info_chaos_mask] += info_chaos_effect
 
     # Add noise if requested
     if add_noise:
-        truth += np.random.normal(0, 1.0, num_years)
+        noise = np.random.normal(0, min(1.0, max_noise / 1.5), num_years)
+        truth += noise
 
     # Normalize to 0-100 scale
-    truth = np.clip(truth, 0, 100)
+    truth = np.clip(truth, min_index_value, max_index_value)
 
     # Combine into dataframe
     data = pd.DataFrame({
@@ -216,7 +243,8 @@ def generate_historical_data(start_year=1000, end_year=2020, interval=10, add_no
     return data
 
 
-def visualize_historical_data(data, figsize=(15, 10), save_path=None):
+def visualize_historical_data(data, figsize=(15, 10), save_path=None,
+                              max_yval=100, min_yval=0, dpi=300):
     """
     Visualize the generated historical data.
 
@@ -224,10 +252,17 @@ def visualize_historical_data(data, figsize=(15, 10), save_path=None):
         data (pd.DataFrame): Historical data
         figsize (tuple): Figure size
         save_path (str): Path to save figure, or None to display only
+        max_yval (float): Maximum y-axis value
+        min_yval (float): Minimum y-axis value
+        dpi (int): DPI for saved figure
 
     Returns:
         matplotlib.figure.Figure: Figure object
     """
+    # Validate input data
+    if data is None or len(data) == 0 or 'year' not in data.columns:
+        raise ValueError("Invalid data format: Must include 'year' column")
+
     # Create figure
     fig, axes = plt.subplots(2, 2, figsize=figsize)
     axes = axes.flatten()
@@ -237,6 +272,9 @@ def visualize_historical_data(data, figsize=(15, 10), save_path=None):
 
     # Plot metrics
     for i, metric in enumerate(metrics):
+        if metric not in data.columns:
+            continue
+
         ax = axes[i]
         ax.plot(data["year"], data[metric], linewidth=2)
 
@@ -246,6 +284,9 @@ def visualize_historical_data(data, figsize=(15, 10), save_path=None):
         ax.set_xlabel("Year")
         ax.set_ylabel("Index Value")
         ax.grid(True)
+
+        # Set consistent y-axis limits
+        ax.set_ylim(min_yval, max_yval)
 
         # Highlight key historical periods
         highlight_periods = [
@@ -259,25 +300,39 @@ def visualize_historical_data(data, figsize=(15, 10), save_path=None):
 
         y_range = ax.get_ylim()[1] - ax.get_ylim()[0]
 
+        min_year = min(data["year"])
+        max_year = max(data["year"])
+
         for name, start, end, color in highlight_periods:
-            if start >= min(data["year"]) and end <= max(data["year"]):
-                ax.axvspan(start, end, alpha=0.2, color=color)
+            # Only add periods that overlap with the data range
+            if end >= min_year and start <= max_year:
+                # Adjust period to data range
+                visible_start = max(start, min_year)
+                visible_end = min(end, max_year)
 
-                # Add period label
-                label_x = (start + end) / 2
-                ax.text(label_x, 5, name, ha='center', va='bottom',
-                        fontsize=8, rotation=90, color='black')
+                # Add highlight
+                ax.axvspan(visible_start, visible_end, alpha=0.2, color=color)
 
-    # Add overall title
-    fig.suptitle("Historical Data (1000-2020)", fontsize=16)
+                # Add period label if enough space
+                if (visible_end - visible_start) > (max_year - min_year) * 0.05:
+                    label_x = (visible_start + visible_end) / 2
+                    ax.text(label_x, 5, name, ha='center', va='bottom',
+                            fontsize=8, rotation=90, color='black')
+
+    # Add overall title with data range
+    title = f"Historical Data ({min(data['year'])}-{max(data['year'])})"
+    fig.suptitle(title, fontsize=16)
 
     plt.tight_layout()
     plt.subplots_adjust(top=0.9)
 
     # Save figure if path provided
     if save_path is not None:
-        plt.savefig(save_path)
-        print(f"Figure saved to {save_path}")
+        try:
+            plt.savefig(save_path, dpi=dpi, bbox_inches='tight')
+            print(f"Figure saved to {save_path}")
+        except Exception as e:
+            print(f"Error saving figure: {e}")
 
     return fig
 
@@ -288,19 +343,22 @@ if __name__ == "__main__":
     end_year = 2020
     interval = 10
 
-    # Generate historical data
-    data = generate_historical_data(
-        start_year=start_year,
-        end_year=end_year,
-        interval=interval,
-        add_noise=True,
-        save_path="outputs/data/historical_data.csv"
-    )
+    try:
+        # Generate historical data
+        data = generate_historical_data(
+            start_year=start_year,
+            end_year=end_year,
+            interval=interval,
+            add_noise=True,
+            save_path="outputs/data/historical_data.csv"
+        )
 
-    # Visualize data
-    visualize_historical_data(
-        data,
-        save_path="outputs/plots/historical_data_visualization.png"
-    )
+        # Visualize data
+        visualize_historical_data(
+            data,
+            save_path="outputs/plots/historical_data_visualization.png"
+        )
 
-    print("Done!")
+        print("Done!")
+    except Exception as e:
+        print(f"An error occurred: {e}")

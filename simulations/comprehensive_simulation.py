@@ -15,8 +15,20 @@ from config.equations import (
     civilization_oscillation, knowledge_growth_phase_transition
 )
 
+# Import circuit breaker for numerical stability
+from utils.circuit_breaker import CircuitBreaker
+
 # Parameters
 timesteps, dt, num_agents = 400, 1, 5
+
+# Bounds for numerical stability
+MAX_KNOWLEDGE = 1000.0
+MAX_SUPPRESSION = 100.0
+MAX_INTELLIGENCE = 100.0
+MAX_TRUTH = 100.0
+MIN_VALUE = 0.0
+MIN_TIMESTEP = 0.1
+MAX_TIMESTEP = 5.0
 
 # Directories for outputs
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,6 +36,14 @@ plots_dir = BASE_DIR / 'outputs' / 'plots'
 data_dir = BASE_DIR / 'outputs' / 'data'
 plots_dir.mkdir(parents=True, exist_ok=True)
 data_dir.mkdir(parents=True, exist_ok=True)
+
+# Initialize circuit breaker
+circuit_breaker = CircuitBreaker(
+    threshold=1e-6,
+    max_value=MAX_KNOWLEDGE,
+    min_value=MIN_VALUE,
+    max_rate_of_change=100.0
+)
 
 # Arrays initialization
 K, S, I = (np.zeros((num_agents, timesteps)) for _ in range(3))
@@ -46,39 +66,125 @@ gamma_osc, omega_osc = 0.005, 0.3
 # Initial oscillation conditions
 E[0], dE_dt = 0.05, 0.0
 
-# Simulation loop
-for t in range(1, timesteps):
-    T[t] = T[t - 1] + truth_adoption(T[t - 1], A_truth, T_max) * dt
-    for agent in range(num_agents):
-        W = wisdom_field(W_0, alpha_wisdom, S[agent, t-1], R, K[agent, t-1])
-        K[agent, t] = knowledge_growth_phase_transition(
-            K[agent, t-1], beta_decay_phase, t, A_phase, gamma_phase, T[t-1], T_crit_phase)
-        S[agent, t] = resistance_resurgence(
-            S[agent, 0], lambda_decay, t, alpha_resurge, mu_resurge, t_crit_resurge)
-        S[agent, t] += suppression_feedback(alpha_feedback, S[agent, t-1], beta_feedback, K[agent, t-1]) * dt
-        I[agent, t] = I[agent, t-1] + intelligence_growth(K[agent, t], W, R, S[agent, t], N) * dt
+# Stability tracking
+stability_issues = 0
+adaptive_timestep = dt
+is_adaptive_timestep = True  # Enable adaptive timestep by default
 
-    osc_acceleration = civilization_oscillation(E[t-1], dE_dt, gamma_osc, omega_osc)
-    dE_dt += osc_acceleration * dt
-    E[t] = E[t-1] + dE_dt * dt
+
+# Safe mathematical operations
+def safe_div(x, y, default=0.0):
+    """Safe division with check for division by zero."""
+    if abs(y) < 1e-10:
+        return default
+    return x / y
+
+
+# Simulation loop
+print("Starting simulation...")
+for t in range(1, timesteps):
+    # Use adaptive timestep if enabled
+    if is_adaptive_timestep:
+        # Adjust timestep based on rate of change in previous step
+        if t > 1:
+            max_change_k = np.max(np.abs(K[:, t - 1] - K[:, t - 2]))
+            max_change_s = np.max(np.abs(S[:, t - 1] - S[:, t - 2]))
+            max_change = max(max_change_k, max_change_s)
+
+            if max_change > 10.0:
+                adaptive_timestep = max(MIN_TIMESTEP, adaptive_timestep * 0.5)
+            elif max_change < 1.0:
+                adaptive_timestep = min(MAX_TIMESTEP, adaptive_timestep * 1.1)
+
+        current_dt = adaptive_timestep
+    else:
+        current_dt = dt
+
+    # Truth adoption update with bounds
+    truth_change = truth_adoption(T[t - 1], A_truth, T_max)
+    T[t] = np.clip(T[t - 1] + truth_change * current_dt, MIN_VALUE, MAX_TRUTH)
+
+    for agent in range(num_agents):
+        # Calculate wisdom with bounds
+        W = wisdom_field(W_0, alpha_wisdom, S[agent, t - 1], R, K[agent, t - 1])
+
+        # Knowledge growth with phase transition and bounds
+        k_growth = knowledge_growth_phase_transition(
+            K[agent, t - 1], beta_decay_phase, t, A_phase, gamma_phase, T[t - 1], T_crit_phase)
+
+        # Check for potential instability in knowledge growth
+        if circuit_breaker.check_value_stability(k_growth):
+            # If unstable, use a safer, limited growth rate
+            stability_issues += 1
+            k_growth = np.clip(k_growth, 0, K[agent, t - 1] * 0.1)  # Limit growth to 10%
+
+        K[agent, t] = np.clip(K[agent, t - 1] + k_growth * current_dt, MIN_VALUE, MAX_KNOWLEDGE)
+
+        # Suppression update with bounds
+        s_base = resistance_resurgence(
+            S[agent, 0], lambda_decay, t, alpha_resurge, mu_resurge, t_crit_resurge)
+
+        s_feedback = suppression_feedback(alpha_feedback, S[agent, t - 1], beta_feedback, K[agent, t - 1])
+
+        # Check for potential instability in suppression calculation
+        if circuit_breaker.check_value_stability(s_feedback):
+            stability_issues += 1
+            s_feedback = np.clip(s_feedback, -1.0, 1.0)  # Limit feedback magnitude
+
+        S[agent, t] = np.clip(s_base + s_feedback * current_dt, MIN_VALUE, MAX_SUPPRESSION)
+
+        # Intelligence growth with bounds
+        i_growth = intelligence_growth(K[agent, t], W, R, S[agent, t], N)
+
+        # Check for potential instability in intelligence growth
+        if circuit_breaker.check_value_stability(i_growth):
+            stability_issues += 1
+            i_growth = np.clip(i_growth, -1.0, 1.0)  # Limit growth/decline rate
+
+        I[agent, t] = np.clip(I[agent, t - 1] + i_growth * current_dt, MIN_VALUE, MAX_INTELLIGENCE)
+
+    # Civilization oscillation with bounds
+    osc_acceleration = civilization_oscillation(E[t - 1], dE_dt, gamma_osc, omega_osc)
+
+    # Check for potential instability in oscillation
+    if circuit_breaker.check_value_stability(osc_acceleration):
+        stability_issues += 1
+        osc_acceleration = np.clip(osc_acceleration, -0.1, 0.1)  # Limit acceleration
+
+    dE_dt = np.clip(dE_dt + osc_acceleration * current_dt, -1.0, 1.0)
+    E[t] = np.clip(E[t - 1] + dE_dt * current_dt, -1.0, 1.0)
+
+    # Output progress and any stability issues
+    if t % 100 == 0:
+        print(f"Step {t}/{timesteps} completed. Stability issues: {stability_issues}")
+
+print(f"Simulation completed with {stability_issues} stability issues detected.")
+
+# Replace any remaining NaN or inf values that might have slipped through
+K = np.nan_to_num(K, nan=0.0, posinf=MAX_KNOWLEDGE, neginf=0.0)
+S = np.nan_to_num(S, nan=0.0, posinf=MAX_SUPPRESSION, neginf=0.0)
+I = np.nan_to_num(I, nan=0.0, posinf=MAX_INTELLIGENCE, neginf=0.0)
+T = np.nan_to_num(T, nan=0.0, posinf=MAX_TRUTH, neginf=0.0)
+E = np.nan_to_num(E, nan=0.0, posinf=1.0, neginf=-1.0)
 
 # Plotting
 plt.figure(figsize=(12, 10))
 
 # Plot data
 plot_data = [
-    (np.mean(I, axis=0), 'Intelligence', 'blue'),
-    (T, 'Truth Adoption', 'green'),
-    (np.mean(S, axis=0), 'Suppression Level', 'red'),
-    (E, 'Civilization Oscillation', 'purple')
+    (np.mean(I, axis=0), 'Intelligence', 'blue', 0, MAX_INTELLIGENCE),
+    (T, 'Truth Adoption', 'green', 0, MAX_TRUTH),
+    (np.mean(S, axis=0), 'Suppression Level', 'red', 0, MAX_SUPPRESSION),
+    (E, 'Civilization Oscillation', 'purple', -1, 1)
 ]
 
-for i, (data, title, color) in enumerate(plot_data):
+for i, (data, title, color, y_min, y_max) in enumerate(plot_data):
     plt.subplot(2, 2, i + 1)
     plt.plot(np.arange(timesteps), data, color=color, linewidth=2)
     plt.title(f'{title} Dynamics')
     plt.xlabel('Time Steps')
     plt.ylabel(title)
+    plt.ylim(y_min, y_max)
     plt.legend([title])
     plt.grid(True)
 
@@ -95,5 +201,20 @@ df_results = pd.DataFrame({
 })
 
 df_results.to_csv(data_dir / "comprehensive_simulation_results.csv", index=False)
+
+# Save stability metrics
+stability_metrics = {
+    'Total_Stability_Issues': stability_issues,
+    'Circuit_Breaker_Triggers': circuit_breaker.trigger_count,
+    'Max_Knowledge': np.max(K),
+    'Max_Suppression': np.max(S),
+    'Max_Intelligence': np.max(I),
+    'Max_Truth': np.max(T),
+    'Final_Timestep': adaptive_timestep if is_adaptive_timestep else dt
+}
+
+stability_df = pd.DataFrame([stability_metrics])
+stability_df.to_csv(data_dir / "comprehensive_simulation_stability.csv", index=False)
+print(f"Stability metrics saved to: {data_dir / 'comprehensive_simulation_stability.csv'}")
 
 plt.show()

@@ -14,6 +14,9 @@ from config.equations import (
     resistance_resurgence, suppression_feedback
 )
 
+# Import circuit breaker for numerical stability
+from utils.circuit_breaker import CircuitBreaker
+
 # Import astrophysics extensions if they're available
 try:
     from config.astrophysics_extensions import (
@@ -23,14 +26,15 @@ except ImportError:
     print("Warning: Astrophysics extensions not found. Some functionality will be limited.")
 
 
-class HistoricalValidationImproved:
+class HistoricalValidation:
     """
-    An improved class for validating the Axiomatic Intelligence Growth Simulation against historical data.
-    Implements event-driven perturbations, phase-specific parameters, cultural transfer functions,
-    and improved suppression dynamics.
+    A class for validating the Axiomatic Intelligence Growth Simulation against historical data.
     """
 
-    def __init__(self, data_source=None, start_year=1000, end_year=2020, interval=10):
+    def __init__(self, data_source=None, start_year=1000, end_year=2020, interval=10,
+                 max_knowledge=100.0, max_suppression=100.0, max_intelligence=100.0, max_truth=100.0,
+                 enable_circuit_breaker=True, stability_threshold=1e-6,
+                 enable_adaptive_timestep=False, min_timestep=0.1, max_timestep=5.0):
         """
         Initialize the historical validation model.
 
@@ -39,12 +43,44 @@ class HistoricalValidationImproved:
             start_year (int): First year to include in validation
             end_year (int): Last year to include in validation
             interval (int): Year interval for data points
+            max_knowledge (float): Maximum knowledge value for bounding
+            max_suppression (float): Maximum suppression value for bounding
+            max_intelligence (float): Maximum intelligence value for bounding
+            max_truth (float): Maximum truth value for bounding
+            enable_circuit_breaker (bool): Whether to enable circuit breaker for stability
+            stability_threshold (float): Threshold for stability detection
+            enable_adaptive_timestep (bool): Whether to enable adaptive timestep
+            min_timestep (float): Minimum timestep for adaptive calculations
+            max_timestep (float): Maximum timestep for adaptive calculations
         """
         self.start_year = start_year
         self.end_year = end_year
         self.interval = interval
         self.years = np.arange(start_year, end_year + 1, interval)
         self.num_years = len(self.years)
+
+        # Numerical stability parameters
+        self.max_knowledge = max_knowledge
+        self.max_suppression = max_suppression
+        self.max_intelligence = max_intelligence
+        self.max_truth = max_truth
+        self.min_value = 0.0  # Minimum value for all metrics
+        self.enable_circuit_breaker = enable_circuit_breaker
+        self.stability_threshold = stability_threshold
+        self.enable_adaptive_timestep = enable_adaptive_timestep
+        self.min_timestep = min_timestep
+        self.max_timestep = max_timestep
+        self.current_timestep = 1.0  # Default timestep
+        self.stability_issues = 0  # Counter for stability issues
+
+        # Initialize circuit breaker if enabled
+        if self.enable_circuit_breaker:
+            self.circuit_breaker = CircuitBreaker(
+                threshold=stability_threshold,
+                max_value=max_knowledge,
+                min_value=self.min_value,
+                max_rate_of_change=10.0
+            )
 
         # Historical metrics to track
         self.metrics = [
@@ -67,38 +103,8 @@ class HistoricalValidationImproved:
         # Store simulation results
         self.simulation_results = None
 
-        # Define historical periods and events
-        self.historical_periods = [
-            {"name": "Medieval", "start_year": 1000, "end_year": 1400},
-            {"name": "Renaissance", "start_year": 1400, "end_year": 1600},
-            {"name": "Enlightenment", "start_year": 1600, "end_year": 1800},
-            {"name": "Industrial", "start_year": 1800, "end_year": 1900},
-            {"name": "Modern", "start_year": 1900, "end_year": 2020}
-        ]
-
-        self.historical_events = [
-            {"name": "Black Death", "year": 1350, "duration": 10,
-             "effects": {"knowledge": -0.2, "suppression": 0.3, "intelligence": -0.2, "truth": -0.1}},
-            {"name": "Printing Press", "year": 1440, "duration": 20,
-             "effects": {"knowledge": 0.5, "suppression": -0.2, "intelligence": 0.3, "truth": 0.2}},
-            {"name": "Religious Wars", "year": 1550, "duration": 80,
-             "effects": {"knowledge": -0.1, "suppression": 0.4, "intelligence": -0.1, "truth": -0.2}},
-            {"name": "Scientific Revolution", "year": 1600, "duration": 80,
-             "effects": {"knowledge": 0.4, "suppression": -0.3, "intelligence": 0.3, "truth": 0.6}},
-            {"name": "Industrial Revolution", "year": 1760, "duration": 80,
-             "effects": {"knowledge": 0.6, "suppression": -0.2, "intelligence": 0.5, "truth": 0.3}},
-            {"name": "World War I", "year": 1914, "duration": 4,
-             "effects": {"knowledge": 0.3, "suppression": 0.7, "intelligence": -0.1, "truth": -0.2}},
-            {"name": "Great Depression", "year": 1929, "duration": 10,
-             "effects": {"knowledge": -0.1, "suppression": 0.3, "intelligence": -0.2, "truth": -0.1}},
-            {"name": "World War II", "year": 1939, "duration": 6,
-             "effects": {"knowledge": 0.4, "suppression": 0.8, "intelligence": -0.1, "truth": -0.3}},
-            {"name": "Information Age", "year": 1970, "duration": 50,
-             "effects": {"knowledge": 0.8, "suppression": -0.4, "intelligence": 0.7, "truth": 0.5}}
-        ]
-
     def _load_historical_data(self, data_source):
-        """Load historical data from CSV file."""
+        """Load historical data from CSV file with error handling."""
         try:
             data = pd.read_csv(data_source)
             # Check if all needed columns exist
@@ -115,6 +121,25 @@ class HistoricalValidationImproved:
                 # Interpolate missing years if necessary
                 data = self._interpolate_missing_years(data)
 
+            # Ensure data is within bounds
+            for metric in self.metrics:
+                if metric == "knowledge_index":
+                    data[metric] = np.clip(data[metric], self.min_value, self.max_knowledge)
+                elif metric == "suppression_index":
+                    data[metric] = np.clip(data[metric], self.min_value, self.max_suppression)
+                elif metric == "intelligence_index":
+                    data[metric] = np.clip(data[metric], self.min_value, self.max_intelligence)
+                elif metric == "truth_index":
+                    data[metric] = np.clip(data[metric], self.min_value, self.max_truth)
+
+            # Check for NaN or inf values
+            if data.isnull().any().any() or np.isinf(data.values).any():
+                print("Warning: NaN or infinite values found in data. Replacing with safe values.")
+                data = data.fillna(0.0)
+                for metric in self.metrics:
+                    max_val = getattr(self, f"max_{metric.split('_')[0]}")
+                    data[metric] = np.nan_to_num(data[metric], nan=0.0, posinf=max_val, neginf=0.0)
+
             return data
 
         except Exception as e:
@@ -123,7 +148,7 @@ class HistoricalValidationImproved:
             return self._generate_synthetic_data()
 
     def _interpolate_missing_years(self, data):
-        """Interpolate missing years in historical data."""
+        """Interpolate missing years in historical data with bounds."""
         # Create a complete dataframe with all years
         complete_df = pd.DataFrame({"year": self.years})
 
@@ -134,10 +159,20 @@ class HistoricalValidationImproved:
         for metric in self.metrics:
             merged[metric] = merged[metric].interpolate(method='linear')
 
+            # Apply bounds based on metric type
+            if metric == "knowledge_index":
+                merged[metric] = np.clip(merged[metric], self.min_value, self.max_knowledge)
+            elif metric == "suppression_index":
+                merged[metric] = np.clip(merged[metric], self.min_value, self.max_suppression)
+            elif metric == "intelligence_index":
+                merged[metric] = np.clip(merged[metric], self.min_value, self.max_intelligence)
+            elif metric == "truth_index":
+                merged[metric] = np.clip(merged[metric], self.min_value, self.max_truth)
+
         return merged
 
     def _generate_synthetic_data(self):
-        """Generate synthetic historical data based on known patterns."""
+        """Generate synthetic historical data based on known patterns with bounds."""
         data = pd.DataFrame({"year": self.years})
 
         # Generate historical knowledge index with key periods
@@ -145,10 +180,13 @@ class HistoricalValidationImproved:
         knowledge = np.zeros(self.num_years)
 
         # Base exponential growth with periods of acceleration
-        time_scale = (self.years - self.start_year) / (self.end_year - self.start_year)
+        time_scale = (self.years - self.start_year) / max(1, (self.end_year - self.start_year))
+
+        # Safe exponential function to prevent overflow
+        safe_exp = lambda x: np.clip(np.exp(np.clip(x, -50, 50)), 0, 1e10)
 
         # Basic growth component (slow early growth, accelerating in modern era)
-        knowledge = 10 * (np.exp(3 * time_scale) - 1) / (np.exp(3) - 1)
+        knowledge = 10 * (safe_exp(3 * time_scale) - 1) / max(1e-10, (safe_exp(3) - 1))
 
         # Add Renaissance effect (1400-1600)
         renaissance_mask = (self.years >= 1400) & (self.years <= 1600)
@@ -164,25 +202,29 @@ class HistoricalValidationImproved:
 
         # Add Information Age effect (1950-present)
         info_age_mask = (self.years >= 1950)
-        knowledge[info_age_mask] += 15 * (1 - np.exp(-(self.years[info_age_mask] - 1950) / 30))
+        if np.any(info_age_mask):
+            knowledge[info_age_mask] += 15 * (1 - safe_exp(-(self.years[info_age_mask] - 1950) / 30))
 
-        # Add some noise
-        knowledge += np.random.normal(0, 0.5, self.num_years)
+        # Add some noise with bounds
+        knowledge += np.clip(np.random.normal(0, 0.5, self.num_years), -2.0, 2.0)
 
         # Ensure knowledge is positive and normalized to 0-100 scale
         knowledge = np.maximum(0, knowledge)
-        knowledge = 100 * knowledge / knowledge[-1]
+        if knowledge[-1] > 0:
+            knowledge = 100 * knowledge / knowledge[-1]
+        else:
+            knowledge = np.linspace(1, 100, self.num_years)  # Fallback if normalization fails
 
         # Generate suppression index
         suppression = np.zeros(self.num_years)
 
         # Base suppression starts high and generally decreases
-        suppression = 80 * np.exp(-2 * time_scale) + 20
+        suppression = 80 * safe_exp(-2 * time_scale) + 20
 
         # Add Dark Ages effect (500-1300)
         dark_ages_mask = (self.years >= self.start_year) & (self.years <= 1300)
         if np.any(dark_ages_mask):
-            suppression[dark_ages_mask] += 10 * np.exp(-(self.years[dark_ages_mask] - self.start_year) / 300)
+            suppression[dark_ages_mask] += 10 * safe_exp(-(self.years[dark_ages_mask] - self.start_year) / 300)
 
         # Add religious persecution effects (1450-1750)
         persecution_mask = (self.years >= 1450) & (self.years <= 1750)
@@ -199,30 +241,25 @@ class HistoricalValidationImproved:
         if np.any(ww2_mask):
             suppression[ww2_mask] += 25
         if np.any(cold_war_mask):
-            suppression[cold_war_mask] += 15 * np.exp(-(self.years[cold_war_mask] - 1947) / 44)
+            suppression[cold_war_mask] += 15 * safe_exp(-(self.years[cold_war_mask] - 1947) / 44)
 
-        # Add some noise
-        suppression += np.random.normal(0, 1.0, self.num_years)
+        # Add some noise with bounds
+        suppression += np.clip(np.random.normal(0, 1.0, self.num_years), -3.0, 3.0)
 
         # Ensure suppression is in 0-100 range
-        suppression = np.maximum(0, suppression)
-        suppression = np.minimum(100, suppression)
+        suppression = np.clip(suppression, 0, self.max_suppression)
 
         # Generate intelligence index (related to knowledge and inverse of suppression)
-        intelligence = knowledge * (1 - 0.5 * suppression / 100)
-        intelligence = 100 * intelligence / intelligence[-1]  # Normalize to 0-100
+        intelligence = knowledge * (1 - 0.5 * suppression / max(1, suppression.max()))
+        intelligence = np.clip(100 * intelligence / max(1e-10, intelligence[-1]), 0,
+                               self.max_intelligence)  # Normalize to 0-100
 
         # Generate truth index (related to knowledge but with different dynamics)
-        truth = 20 + 80 * (1 - np.exp(-3 * time_scale))  # Starts at 20, approaches 100
+        truth = 20 + 80 * (1 - safe_exp(-3 * time_scale))  # Starts at 20, approaches 100
 
-        # Add Scientific Revolution effect (sudden jump around 1600)
-        scientific_revolution_mask = (self.years >= 1600)
-        if np.any(scientific_revolution_mask):
-            truth[scientific_revolution_mask] += 20
-
-        # Add some noise
-        truth += np.random.normal(0, 1.0, self.num_years)
-        truth = np.clip(truth, 0, 100)  # Keep in 0-100 range
+        # Add some noise with bounds
+        truth += np.clip(np.random.normal(0, 1.0, self.num_years), -3.0, 3.0)
+        truth = np.clip(truth, 0, self.max_truth)  # Keep in 0-100 range
 
         # Combine into dataframe
         data["knowledge_index"] = knowledge
@@ -233,17 +270,17 @@ class HistoricalValidationImproved:
         return data
 
     def _get_default_parameters(self):
-        """Set default parameters for simulation."""
+        """Set default parameters for simulation with stability bounds."""
         return {
             # Basic parameters
-            "K_0": 10.0,  # Initial knowledge
-            "S_0": 18.0,  # Initial suppression
+            "K_0": 1.0,  # Initial knowledge
+            "S_0": 10.0,  # Initial suppression
             "I_0": 5.0,  # Initial intelligence
             "T_0": 1.0,  # Initial truth
 
             # Growth and decay rates
-            "knowledge_growth_rate": 0.027,  # Base knowledge growth rate
-            "truth_adoption_rate": 0.34,  # Truth adoption acceleration
+            "knowledge_growth_rate": 0.05,  # Base knowledge growth rate
+            "truth_adoption_rate": 0.5,  # Truth adoption acceleration
             "truth_max": 40.0,  # Maximum theoretical truth
             "suppression_decay": 0.05,  # Suppression decay rate
 
@@ -261,78 +298,144 @@ class HistoricalValidationImproved:
             "gamma_phase": 0.1,  # Phase transition sharpness
             "t_crit_phase": 20.0,  # Critical threshold for transition
 
-            # NEW: Period-specific parameters
-            "medieval_knowledge_mult": 0.5,  # Knowledge growth multiplier for medieval period
-            "renaissance_knowledge_mult": 1.2,  # Knowledge growth multiplier for renaissance
-            "enlightenment_knowledge_mult": 1.5,  # Knowledge growth multiplier for enlightenment
-            "industrial_knowledge_mult": 2.0,  # Knowledge growth multiplier for industrial rev
-            "modern_knowledge_mult": 3.0,  # Knowledge growth multiplier for modern period
-
-            # NEW: Cultural transfer parameters
-            "scientific_revolution_effect": 0.6,  # Effect of scientific revolution on truth
-            "cultural_diffusion_rate": 0.05,  # Rate of cultural diffusion of knowledge
-            "truth_knowledge_synergy": 0.2,  # Synergistic effect between truth and knowledge
-
-            # NEW: Suppression parameters
-            "suppression_resurgence_strength": 0.8,  # Strength of suppression resurgence
-            "suppression_recovery_rate": 0.1,  # Rate of recovery from suppression spikes
-            "war_suppression_multiplier": 2.0,  # Multiplier for war effects on suppression
+            # Numerical stability parameters
+            "max_time_exponent": 50.0,  # Maximum time value for exponents
+            "min_divisor": 1e-10,  # Minimum divisor for division operations
+            "max_growth_rate": 5.0,  # Maximum allowed growth rate per step
+            "max_knowledge": self.max_knowledge,  # Maximum knowledge value
+            "max_suppression": self.max_suppression,  # Maximum suppression value
+            "max_intelligence": self.max_intelligence,  # Maximum intelligence value
+            "max_truth": self.max_truth,  # Maximum truth value
         }
 
+    def _apply_normalization(self, value, params):
+        """Apply normalization with safeguards against division by zero."""
+        # Safe division utility
+        if self.enable_circuit_breaker:
+            return self.circuit_breaker.safe_div(value, params.get("normalization_factor", 1.0), default=value)
+        else:
+            norm_factor = params.get("normalization_factor", 1.0)
+            if abs(norm_factor) < 1e-10:
+                return value
+            return value / norm_factor
+
+    def _apply_growth(self, value, params):
+        """Apply exponential growth with safeguards against overflow."""
+        # Safe exponential utility
+        exponent = np.clip(params.get("exponential_factor", 0.0), -50, 50)
+        if self.enable_circuit_breaker:
+            result = self.circuit_breaker.safe_exp(exponent)
+        else:
+            result = np.exp(exponent)
+
+        return np.clip(value * result, 0, self.max_knowledge)
+
     def _get_period_multipliers(self, params, year):
-        """Get period-specific multipliers for a given year."""
-        # Default multiplier is 1.0
-        multipliers = {"knowledge": 1.0, "truth": 1.0, "suppression": 1.0, "intelligence": 1.0}
+        """Get period-specific multipliers with bounds."""
+        # Default multipliers
+        multipliers = {
+            "knowledge": 1.0,
+            "truth": 1.0,
+            "suppression": 1.0
+        }
 
         # Apply period-specific multipliers
-        if year <= 1400:  # Medieval
-            multipliers["knowledge"] = params["medieval_knowledge_mult"]
-        elif year <= 1600:  # Renaissance
-            multipliers["knowledge"] = params["renaissance_knowledge_mult"]
-        elif year <= 1800:  # Enlightenment
-            multipliers["knowledge"] = params["enlightenment_knowledge_mult"]
-        elif year <= 1900:  # Industrial
-            multipliers["knowledge"] = params["industrial_knowledge_mult"]
+        if year < 1300:  # Medieval
+            multipliers["knowledge"] = params.get("medieval_knowledge_mult", 0.5)
+            multipliers["suppression"] = params.get("medieval_suppression_mult", 1.5)
+        elif year < 1600:  # Renaissance
+            multipliers["knowledge"] = params.get("renaissance_knowledge_mult", 1.0)
+            multipliers["suppression"] = params.get("renaissance_suppression_mult", 1.2)
+        elif year < 1800:  # Enlightenment
+            multipliers["knowledge"] = params.get("enlightenment_knowledge_mult", 1.5)
+            multipliers["suppression"] = params.get("enlightenment_suppression_mult", 1.0)
+        elif year < 1900:  # Industrial
+            multipliers["knowledge"] = params.get("industrial_knowledge_mult", 2.0)
+            multipliers["suppression"] = params.get("industrial_suppression_mult", 0.8)
         else:  # Modern
-            multipliers["knowledge"] = params["modern_knowledge_mult"]
+            multipliers["knowledge"] = params.get("modern_knowledge_mult", 3.0)
+            multipliers["suppression"] = params.get("modern_suppression_mult", 0.5)
+
+        # Bound multipliers to reasonable ranges
+        for key in multipliers:
+            multipliers[key] = np.clip(multipliers[key], 0.1, 10.0)
 
         return multipliers
 
     def _get_event_effects(self, year):
-        """Calculate event effects for a given year."""
-        effects = {"knowledge": 0.0, "suppression": 0.0, "intelligence": 0.0, "truth": 0.0}
+        """Get event-specific effects for a given year with bounds."""
+        effects = {
+            "knowledge": 0.0,
+            "suppression": 0.0,
+            "intelligence": 0.0,
+            "truth": 0.0
+        }
 
-        for event in self.historical_events:
-            event_start = event["year"]
-            event_end = event["year"] + event["duration"]
+        # Define major historical events and their effects
+        # World War I (1914-1918)
+        if 1914 <= year <= 1918:
+            effects["suppression"] += 2.0
+            effects["intelligence"] -= 0.5
+            effects["knowledge"] += 0.5  # Some technological advances
 
-            if event_start <= year <= event_end:
-                # Calculate effect strength based on position within event duration
-                # Strongest at the beginning, tapering off toward the end
-                position = (year - event_start) / max(1, event["duration"])
-                strength = 1.0 - position ** 2  # Quadratic decay
+        # Great Depression (1929-1939)
+        elif 1929 <= year <= 1939:
+            effects["suppression"] += 1.0
+            effects["knowledge"] -= 0.2
 
-                # Apply event effects with decay
-                for metric, effect in event["effects"].items():
-                    effects[metric] += effect * strength
+        # World War II (1939-1945)
+        elif 1939 <= year <= 1945:
+            effects["suppression"] += 2.5
+            effects["intelligence"] -= 0.7
+            effects["knowledge"] += 1.0  # Major technological advances
+
+        # Cold War (1947-1991)
+        elif 1947 <= year <= 1991:
+            effects["suppression"] += 1.0
+            effects["knowledge"] += 0.5  # Space race, etc.
+
+        # Information Age (1970-present)
+        elif year >= 1970:
+            effects["knowledge"] += 1.0
+            effects["suppression"] -= 0.5
+            effects["truth"] += 0.3
+
+        # Bound effects to reasonable ranges
+        for key in effects:
+            effects[key] = np.clip(effects[key], -5.0, 5.0)
 
         return effects
 
     def _apply_cultural_transfer(self, K, T, params):
-        """Apply cultural transfer effects between knowledge and truth."""
-        # Synergistic effect - knowledge and truth enhance each other
-        k_enhancement = params["truth_knowledge_synergy"] * T * K / 100.0
-        t_enhancement = params["cultural_diffusion_rate"] * K
+        """Apply cultural transfer functions with stability safeguards."""
+        # Cultural diffusion rate
+        diffusion_rate = params.get("cultural_diffusion_rate", 0.1)
 
-        # Add scientific revolution effect if applicable
-        if T > 20:  # Only apply after a certain truth threshold
-            t_enhancement += params["scientific_revolution_effect"] * K / 20.0
+        # Knowledge enhancement from cultural exchange
+        k_enhancement = diffusion_rate * K * np.clip(T / 100.0, 0.0, 1.0)
+
+        # Truth enhancement from scientific revolution effect
+        scientific_effect = params.get("scientific_revolution_effect", 2.0)
+        t_critical = 20.0  # Threshold for scientific revolution
+
+        if T > t_critical:
+            t_enhancement = scientific_effect * np.clip((T - t_critical) / 30.0, 0.0, 1.0)
+        else:
+            t_enhancement = 0.0
+
+        # Add synergy effect
+        synergy = params.get("truth_knowledge_synergy", 0.5)
+        t_enhancement += synergy * np.sqrt(np.clip(K * T / 1000.0, 0.0, 10.0))
+
+        # Bound enhancements
+        k_enhancement = np.clip(k_enhancement, 0.0, self.max_knowledge)
+        t_enhancement = np.clip(t_enhancement, 0.0, self.max_truth)
 
         return k_enhancement, t_enhancement
 
     def run_simulation(self, params=None, return_arrays=False):
         """
-        Run a simulation with given parameters.
+        Run a simulation with given parameters and numerical stability safeguards.
 
         Parameters:
             params (dict): Parameters to use, or None to use current parameters
@@ -342,23 +445,25 @@ class HistoricalValidationImproved:
             DataFrame or dict: Simulation results
         """
         if params is not None:
-            self.current_params = params
+            self.current_params = params.copy()
 
         # Setup simulation
         timesteps = self.num_years
         dt = 1.0
+        self.current_timestep = dt  # Reset timestep
 
         # Set up arrays
         K = np.zeros(timesteps)
         S = np.zeros(timesteps)
         I = np.zeros(timesteps)
         T = np.zeros(timesteps)
+        stability_history = np.zeros(timesteps, dtype=int)
 
-        # Initial conditions
-        K[0] = self.current_params["K_0"]
-        S[0] = self.current_params["S_0"]
-        I[0] = self.current_params["I_0"]
-        T[0] = self.current_params["T_0"]
+        # Initial conditions with bounds
+        K[0] = np.clip(self.current_params["K_0"], self.min_value, self.max_knowledge)
+        S[0] = np.clip(self.current_params["S_0"], self.min_value, self.max_suppression)
+        I[0] = np.clip(self.current_params["I_0"], self.min_value, self.max_intelligence)
+        T[0] = np.clip(self.current_params["T_0"], self.min_value, self.max_truth)
 
         # Extract parameters
         knowledge_growth_rate = self.current_params["knowledge_growth_rate"]
@@ -373,66 +478,143 @@ class HistoricalValidationImproved:
         mu_resurge = self.current_params["mu_resurge"]
         gamma_phase = self.current_params["gamma_phase"]
         t_crit_phase = self.current_params["t_crit_phase"]
-        war_suppression_multiplier = self.current_params["war_suppression_multiplier"]
+        max_time_exponent = self.current_params.get("max_time_exponent", 50.0)
 
         # Simulation loop
         for t in range(1, timesteps):
-            current_year = self.years[t]
+            # Calculate adaptive timestep if enabled
+            if self.enable_adaptive_timestep and t > 1:
+                # Calculate maximum rate of change from previous step
+                k_change = abs(K[t - 1] - K[t - 2])
+                s_change = abs(S[t - 1] - S[t - 2])
+                i_change = abs(I[t - 1] - I[t - 2])
+                t_change = abs(T[t - 1] - T[t - 2])
+                max_change = max(k_change, s_change, i_change, t_change)
 
-            # Get period-specific multipliers
-            period_mults = self._get_period_multipliers(self.current_params, current_year)
+                # Adjust timestep based on rate of change
+                if max_change > 2.0:
+                    self.current_timestep = max(self.min_timestep, self.current_timestep * 0.8)
+                elif max_change < 0.5:
+                    self.current_timestep = min(self.max_timestep, self.current_timestep * 1.2)
 
-            # Get event effects
-            event_effects = self._get_event_effects(current_year)
-
-            # Apply cultural transfer effects
-            k_enhancement, t_enhancement = self._apply_cultural_transfer(K[t - 1], T[t - 1], self.current_params)
-
-            # Calculate wisdom field
-            W = wisdom_field(1.0, alpha_wisdom, S[t - 1], resistance, K[t - 1])
-
-            # Update truth adoption with cultural effects
-            truth_change = truth_adoption(T[t - 1], truth_adoption_rate, truth_max) + t_enhancement
-            truth_change *= (1.0 + event_effects["truth"])  # Apply event effects
-            T[t] = T[t - 1] + truth_change * dt
-
-            # Update knowledge with phase transition and period multipliers
-            growth_term = knowledge_growth_rate * K[t - 1] * (1 + gamma_phase * max(0, T[t - 1] - t_crit_phase))
-            growth_term *= period_mults["knowledge"]  # Apply period multiplier
-            growth_term += k_enhancement  # Add cultural enhancement
-            growth_term *= (1.0 + event_effects["knowledge"])  # Apply event effects
-            K[t] = K[t - 1] + growth_term * dt
-
-            # Update suppression with resurgence and event effects
-            # Base suppression decay
-            base_suppression = S[0] * np.exp(-suppression_decay * t)
-
-            # Event-driven suppression
-            if event_effects["suppression"] > 0:
-                # Amplify suppression during wars and other high-suppression events
-                suppression_event = event_effects["suppression"] * S[t - 1] * war_suppression_multiplier
+                current_dt = self.current_timestep
             else:
-                suppression_event = event_effects["suppression"] * S[t - 1]
+                current_dt = dt
 
-            # Feedback and recovery dynamics
-            suppression_fb = suppression_feedback(alpha_feedback, S[t - 1], beta_feedback, K[t - 1])
+            try:
+                # Calculate wisdom field with bounds
+                W = wisdom_field(
+                    1.0,
+                    alpha_wisdom,
+                    np.clip(S[t - 1], self.min_value, self.max_suppression),
+                    resistance,
+                    np.clip(K[t - 1], self.min_value, self.max_knowledge)
+                )
 
-            # Combine all suppression effects
-            S[t] = base_suppression + suppression_fb * dt + suppression_event
+                # Update truth adoption with bounds
+                truth_change = truth_adoption(
+                    np.clip(T[t - 1], self.min_value, self.max_truth),
+                    truth_adoption_rate,
+                    truth_max
+                )
 
-            # Ensure non-negative suppression
-            S[t] = max(0.1, S[t])
+                # Check for stability issues
+                if self.enable_circuit_breaker and self.circuit_breaker.check_value_stability(truth_change):
+                    truth_change = np.clip(truth_change, -1.0, 1.0)
+                    self.stability_issues += 1
 
-            # Update intelligence with event effects
-            intel_growth = intelligence_growth(K[t - 1], W, resistance, S[t - 1], 1.5)
-            intel_growth *= (1.0 + event_effects["intelligence"])  # Apply event effects
-            I[t] = max(0.1, I[t - 1] + intel_growth * dt)  # Ensure positive intelligence
+                T[t] = np.clip(T[t - 1] + truth_change * current_dt, self.min_value, self.max_truth)
+
+                # Update knowledge with phase transition and bounds
+                # Simplified from full phase transition equation
+                growth_term = knowledge_growth_rate * K[t - 1] * (
+                        1 + gamma_phase * max(0, T[t - 1] - t_crit_phase)
+                )
+
+                # Check for stability issues
+                if self.enable_circuit_breaker and self.circuit_breaker.check_value_stability(growth_term):
+                    growth_term = np.clip(growth_term, 0.0, 2.0)
+                    self.stability_issues += 1
+
+                K[t] = np.clip(K[t - 1] + growth_term * current_dt, self.min_value, self.max_knowledge)
+
+                # Update suppression with resurgence and bounds
+                # Safe time exponent to prevent overflow
+                time_exp = min(t, max_time_exponent)
+                base_suppression = S[0] * np.exp(-suppression_decay * time_exp)
+
+                if t > int(timesteps / 3):  # Resurgence in middle period
+                    # Safe exponent for resurgence
+                    resurgence_exp = min(t - int(timesteps / 3), max_time_exponent)
+                    resurgence = alpha_resurge * np.exp(-mu_resurge * resurgence_exp)
+                else:
+                    resurgence = 0
+
+                suppression_fb = suppression_feedback(
+                    alpha_feedback,
+                    np.clip(S[t - 1], self.min_value, self.max_suppression),
+                    beta_feedback,
+                    np.clip(K[t - 1], self.min_value, self.max_knowledge)
+                )
+
+                # Check for stability issues
+                if self.enable_circuit_breaker and self.circuit_breaker.check_value_stability(suppression_fb):
+                    suppression_fb = np.clip(suppression_fb, -2.0, 2.0)
+                    self.stability_issues += 1
+
+                S[t] = np.clip(
+                    base_suppression + resurgence + suppression_fb * current_dt,
+                    self.min_value,
+                    self.max_suppression
+                )
+
+                # Update intelligence with bounds
+                i_growth = intelligence_growth(
+                    np.clip(K[t - 1], self.min_value, self.max_knowledge),
+                    W,
+                    resistance,
+                    np.clip(S[t - 1], self.min_value, self.max_suppression),
+                    1.5
+                )
+
+                # Check for stability issues
+                if self.enable_circuit_breaker and self.circuit_breaker.check_value_stability(i_growth):
+                    i_growth = np.clip(i_growth, -2.0, 2.0)
+                    self.stability_issues += 1
+
+                I[t] = np.clip(I[t - 1] + i_growth * current_dt, self.min_value, self.max_intelligence)
+
+                # Track stability issues
+                stability_history[t] = self.stability_issues
+
+            except Exception as e:
+                print(f"Error in simulation at time step {t}: {e}")
+                # Fall back to previous values for stability
+                K[t] = K[t - 1]
+                S[t] = S[t - 1]
+                I[t] = I[t - 1]
+                T[t] = T[t - 1]
+                self.stability_issues += 1
+                stability_history[t] = self.stability_issues
+
+        # Check for NaN or Inf values and replace them
+        K = np.nan_to_num(K, nan=K[0], posinf=self.max_knowledge, neginf=self.min_value)
+        S = np.nan_to_num(S, nan=S[0], posinf=self.max_suppression, neginf=self.min_value)
+        I = np.nan_to_num(I, nan=I[0], posinf=self.max_intelligence, neginf=self.min_value)
+        T = np.nan_to_num(T, nan=T[0], posinf=self.max_truth, neginf=self.min_value)
 
         # Scale results to match historical data scale (0-100)
+        # Use safe division with minimum denominator
         K_scaled = 100 * K / max(1e-10, K[-1])
-        S_scaled = S.copy()  # Suppression is already on a 0-100 scale
+        S_scaled = 100 * S / max(1e-10, S[0])  # Higher at beginning
         I_scaled = 100 * I / max(1e-10, I[-1])
         T_scaled = 100 * T / max(1e-10, T[-1])
+
+        # Clip scaled values to ensure 0-100 range
+        K_scaled = np.clip(K_scaled, 0, 100)
+        S_scaled = np.clip(S_scaled, 0, 100)
+        I_scaled = np.clip(I_scaled, 0, 100)
+        T_scaled = np.clip(T_scaled, 0, 100)
 
         if return_arrays:
             return {
@@ -443,7 +625,9 @@ class HistoricalValidationImproved:
                 "raw_knowledge": K,
                 "raw_suppression": S,
                 "raw_intelligence": I,
-                "raw_truth": T
+                "raw_truth": T,
+                "stability_history": stability_history,
+                "timestep_history": np.full(timesteps, self.current_timestep)
             }
 
         # Create dataframe
@@ -452,7 +636,8 @@ class HistoricalValidationImproved:
             "knowledge_index": K_scaled,
             "suppression_index": S_scaled,
             "intelligence_index": I_scaled,
-            "truth_index": T_scaled
+            "truth_index": T_scaled,
+            "stability_issues": stability_history
         })
 
         self.simulation_results = sim_data
@@ -460,7 +645,7 @@ class HistoricalValidationImproved:
 
     def calculate_error(self, params=None, weighted=True):
         """
-        Calculate error between simulation and historical data.
+        Calculate error between simulation and historical data with stability safeguards.
 
         Parameters:
             params (dict): Parameters to use, or None to use current parameters
@@ -469,49 +654,63 @@ class HistoricalValidationImproved:
         Returns:
             float: Total error metric
         """
-        if params is not None:
-            sim_data = self.run_simulation(params)
-        else:
-            if self.simulation_results is None:
-                sim_data = self.run_simulation()
+        try:
+            if params is not None:
+                sim_data = self.run_simulation(params)
             else:
-                sim_data = self.simulation_results
+                if self.simulation_results is None:
+                    sim_data = self.run_simulation()
+                else:
+                    sim_data = self.simulation_results
 
-        # Merge simulation and historical data
-        merged = pd.merge(sim_data, self.historical_data, on="year", suffixes=("_sim", ""))
+            # Merge simulation and historical data
+            merged = pd.merge(sim_data, self.historical_data, on="year", suffixes=("_sim", ""))
 
-        # Calculate errors for each metric
-        errors = {}
-        for metric in self.metrics:
-            sim_col = f"{metric}_sim"
-            hist_col = metric
+            # Calculate errors for each metric
+            errors = {}
+            for metric in self.metrics:
+                sim_col = f"{metric}_sim"
+                hist_col = metric
 
-            # Calculate mean squared error
-            mse = ((merged[sim_col] - merged[hist_col]) ** 2).mean()
-            errors[metric] = mse
+                # Calculate mean squared error with NaN handling
+                diff = merged[sim_col] - merged[hist_col]
+                # Replace NaN with zero to prevent error propagation
+                diff = diff.fillna(0)
+                mse = (diff ** 2).mean()
+                errors[metric] = mse
 
-        # Weighted total error (prioritize knowledge and intelligence)
-        if weighted:
-            weights = {
-                "knowledge_index": 0.4,
-                "intelligence_index": 0.3,
-                "suppression_index": 0.2,
-                "truth_index": 0.1
-            }
-            total_error = sum(errors[m] * weights[m] for m in self.metrics)
-        else:
-            total_error = sum(errors.values())
+            # Weighted total error (prioritize knowledge and intelligence)
+            if weighted:
+                weights = {
+                    "knowledge_index": 0.4,
+                    "intelligence_index": 0.3,
+                    "suppression_index": 0.2,
+                    "truth_index": 0.1
+                }
+                total_error = sum(errors[m] * weights[m] for m in self.metrics)
+            else:
+                total_error = sum(errors.values())
 
-        return total_error
+            # Add penalty for stability issues
+            if self.stability_issues > 0:
+                penalty_factor = 1.0 + (self.stability_issues / 1000.0)  # Gentle penalty
+                total_error *= penalty_factor
 
-    def optimize_parameters(self, params_to_optimize=None, bounds=None, method='SLSQP'):
+            return float(total_error)  # Ensure result is a regular float
+
+        except Exception as e:
+            print(f"Error calculating error metric: {e}")
+            return float('inf')  # Return infinity as a fallback for failed calculations
+
+    def optimize_parameters(self, params_to_optimize=None, bounds=None, method='SLSQP', max_iterations=100):
         """
-        Optimize parameters to minimize error with historical data.
+        Optimize parameters to minimize error with historical data with stability safeguards.
 
         Parameters:
             params_to_optimize (list): List of parameter names to optimize, or None for all
             bounds (dict): Dictionary of parameter bounds, or None for default bounds
             method (str): Optimization method (SLSQP, L-BFGS-B, etc.)
+            max_iterations (int): Maximum number of iterations for optimizer
 
         Returns:
             dict: Optimized parameters
@@ -526,7 +725,7 @@ class HistoricalValidationImproved:
                 default_val = self.default_params[param]
                 # Set bounds to reasonable ranges around default values
                 if param in ["K_0", "I_0", "T_0"]:
-                    bounds[param] = (0.1, 20.0)
+                    bounds[param] = (0.1, 10.0)
                 elif param == "S_0":
                     bounds[param] = (1.0, 50.0)
                 elif "rate" in param or "decay" in param:
@@ -543,10 +742,6 @@ class HistoricalValidationImproved:
                     bounds[param] = (0.001, 0.2)
                 elif param == "t_crit_phase":
                     bounds[param] = (5.0, 50.0)
-                elif "mult" in param:
-                    bounds[param] = (0.1, 5.0)
-                elif "effect" in param:
-                    bounds[param] = (0.0, 1.0)
                 else:
                     # Default bounds if not specified
                     bounds[param] = (0.1 * default_val, 10.0 * default_val)
@@ -555,48 +750,61 @@ class HistoricalValidationImproved:
         initial_params = [self.current_params[p] for p in params_to_optimize]
         param_bounds = [bounds[p] for p in params_to_optimize]
 
-        # Define optimization function
+        # Define optimization function with error handling
         def objective(x):
-            # Map parameter values back to dictionary
-            param_dict = self.current_params.copy()
-            for i, param_name in enumerate(params_to_optimize):
-                param_dict[param_name] = x[i]
+            try:
+                # Map parameter values back to dictionary
+                param_dict = self.current_params.copy()
+                for i, param_name in enumerate(params_to_optimize):
+                    param_dict[param_name] = x[i]
 
-            # Calculate error
-            return self.calculate_error(param_dict)
+                # Calculate error
+                return self.calculate_error(param_dict)
+            except Exception as e:
+                print(f"Error in objective function: {e}")
+                return float('inf')  # Return infinity for failed calculations
 
-        # Run optimization
+        # Run optimization with additional safeguards
         print(f"Starting parameter optimization for {len(params_to_optimize)} parameters...")
         print(f"Initial error: {self.calculate_error():.4f}")
 
-        result = minimize(
-            objective,
-            initial_params,
-            method=method,
-            bounds=param_bounds,
-            options={'disp': True}
-        )
+        try:
+            result = minimize(
+                objective,
+                initial_params,
+                method=method,
+                bounds=param_bounds,
+                options={'disp': True, 'maxiter': max_iterations}
+            )
 
-        # Update parameters with optimized values
-        optimized_params = self.current_params.copy()
-        for i, param_name in enumerate(params_to_optimize):
-            optimized_params[param_name] = result.x[i]
+            # Update parameters with optimized values
+            optimized_params = self.current_params.copy()
+            for i, param_name in enumerate(params_to_optimize):
+                # Ensure parameters are within bounds
+                param_value = result.x[i]
+                param_min, param_max = bounds[param_name]
+                optimized_params[param_name] = np.clip(param_value, param_min, param_max)
 
-        self.current_params = optimized_params
+            self.current_params = optimized_params
 
-        # Run final simulation with optimized parameters
-        self.run_simulation()
+            # Run final simulation with optimized parameters
+            self.run_simulation()
 
-        print(f"Optimization complete. Final error: {self.calculate_error():.4f}")
-        print("Optimized parameters:")
-        for param in params_to_optimize:
-            print(f"  {param}: {self.current_params[param]:.6f}")
+            print(f"Optimization complete. Final error: {self.calculate_error():.4f}")
+            print("Optimized parameters:")
+            for param in params_to_optimize:
+                print(f"  {param}: {self.current_params[param]:.6f}")
 
-        return optimized_params
+            return optimized_params
+
+        except Exception as e:
+            print(f"Error during optimization: {e}")
+            print("Falling back to original parameters.")
+            return self.current_params
 
     def visualize_comparison(self, figsize=(15, 12), save_path=None):
         """
-        Visualize comparison between historical data and simulation.
+        Visualize comparison between historical data and simulation with stability metrics.
 
         Parameters:
             figsize (tuple): Figure size
@@ -620,35 +828,11 @@ class HistoricalValidationImproved:
         fig, axes = plt.subplots(2, 2, figsize=figsize)
         axes = axes.flatten()
 
-        # Define historical periods for shading
-        periods = [
-            {"name": "Medieval", "start": 1000, "end": 1400, "color": "gray", "alpha": 0.1},
-            {"name": "Renaissance", "start": 1400, "end": 1600, "color": "gold", "alpha": 0.1},
-            {"name": "Enlightenment", "start": 1600, "end": 1800, "color": "lightblue", "alpha": 0.1},
-            {"name": "Industrial", "start": 1800, "end": 1900, "color": "lightgreen", "alpha": 0.1},
-            {"name": "Modern", "start": 1900, "end": 2020, "color": "salmon", "alpha": 0.1}
-        ]
-
-        # Define events to mark
-        events = [
-            {"name": "Printing Press", "year": 1440, "color": "green"},
-            {"name": "Scientific Revolution", "year": 1600, "color": "blue"},
-            {"name": "Industrial Revolution", "year": 1760, "color": "brown"},
-            {"name": "World Wars", "year": 1914, "color": "red"},
-            {"name": "Information Age", "year": 1970, "color": "purple"}
-        ]
-
         # Plot metrics
         for i, metric in enumerate(self.metrics):
             ax = axes[i]
             sim_col = f"{metric}_sim"
             hist_col = metric
-
-            # Add period shading
-            for period in periods:
-                if period["start"] >= min(merged["year"]) and period["end"] <= max(merged["year"]):
-                    ax.axvspan(period["start"], period["end"],
-                               alpha=period["alpha"], color=period["color"])
 
             # Plot historical data
             ax.plot(merged["year"], merged[hist_col], 'b-', linewidth=2, label="Historical")
@@ -656,129 +840,44 @@ class HistoricalValidationImproved:
             # Plot simulation data
             ax.plot(merged["year"], merged[sim_col], 'r--', linewidth=2, label="Simulation")
 
-            # Add event markers
-            for event in events:
-                if event["year"] >= min(merged["year"]) and event["year"] <= max(merged["year"]):
-                    ax.axvline(x=event["year"], color=event["color"], linestyle=':', alpha=0.7)
-                    # Add text annotation slightly above
-                    y_pos = 0.9 * ax.get_ylim()[1]
-                    ax.text(event["year"], y_pos, event["name"],
-                            rotation=90, color=event["color"], ha='right', fontsize=8)
+            # Calculate error
+            try:
+                mse = ((merged[sim_col] - merged[hist_col]) ** 2).mean()
+                rmse = np.sqrt(mse)
+            except:
+                rmse = float('nan')
 
-            # Calculate RMSE for this metric
-            rmse = np.sqrt(((merged[sim_col] - merged[hist_col]) ** 2).mean())
-
-            # Set title with RMSE
-            metric_name = metric.replace("_index", "").title()
-            ax.set_title(f"{metric_name} Over Time (RMSE: {rmse:.2f})")
-
+            # Add title and labels
+            metric_name = metric.replace("_", " ").title()
+            ax.set_title(f"{metric_name} (RMSE: {rmse:.2f})")
             ax.set_xlabel("Year")
-            ax.set_ylabel(metric_name)
+            ax.set_ylabel("Index Value")
+            ax.grid(True)
             ax.legend()
-            ax.grid(True, alpha=0.3)
 
-        # Add overall title with parameter info
-        param_str = f"K₀={self.current_params['K_0']:.2f}, S₀={self.current_params['S_0']:.2f}, "
-        param_str += f"kᵣ={self.current_params['knowledge_growth_rate']:.3f}, "
-        param_str += f"Tᵣ={self.current_params['truth_adoption_rate']:.2f}"
-
-        plt.suptitle(f"Historical Validation - Simulation vs. Historical Data\n{param_str}",
-                     fontsize=14)
-
-        plt.tight_layout(rect=[0, 0, 1, 0.96])  # Make room for the suptitle
-
-        # Save figure if requested
-        if save_path is not None:
-            plt.savefig(save_path, dpi=300, bbox_inches='tight')
-            print(f"Saved figure to {save_path}")
-
-        return fig
-
-    def visualize_periods(self, figsize=(15, 16), save_path=None):
-        """
-        Visualize comparison between historical data and simulation for each historical period.
-
-        Parameters:
-            figsize (tuple): Figure size
-            save_path (str): Path to save figure, or None to display only
-
-        Returns:
-            matplotlib.figure.Figure: Figure object
-        """
-        if self.simulation_results is None:
-            self.run_simulation()
-
-        # Merge simulation and historical data
-        merged = pd.merge(
-            self.simulation_results,
-            self.historical_data,
-            on="year",
-            suffixes=("_sim", "")
+        # Add overall title with parameters and stability info
+        param_text = (
+            f"K₀={self.current_params['K_0']:.2f}, "
+            f"S₀={self.current_params['S_0']:.2f}, "
+            f"kᵣ={self.current_params['knowledge_growth_rate']:.3f}, "
+            f"Tᵣ={self.current_params['truth_adoption_rate']:.2f}"
         )
+        stability_text = f"Stability Issues: {self.stability_issues}"
+        fig.suptitle(f"Historical Validation\n{param_text}\n{stability_text}", fontsize=16)
 
-        # Create figure with one row per period
-        fig, axes = plt.subplots(len(self.historical_periods), len(self.metrics), figsize=figsize)
+        plt.tight_layout()
+        plt.subplots_adjust(top=0.9)
 
-        # Plot each period and metric
-        for i, period in enumerate(self.historical_periods):
-            # Filter data for this period
-            period_data = merged[(merged["year"] >= period["start_year"]) &
-                                 (merged["year"] <= period["end_year"])]
-
-            if len(period_data) == 0:
-                continue
-
-            for j, metric in enumerate(self.metrics):
-                ax = axes[i, j]
-                sim_col = f"{metric}_sim"
-                hist_col = metric
-
-                # Plot historical data
-                ax.plot(period_data["year"], period_data[hist_col], 'b-', linewidth=2,
-                        label="Historical")
-
-                # Plot simulation data
-                ax.plot(period_data["year"], period_data[sim_col], 'r--', linewidth=2,
-                        label="Simulation")
-
-                # Calculate RMSE for this period and metric
-                rmse = np.sqrt(((period_data[sim_col] - period_data[hist_col]) ** 2).mean())
-
-                # Set title
-                metric_name = metric.replace("_index", "").title()
-                if i == 0:  # Only set column titles on the first row
-                    ax.set_title(metric_name)
-
-                # Set labels
-                if j == 0:  # Only set period labels on the first column
-                    ax.set_ylabel(f"{period['name']}\n({period['start_year']}-{period['end_year']})")
-
-                if i == len(self.historical_periods) - 1:  # Only set x labels on the last row
-                    ax.set_xlabel("Year")
-
-                # Add RMSE text
-                ax.text(0.05, 0.95, f"RMSE: {rmse:.2f}", transform=ax.transAxes,
-                        fontsize=9, va='top', bbox=dict(facecolor='white', alpha=0.5))
-
-                # Only add legend to the first plot
-                if i == 0 and j == 0:
-                    ax.legend()
-
-                ax.grid(True, alpha=0.3)
-
-        plt.suptitle("Historical Validation by Period", fontsize=14)
-        plt.tight_layout(rect=[0, 0, 1, 0.98])  # Make room for the suptitle
-
-        # Save figure if requested
+        # Save figure if path provided
         if save_path is not None:
-            plt.savefig(save_path, dpi=300, bbox_inches='tight')
-            print(f"Saved figure to {save_path}")
+            plt.savefig(save_path)
+            print(f"Figure saved to {save_path}")
 
         return fig
 
-    def visualize_events(self, figsize=(15, 15), save_path=None):
+    def visualize_periods(self, figsize=(15, 12), save_path=None):
         """
-        Visualize the impact of key historical events on model metrics.
+        Visualize key historical periods with stability metrics.
 
         Parameters:
             figsize (tuple): Figure size
@@ -787,20 +886,18 @@ class HistoricalValidationImproved:
         Returns:
             matplotlib.figure.Figure: Figure object
         """
-        if self.simulation_results is None:
-            self.run_simulation()
-
-        # Select key events to visualize (those with significant effects)
-        key_events = [
-            {"name": "Black Death", "year": 1350, "window": 50},
-            {"name": "Printing Press", "year": 1440, "window": 60},
-            {"name": "Scientific Revolution", "year": 1600, "window": 100},
-            {"name": "Industrial Revolution", "year": 1760, "window": 100},
-            {"name": "World Wars", "year": 1914, "window": 40}
+        periods = [
+            ("Renaissance", 1400, 1600),
+            ("Enlightenment", 1650, 1800),
+            ("Industrial Revolution", 1760, 1900),
+            ("Modern Era", 1900, self.end_year)
         ]
 
+        if self.simulation_results is None:
+            self.run_simulation()
+
         # Create figure
-        fig, axes = plt.subplots(len(key_events), len(self.metrics), figsize=figsize)
+        fig, axes = plt.subplots(len(periods), len(self.metrics), figsize=figsize)
 
         # Merge simulation and historical data
         merged = pd.merge(
@@ -810,16 +907,9 @@ class HistoricalValidationImproved:
             suffixes=("_sim", "")
         )
 
-        # Plot each event and metric
-        for i, event in enumerate(key_events):
-            # Extract data around the event
-            event_year = event["year"]
-            window = event["window"]
-            event_data = merged[(merged["year"] >= event_year - window // 2) &
-                                (merged["year"] <= event_year + window // 2)]
-
-            if len(event_data) == 0:
-                continue
+        # Plot each period and metric
+        for i, (period_name, start_year, end_year) in enumerate(periods):
+            period_data = merged[(merged["year"] >= start_year) & (merged["year"] <= end_year)]
 
             for j, metric in enumerate(self.metrics):
                 ax = axes[i, j]
@@ -827,173 +917,296 @@ class HistoricalValidationImproved:
                 hist_col = metric
 
                 # Plot historical data
-                ax.plot(event_data["year"], event_data[hist_col], 'b-', linewidth=2,
-                        label="Historical")
+                ax.plot(period_data["year"], period_data[hist_col], 'b-', linewidth=2, label="Historical")
 
                 # Plot simulation data
-                ax.plot(event_data["year"], event_data[sim_col], 'r--', linewidth=2,
-                        label="Simulation")
+                ax.plot(period_data["year"], period_data[sim_col], 'r--', linewidth=2, label="Simulation")
 
-                # Add vertical line at event year
-                ax.axvline(x=event_year, color='k', linestyle=':', alpha=0.7)
+                # Calculate error for this period
+                try:
+                    mse = ((period_data[sim_col] - period_data[hist_col]) ** 2).mean()
+                    rmse = np.sqrt(mse)
+                except:
+                    rmse = float('nan')
 
-                # Set title
-                metric_name = metric.replace("_index", "").title()
-                if i == 0:  # Only set column titles on the first row
+                # Add title and labels
+                metric_name = metric.replace("_", " ").title()
+                if i == 0:
                     ax.set_title(metric_name)
+                if j == 0:
+                    ax.set_ylabel(f"{period_name}\n({start_year}-{end_year})")
+                ax.grid(True)
 
-                # Set labels
-                if j == 0:  # Only set event labels on the first column
-                    ax.set_ylabel(event["name"])
+                # Add error text
+                ax.text(0.05, 0.95, f"RMSE: {rmse:.2f}", transform=ax.transAxes,
+                        verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.6))
 
-                if i == len(key_events) - 1:  # Only set x labels on the last row
-                    ax.set_xlabel("Year")
-
-                # Calculate event impact (difference from pre-event to post-event)
-                pre_event = event_data[event_data["year"] < event_year][hist_col].mean()
-                post_event = event_data[event_data["year"] > event_year][hist_col].mean()
-                impact = post_event - pre_event
-
-                # Add impact text
-                impact_text = f"Impact: {impact:.1f}"
-                ax.text(0.05, 0.95, impact_text, transform=ax.transAxes,
-                        fontsize=9, va='top', bbox=dict(facecolor='white', alpha=0.5))
-
-                # Only add legend to the first plot
-                if i == 0 and j == 0:
+                # Add legend only to top row
+                if i == 0:
                     ax.legend()
 
-                ax.grid(True, alpha=0.3)
+        # Add overall title with stability info
+        fig.suptitle(f"Historical Validation by Period\nStability Issues: {self.stability_issues}", fontsize=16)
 
-        plt.suptitle("Impact of Historical Events", fontsize=14)
-        plt.tight_layout(rect=[0, 0, 1, 0.98])  # Make room for the suptitle
+        plt.tight_layout()
+        plt.subplots_adjust(top=0.95, hspace=0.3, wspace=0.3)
 
-        # Save figure if requested
+        # Save figure if path provided
         if save_path is not None:
-            plt.savefig(save_path, dpi=300, bbox_inches='tight')
-            print(f"Saved figure to {save_path}")
+            plt.savefig(save_path)
+            print(f"Figure saved to {save_path}")
 
         return fig
 
-    def save_results(self, output_dir="outputs"):
+    def visualize_events(self, figsize=(15, 10), save_path=None):
         """
-        Save all simulation results and parameters to files.
+        Visualize impact of key historical events on simulation metrics.
 
         Parameters:
-            output_dir (str): Directory to save results
+            figsize (tuple): Figure size
+            save_path (str): Path to save figure, or None to display only
+
+        Returns:
+            matplotlib.figure.Figure: Figure object
         """
-        # Make sure we have results
+        # Define major historical events
+        events = [
+            ("World War I", 1914, 1918),
+            ("Great Depression", 1929, 1939),
+            ("World War II", 1939, 1945),
+            ("Cold War", 1947, 1991),
+            ("Information Age", 1970, self.end_year)
+        ]
+
         if self.simulation_results is None:
             self.run_simulation()
 
-        # Create output directory if it doesn't exist
-        Path(output_dir).mkdir(parents=True, exist_ok=True)
+        # Create figure
+        fig, axes = plt.subplots(2, 2, figsize=figsize)
+        axes = axes.flatten()
 
-        # Save simulation results
-        sim_path = Path(output_dir) / "simulation_results.csv"
-        self.simulation_results.to_csv(sim_path, index=False)
-        print(f"Saved simulation results to {sim_path}")
+        # Merge simulation and historical data
+        merged = pd.merge(
+            self.simulation_results,
+            self.historical_data,
+            on="year",
+            suffixes=("_sim", "")
+        )
 
-        # Save historical data
-        hist_path = Path(output_dir) / "historical_data.csv"
-        self.historical_data.to_csv(hist_path, index=False)
-        print(f"Saved historical data to {hist_path}")
+        # Plot each metric
+        for i, metric in enumerate(self.metrics):
+            ax = axes[i]
+            sim_col = f"{metric}_sim"
+            hist_col = metric
 
-        # Save parameters
-        param_path = Path(output_dir) / "simulation_parameters.csv"
-        param_df = pd.DataFrame({"parameter": list(self.current_params.keys()),
-                                 "value": list(self.current_params.values())})
-        param_df.to_csv(param_path, index=False)
-        print(f"Saved simulation parameters to {param_path}")
+            # Plot full timeline
+            ax.plot(merged["year"], merged[hist_col], 'b-', linewidth=2, label="Historical")
+            ax.plot(merged["year"], merged[sim_col], 'r--', linewidth=2, label="Simulation")
 
-        # Save error metrics
-        error_metrics = {}
-        for metric in self.metrics:
-            sim_values = self.simulation_results[f"{metric}"]
-            hist_values = self.historical_data[metric]
-            mse = ((sim_values - hist_values) ** 2).mean()
-            rmse = np.sqrt(mse)
-            error_metrics[f"{metric}_mse"] = mse
-            error_metrics[f"{metric}_rmse"] = rmse
+            # Highlight event periods
+            for event_name, start_year, end_year in events:
+                if start_year >= self.start_year and start_year <= self.end_year:
+                    ax.axvspan(start_year, min(end_year, self.end_year), alpha=0.2, color='gray')
+                    # Add event label at top of plot
+                    ax.text(
+                        (start_year + min(end_year, self.end_year)) / 2,
+                        ax.get_ylim()[1] * 0.95,
+                        event_name,
+                        horizontalalignment='center',
+                        fontsize=8
+                    )
 
-        error_metrics["total_error"] = self.calculate_error()
-        error_metrics["unweighted_error"] = self.calculate_error(weighted=False)
+            # Add title and labels
+            metric_name = metric.replace("_", " ").title()
+            ax.set_title(f"{metric_name}")
+            ax.set_xlabel("Year")
+            ax.set_ylabel("Index Value")
+            ax.grid(True)
+            ax.legend()
 
-        error_path = Path(output_dir) / "error_metrics.csv"
-        error_df = pd.DataFrame({"metric": list(error_metrics.keys()),
-                                 "value": list(error_metrics.values())})
-        error_df.to_csv(error_path, index=False)
-        print(f"Saved error metrics to {error_path}")
+        # Add overall title with stability info
+        fig.suptitle(f"Impact of Historical Events\nStability Issues: {self.stability_issues}", fontsize=16)
 
-    def run_comprehensive_analysis(self, output_dir="outputs", optimize=True):
+        plt.tight_layout()
+        plt.subplots_adjust(top=0.9)
+
+        # Save figure if path provided
+        if save_path is not None:
+            plt.savefig(save_path)
+            print(f"Figure saved to {save_path}")
+
+        return fig
+
+    def save_results(self, output_dir='outputs'):
         """
-        Run a comprehensive analysis including optimization, visualizations, and result saving.
+        Save simulation results and stability metrics to CSV files.
 
         Parameters:
-            output_dir (str): Directory to save results
+            output_dir (str): Directory for output files
+
+        Returns:
+            None
+        """
+        # Create output directory
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        if self.simulation_results is None:
+            self.run_simulation()
+
+        # Save simulation results
+        self.simulation_results.to_csv(output_path / "simulation_results.csv", index=False)
+        print(f"Simulation results saved to {output_path / 'simulation_results.csv'}")
+
+        # Save historical data
+        self.historical_data.to_csv(output_path / "historical_data.csv", index=False)
+        print(f"Historical data saved to {output_path / 'historical_data.csv'}")
+
+        # Save simulation parameters
+        pd.DataFrame([self.current_params]).to_csv(output_path / "simulation_parameters.csv", index=False)
+        print(f"Simulation parameters saved to {output_path / 'simulation_parameters.csv'}")
+
+        # Calculate and save error metrics
+        error_weighted = self.calculate_error(weighted=True)
+        error_unweighted = self.calculate_error(weighted=False)
+
+        error_metrics = pd.DataFrame([{
+            "error_weighted": error_weighted,
+            "error_unweighted": error_unweighted
+        }])
+        error_metrics.to_csv(output_path / "error_metrics.csv", index=False)
+        print(f"Error metrics saved to {output_path / 'error_metrics.csv'}")
+
+        # Save stability metrics
+        self.save_stability_metrics(save_path=str(output_path / "stability_metrics.csv"))
+
+    def save_stability_metrics(self, save_path):
+        """
+        Save numerical stability metrics to a CSV file.
+
+        Parameters:
+            save_path (str): Path to save stability metrics CSV
+
+        Returns:
+            None
+        """
+        stability_metrics = {
+            "stability_issues": self.stability_issues,
+            "circuit_breaker_enabled": self.enable_circuit_breaker,
+            "adaptive_timestep_enabled": self.enable_adaptive_timestep,
+            "final_timestep": self.current_timestep
+        }
+
+        # Add circuit breaker metrics if enabled
+        if self.enable_circuit_breaker:
+            stability_metrics["circuit_breaker_triggers"] = self.circuit_breaker.trigger_count
+
+        # Save to CSV
+        pd.DataFrame([stability_metrics]).to_csv(save_path, index=False)
+        print(f"Stability metrics saved to {save_path}")
+
+    def run_comprehensive_analysis(self, output_dir='outputs', optimize=True):
+        """
+        Run a comprehensive analysis with historical validation, optimization, and visualization.
+
+        Parameters:
+            output_dir (str): Directory for output files
             optimize (bool): Whether to optimize parameters
 
         Returns:
-            dict: Dictionary with analysis results
+            dict: Analysis results
         """
         # Create output directory
-        Path(output_dir).mkdir(parents=True, exist_ok=True)
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
 
-        # Run initial simulation with default parameters
-        print("Running initial simulation with default parameters...")
+        # Initial run with default parameters
+        print("Running simulation with initial parameters...")
         self.run_simulation()
+        initial_error = self.calculate_error()
+
+        # Create default outputs directory
+        default_dir = output_path / "default"
+        default_dir.mkdir(exist_ok=True)
 
         # Save initial results
-        self.save_results(output_dir=f"{output_dir}/default")
+        print("Saving initial results...")
+        self.save_results(output_dir=str(default_dir))
+        self.visualize_comparison(save_path=str(default_dir / "comparison.png"))
+        self.visualize_periods(save_path=str(default_dir / "periods.png"))
+        self.visualize_events(save_path=str(default_dir / "events.png"))
 
-        # Create initial visualizations
-        print("Creating visualizations for default parameters...")
-        fig1 = self.visualize_comparison(save_path=f"{output_dir}/default/comparison.png")
-        fig2 = self.visualize_periods(save_path=f"{output_dir}/default/periods.png")
-        fig3 = self.visualize_events(save_path=f"{output_dir}/default/events.png")
+        optimized_params = None
 
         # Optimize parameters if requested
         if optimize:
-            print("\nOptimizing parameters...")
-            # Focus on key parameters for optimization
+            print("Optimizing parameters...")
+            # Parameters to optimize - focus on key parameters for stability
             params_to_optimize = [
                 "K_0", "S_0", "knowledge_growth_rate", "truth_adoption_rate",
-                "suppression_decay", "medieval_knowledge_mult", "renaissance_knowledge_mult",
-                "enlightenment_knowledge_mult", "industrial_knowledge_mult",
-                "modern_knowledge_mult", "scientific_revolution_effect",
-                "cultural_diffusion_rate", "truth_knowledge_synergy",
-                "war_suppression_multiplier"
+                "suppression_decay", "alpha_feedback", "beta_feedback",
+                "alpha_wisdom", "gamma_phase", "t_crit_phase"
             ]
+
             optimized_params = self.optimize_parameters(params_to_optimize=params_to_optimize)
 
+            # Create optimized outputs directory
+            optimized_dir = output_path / "optimized"
+            optimized_dir.mkdir(exist_ok=True)
+
             # Save optimized results
-            self.save_results(output_dir=f"{output_dir}/optimized")
+            print("Saving optimized results...")
+            self.save_results(output_dir=str(optimized_dir))
+            self.visualize_comparison(save_path=str(optimized_dir / "comparison.png"))
+            self.visualize_periods(save_path=str(optimized_dir / "periods.png"))
+            self.visualize_events(save_path=str(optimized_dir / "events.png"))
 
-            # Create optimized visualizations
-            print("Creating visualizations for optimized parameters...")
-            fig4 = self.visualize_comparison(save_path=f"{output_dir}/optimized/comparison.png")
-            fig5 = self.visualize_periods(save_path=f"{output_dir}/optimized/periods.png")
-            fig6 = self.visualize_events(save_path=f"{output_dir}/optimized/events.png")
-
-        # Prepare summary
-        initial_error = self.calculate_error(self.default_params)
-        final_error = self.calculate_error()
-
-        results = {
+        # Return analysis results
+        return {
             "initial_error": initial_error,
-            "final_error": final_error,
-            "improvement": (initial_error - final_error) / initial_error * 100 if initial_error > 0 else 0,
-            "default_parameters": self.default_params,
-            "current_parameters": self.current_params
+            "final_error": self.calculate_error(),
+            "optimized_params": optimized_params,
+            "stability_issues": self.stability_issues
         }
 
-        # Print summary
-        print("\n" + "=" * 50)
-        print("Comprehensive Analysis Summary")
-        print("=" * 50)
-        print(f"Initial error: {initial_error:.4f}")
-        print(f"Final error: {final_error:.4f}")
-        print(f"Improvement: {results['improvement']:.2f}%")
-        print("=" * 50)
 
-        return results
+if __name__ == "__main__":
+    # Example usage
+
+    # Create historical validation object with stability parameters
+    validator = HistoricalValidation(
+        max_knowledge=100.0,
+        max_suppression=100.0,
+        max_intelligence=100.0,
+        max_truth=100.0,
+        enable_circuit_breaker=True,
+        enable_adaptive_timestep=True,
+        min_timestep=0.1,
+        max_timestep=2.0
+    )
+
+    # Run simulation with default parameters
+    print("Running simulation with default parameters...")
+    validator.run_simulation()
+
+    # Calculate error
+    error = validator.calculate_error()
+    print(f"Error with default parameters: {error:.4f}")
+    print(f"Stability issues: {validator.stability_issues}")
+
+    # Optimize a subset of parameters
+    params_to_optimize = ["K_0", "S_0", "knowledge_growth_rate", "truth_adoption_rate"]
+    print(f"Optimizing parameters: {params_to_optimize}")
+    validator.optimize_parameters(params_to_optimize=params_to_optimize)
+
+    # Visualize comparison
+    print("Generating visualizations...")
+    validator.visualize_comparison(save_path="outputs/plots/historical_validation_comparison.png")
+    validator.visualize_periods(save_path="outputs/plots/historical_validation_periods.png")
+    validator.visualize_events(save_path="outputs/plots/historical_validation_events.png")
+
+    # Export results
+    print("Exporting results...")
+    validator.save_results("outputs/data/historical_validation")
+
+    print("Done!")
