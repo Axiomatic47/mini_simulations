@@ -1,0 +1,2 @@
+K_0,S_0,I_0,T_0,knowledge_growth_rate,truth_adoption_rate,truth_max,suppression_decay,alpha_feedback,beta_feedback,alpha_wisdom,resistance,alpha_resurge,mu_resurge,gamma_phase,t_crit_phase
+10.0,17.986739294081023,5.0,1.0,0.02668167545130214,0.3399630450798122,40.0,0.012940964739587977,0.01,0.01,0.1,2.0,5.0,0.05,0.1,20.0
