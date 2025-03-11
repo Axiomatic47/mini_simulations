@@ -49,29 +49,66 @@ def truth_adoption(T, A, T_max):
     Returns:
         float: Rate of truth adoption
     """
+    # Ensure T doesn't exceed T_max
+    T = min(T, T_max)
+
+    # Apply relativistic limit - adoption rate approaches zero as T approaches T_max
     return A / (1 + (T ** 2 / T_max ** 2))
 
 
-# 4. Identity Binding Equation (Nuclear analogy)
-def identity_binding(K_critical, lambda_decay, distance):
+# 4. Wisdom Field (Electromagnetic field analogy)
+def wisdom_field(W_0, alpha, S, R, K):
     """
-    Computes identity binding strength.
+    Computes wisdom field strength based on knowledge and suppression.
 
     Parameters:
-        K_critical (float): Cohesion threshold
-        lambda_decay (float): Decay constant
-        distance (float): Distance between identities
+        W_0 (float): Base wisdom level
+        alpha (float): Suppression impact factor
+        S (float): Suppression level
+        R (float): Resistance level
+        K (float): Knowledge level
 
     Returns:
-        float: Identity binding force
+        float: Wisdom field strength
     """
-    return -K_critical * np.exp(-lambda_decay * distance)
+    # Ensure K is not zero to avoid division issues
+    K = max(K, 0.001)
+
+    # Wisdom decreases with suppression and resistance-to-knowledge ratio
+    return W_0 * np.exp(-alpha * S) * (1 + R / K)
 
 
-# 5. Suppression & Resistance Feedback Loops
+# 5. Resistance Resurgence (Nuclear decay analogy)
+def resistance_resurgence(S_0, lambda_decay, t, alpha_resurge, mu_resurge, t_crit):
+    """
+    Computes resistance resurgence and decay.
+
+    Parameters:
+        S_0 (float): Initial suppression level
+        lambda_decay (float): Exponential decay rate
+        t (float): Time step
+        alpha_resurge (float): Resurgence intensity
+        mu_resurge (float): Resurgence decay rate
+        t_crit (float): Critical time for resurgence
+
+    Returns:
+        float: Suppression level with resurgence
+    """
+    # Base exponential decay
+    base_suppression = S_0 * np.exp(-lambda_decay * t)
+
+    # Resurgence after critical time
+    resurgence = 0
+    if t > t_crit:
+        resurgence = alpha_resurge * np.exp(-mu_resurge * (t - t_crit))
+
+    return base_suppression + resurgence
+
+
+# 6. Suppression Feedback (Weak nuclear force analogy)
 def suppression_feedback(alpha, S, beta, K):
     """
-    Computes suppression feedback dynamics.
+    Computes suppression feedback based on current suppression and knowledge.
 
     Parameters:
         alpha (float): Suppression reinforcement coefficient
@@ -80,97 +117,52 @@ def suppression_feedback(alpha, S, beta, K):
         K (float): Current knowledge level
 
     Returns:
-        float: Feedback affecting suppression
+        float: Suppression feedback effect
     """
     return alpha * S - beta * K
 
 
-# 6. Intelligence Entropy Function (Thermodynamic analogy)
-def intelligence_entropy(S_0, lambda_decay, T):
-    """
-    Computes intelligence entropy based on truth adoption.
-
-    Parameters:
-        S_0 (float): Initial suppression
-        lambda_decay (float): Suppression decay factor
-        T (float): Truth adoption level
-
-    Returns:
-        float: Intelligence entropy (suppression)
-    """
-    return S_0 * np.exp(-lambda_decay * T)
-
-
-# 7. Civilization Oscillation Model (Damped Wave)
+# 7. Civilization Oscillation (Quantum neutrino oscillation analogy)
 def civilization_oscillation(E, dE_dt, gamma, omega):
     """
-    Models oscillations between hierarchical and egalitarian states.
+    Computes civilization oscillation (egalitarian vs. hierarchical).
 
     Parameters:
-        E (float): Egalitarian state
-        dE_dt (float): First derivative of egalitarian state
-        gamma (float): Damping factor (suppression)
-        omega (float): Natural frequency
+        E (float): Current civilization state
+        dE_dt (float): Rate of change of state
+        gamma (float): Damping factor
+        omega (float): Natural oscillation frequency
 
     Returns:
-        float: Second derivative (acceleration) of civilization state
+        float: Acceleration of civilization state
     """
+    # Damped harmonic oscillator equation (2nd order ODE)
     return -gamma * dE_dt - (omega ** 2) * E
 
 
-# 8. Resistance Resurgence Model
-def resistance_resurgence(S_0, lambda_decay, t, alpha_resurge, mu_resurge, t_crit):
-    """
-    Models delayed resurgence in suppression.
-
-    Parameters:
-        S_0 (float): Initial suppression level
-        lambda_decay (float): Decay constant
-        t (float): Current time step
-        alpha_resurge (float): Resurgence intensity
-        mu_resurge (float): Decay rate of resurgence
-        t_crit (float): Critical time of resurgence
-
-    Returns:
-        float: Total suppression including resurgence
-    """
-    resurgence = alpha_resurge * np.exp(-mu_resurge * (t - t_crit)) if t > t_crit else 0
-    return S_0 * np.exp(-lambda_decay * t) + resurgence
-
-
-# 9. Phase Transition for Knowledge Growth
+# 8. Knowledge Growth Phase Transition (Weak nuclear transformation analogy)
 def knowledge_growth_phase_transition(K_0, beta_decay, t, A, gamma, T, T_crit):
     """
     Computes knowledge growth with phase transition behavior.
 
     Parameters:
-        K_0 (float): Initial knowledge
+        K_0 (float): Base knowledge level
         beta_decay (float): Knowledge decay rate
         t (float): Time step
-        A (float): Knowledge growth amplitude
-        gamma (float): Phase transition sharpness
+        A (float): Growth amplitude
+        gamma (float): Transition sharpness
         T (float): Truth adoption level
-        T_crit (float): Critical threshold for transition
+        T_crit (float): Critical threshold for phase transition
 
     Returns:
-        float: Knowledge level at time t
+        float: Knowledge level after phase transition
     """
-    return K_0 * np.exp(-beta_decay * t) + A * (1 - np.exp(-gamma * (T - T_crit)))
+    # Potential knowledge decay in suppressed state
+    decay_term = K_0 * np.exp(-beta_decay * t)
 
+    # Phase transition to rapid growth after threshold
+    # When T exceeds T_crit, growth accelerates
+    growth_term = A * (1 - np.exp(-gamma * (T - T_crit)))
 
-# 10. Wisdom as a Guiding Electromagnetic Field
-def wisdom_field(W_0, alpha, S, R, K):
-    """
-    Calculates wisdom’s guiding effect on knowledge integration.
-
-    Parameters:
-        W_0 (float): Base wisdom level
-        alpha (float): Suppression impact on wisdom
-        S (float): Suppression level
-        R (float): Resistance level
-        K (float): Knowledge level
-
-    Returns:
-        float: Adjusted wisdom level
-    """
-    return W_0 * np.exp(-alpha * S) * (1 + (R / K))
+    # Combine effects (ensuring knowledge is non-negative)
+    return max(0, decay_term + growth_term)
