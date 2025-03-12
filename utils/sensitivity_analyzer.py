@@ -1,246 +1,183 @@
+"""
+Parameter sensitivity analysis utilities for the Axiomatic Intelligence Growth Simulation.
+"""
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from itertools import product
-from functools import partial
-import multiprocessing as mp
 from tqdm import tqdm
+from concurrent.futures import ProcessPoolExecutor
+import multiprocessing
+import itertools
+import os
 
 
 class ParameterSensitivityAnalyzer:
     """
-    A class for analyzing parameter sensitivity across the equation hierarchy.
+    Tool for analyzing parameter sensitivity in simulations.
+
+    This class provides methods for:
+    1. One-at-a-time sensitivity analysis
+    2. Global sensitivity analysis
+    3. Parameter correlation analysis
+    4. Visualization of sensitivity results
     """
 
-    def __init__(self, simulation_runner, output_metrics, base_parameters):
+    def __init__(self, simulation_function, metrics, base_parameters, random_seed=42):
         """
-        Initialize the sensitivity analyzer.
+        Initialize sensitivity analyzer.
 
         Args:
-            simulation_runner: Function that runs the simulation with given parameters
-                               and returns the results
-            output_metrics: List of output metric names to track
-            base_parameters: Dictionary of baseline parameters
+            simulation_function: Function that takes parameters and returns metrics dictionary
+            metrics: List of metric names to analyze
+            base_parameters: Dictionary of baseline parameter values
+            random_seed: Random seed for reproducibility
         """
-        self.simulation_runner = simulation_runner
-        self.output_metrics = output_metrics
+        self.simulation_function = simulation_function
+        self.metrics = metrics
         self.base_parameters = base_parameters
+        self.random_seed = random_seed
+
+        # Initialize state
+        self.parameter_ranges = {}
         self.results = None
-        self.parameter_ranges = {}
-        self.parameter_groups = {}
-        self.correlation_matrix = None
-        self.parameter_importance = None
+        self.global_results = None
+        self.correlations = {}
+        self.interaction_effects = {}
+        self.sobol_results = None
 
-    def define_parameter_ranges(self, ranges_dict):
-        """
-        Define ranges for parameters to analyze.
+        # Set random seed
+        np.random.seed(random_seed)
 
-        Args:
-            ranges_dict: Dictionary mapping parameter names to (min, max, num_points)
+    def define_parameter_ranges(self, parameter_ranges):
         """
-        self.parameter_ranges = {}
-        for param, (min_val, max_val, num_points) in ranges_dict.items():
-            self.parameter_ranges[param] = np.linspace(min_val, max_val, num_points)
-
-    def define_parameter_groups(self, groups_dict):
-        """
-        Define parameter groups for hierarchical analysis.
+        Define parameter ranges for sensitivity analysis.
 
         Args:
-            groups_dict: Dictionary mapping group names to lists of parameter names
+            parameter_ranges: Dictionary mapping parameter names to (min, max, num_points) tuples
         """
-        self.parameter_groups = groups_dict
+        self.parameter_ranges = parameter_ranges
 
-    def run_one_at_a_time_sensitivity(self, parallel=True, num_processes=None):
+    def run_one_at_a_time_sensitivity(self, parallel=True):
         """
-        Run one-at-a-time sensitivity analysis, varying each parameter individually.
+        Run one-at-a-time sensitivity analysis.
 
         Args:
             parallel: Whether to run simulations in parallel
-            num_processes: Number of processes to use for parallel execution
 
         Returns:
-            DataFrame containing sensitivity results
+            DataFrame: Results of sensitivity analysis
         """
-        results = []
+        # Ensure parameter ranges are defined
+        if not self.parameter_ranges:
+            raise ValueError("Parameter ranges must be defined before running sensitivity analysis")
 
-        # Create list of parameter combinations to test
-        param_combinations = []
-        param_names = []
+        # Generate parameter combinations
+        parameter_values = {}
+        for param, (min_val, max_val, num_points) in self.parameter_ranges.items():
+            parameter_values[param] = np.linspace(min_val, max_val, num_points)
 
-        for param_name, param_values in self.parameter_ranges.items():
-            base_params = self.base_parameters.copy()
-            for value in param_values:
-                if value != self.base_parameters.get(param_name, None):
-                    test_params = base_params.copy()
-                    test_params[param_name] = value
-                    param_combinations.append(test_params)
-                    param_names.append((param_name, value))
-
-        # Add baseline
-        param_combinations.append(self.base_parameters.copy())
-        param_names.append(("baseline", None))
+        # Generate parameter sets
+        parameter_sets = []
+        for param, values in parameter_values.items():
+            for value in values:
+                # Create parameter set with base values and one changed parameter
+                params = self.base_parameters.copy()
+                params[param] = value
+                params['changed_parameter'] = param
+                parameter_sets.append(params)
 
         # Run simulations
-        if parallel and mp.cpu_count() > 1:
-            num_proc = num_processes if num_processes else max(1, mp.cpu_count() - 1)
-            with mp.Pool(num_proc) as pool:
-                simulation_results = list(tqdm(
-                    pool.imap(self.simulation_runner, param_combinations),
-                    total=len(param_combinations)
-                ))
+        if parallel and len(parameter_sets) > 1:
+            results = self._run_parallel_simulations(parameter_sets)
         else:
-            simulation_results = []
-            for params in tqdm(param_combinations):
-                simulation_results.append(self.simulation_runner(params))
-
-        # Process results
-        for (param_name, param_value), sim_result in zip(param_names, simulation_results):
-            result_entry = {
-                "parameter": param_name,
-                "value": param_value
-            }
-
-            # Extract output metrics
-            for metric in self.output_metrics:
-                if isinstance(sim_result, dict) and metric in sim_result:
-                    result_entry[metric] = sim_result[metric]
-                elif hasattr(sim_result, metric):
-                    result_entry[metric] = getattr(sim_result, metric)
-                else:
-                    result_entry[metric] = None
-
-            results.append(result_entry)
+            results = self._run_sequential_simulations(parameter_sets)
 
         # Convert to DataFrame
-        self.results = pd.DataFrame(results)
-        return self.results
+        results_df = pd.DataFrame(results)
+        self.results = results_df
 
-    def run_global_sensitivity(self, num_samples=100, method='sobol', parallel=True, num_processes=None):
+        # Calculate correlations
+        self._calculate_correlations()
+
+        return results_df
+
+    def run_global_sensitivity_analysis(self, samples=100, method='saltelli'):
         """
-        Run global sensitivity analysis using Sobol or Latin Hypercube sampling.
+        Run global sensitivity analysis using Sobol method.
 
         Args:
-            num_samples: Number of parameter combinations to sample
-            method: Sampling method ('sobol' or 'latin')
-            parallel: Whether to run simulations in parallel
-            num_processes: Number of processes to use for parallel execution
+            samples: Number of samples per parameter
+            method: Sampling method ('saltelli', 'latin', 'random')
 
         Returns:
-            DataFrame containing sensitivity results
+            dict: Sobol indices for each metric
         """
         try:
-            from SALib.sample import sobol as sobol_sample
-            from SALib.sample import latin as latin_sample
-            from SALib.analyze import sobol as sobol_analyze
-            import numpy as np
+            from SALib.sample import saltelli, latin
+            from SALib.analyze import sobol
         except ImportError:
-            print("SALib package is required for global sensitivity analysis.")
-            print("Install it with: pip install SALib")
-            return None
+            print("Warning: SALib not installed. Using simpler sampling method.")
+            method = 'random'
 
-        # Define problem
+        # Ensure parameter ranges are defined
+        if not self.parameter_ranges:
+            raise ValueError("Parameter ranges must be defined before running sensitivity analysis")
+
+        # Define problem for SALib
         problem = {
             'num_vars': len(self.parameter_ranges),
             'names': list(self.parameter_ranges.keys()),
-            'bounds': [[min(values), max(values)] for values in self.parameter_ranges.values()]
+            'bounds': [[r[0], r[1]] for r in self.parameter_ranges.values()]
         }
 
         # Generate samples
-        if method == 'sobol':
-            param_values = sobol_sample.sample(problem, num_samples)
-        elif method == 'latin':
-            param_values = latin_sample.sample(problem, num_samples)
+        if method == 'saltelli' and 'saltelli' in locals():
+            # Saltelli sampling for Sobol analysis
+            param_values = saltelli.sample(problem, samples)
+        elif method == 'latin' and 'latin' in locals():
+            # Latin hypercube sampling
+            param_values = latin.sample(problem, samples)
         else:
-            raise ValueError(f"Unknown sampling method: {method}")
+            # Random sampling
+            param_values = self._generate_random_samples(problem, samples)
 
-        # Create parameter combinations
-        param_combinations = []
-        for sample in param_values:
+        # Convert to parameter dictionaries
+        parameter_sets = []
+        for values in param_values:
             params = self.base_parameters.copy()
-            for i, param_name in enumerate(problem['names']):
-                params[param_name] = sample[i]
-            param_combinations.append(params)
+            for i, param in enumerate(problem['names']):
+                params[param] = values[i]
+            parameter_sets.append(params)
 
         # Run simulations
-        if parallel and mp.cpu_count() > 1:
-            num_proc = num_processes if num_processes else max(1, mp.cpu_count() - 1)
-            with mp.Pool(num_proc) as pool:
-                simulation_results = list(tqdm(
-                    pool.imap(self.simulation_runner, param_combinations),
-                    total=len(param_combinations)
-                ))
+        if len(parameter_sets) > 10:
+            results = self._run_parallel_simulations(parameter_sets)
         else:
-            simulation_results = []
-            for params in tqdm(param_combinations):
-                simulation_results.append(self.simulation_runner(params))
-
-        # Process results for each output metric
-        results = []
-        for i, params in enumerate(param_combinations):
-            result_entry = {param: value for param, value in params.items()}
-
-            # Extract output metrics
-            sim_result = simulation_results[i]
-            for metric in self.output_metrics:
-                if isinstance(sim_result, dict) and metric in sim_result:
-                    result_entry[metric] = sim_result[metric]
-                elif hasattr(sim_result, metric):
-                    result_entry[metric] = getattr(sim_result, metric)
-                else:
-                    result_entry[metric] = None
-
-            results.append(result_entry)
+            results = self._run_sequential_simulations(parameter_sets)
 
         # Convert to DataFrame
-        self.results = pd.DataFrame(results)
+        results_df = pd.DataFrame(results)
+        self.global_results = results_df
 
-        # Calculate Sobol indices for each output metric
-        sensitivity_indices = {}
-        for metric in self.output_metrics:
-            if not all(self.results[metric].notna()):
-                continue
+        # Calculate Sobol indices if possible
+        sobol_indices = {}
+        if method == 'saltelli' and 'sobol' in locals():
+            for metric in self.metrics:
+                try:
+                    Y = results_df[metric].values
+                    Si = sobol.analyze(problem, Y, print_to_console=False)
+                    sobol_indices[metric] = Si
+                except Exception as e:
+                    print(f"Error calculating Sobol indices for {metric}: {e}")
 
-            # Create Y values for Sobol analysis
-            Y = self.results[metric].values
+        self.sobol_results = sobol_indices
 
-            try:
-                # Run Sobol analysis
-                Si = sobol_analyze.analyze(problem, Y, print_to_console=False)
-                sensitivity_indices[metric] = {
-                    'S1': {problem['names'][i]: Si['S1'][i] for i in range(len(problem['names']))},
-                    'ST': {problem['names'][i]: Si['ST'][i] for i in range(len(problem['names']))},
-                }
-            except Exception as e:
-                print(f"Error calculating Sobol indices for {metric}: {e}")
+        # Calculate interaction effects
+        self._calculate_interaction_effects()
 
-        self.sensitivity_indices = sensitivity_indices
-        return self.results, sensitivity_indices
+        return sobol_indices
 
-    def calculate_parameter_correlations(self):
-        """
-        Calculate parameter correlations with output metrics.
-
-        Returns:
-            DataFrame containing correlation coefficients
-        """
-        if self.results is None:
-            raise ValueError("Must run sensitivity analysis before calculating correlations")
-
-        # Extract parameter columns and output metrics
-        param_cols = [col for col in self.results.columns
-                      if col not in self.output_metrics and col not in ['parameter', 'value']]
-
-        # Calculate correlation matrix
-        data_for_corr = self.results[param_cols + self.output_metrics].copy()
-        self.correlation_matrix = data_for_corr.corr()
-
-        # Extract just the parameter-to-output correlations
-        param_output_corr = self.correlation_matrix.loc[param_cols, self.output_metrics]
-
-        return param_output_corr
-
-    def calculate_parameter_importance(self, method='sobol'):
+    def calculate_parameter_importance(self, method='range'):
         """
         Calculate parameter importance using different methods.
 
@@ -258,24 +195,32 @@ class ParameterSensitivityAnalyzer:
         if self.results is None:
             self.run_one_at_a_time_sensitivity()
 
-        if method == 'sobol' and hasattr(self, 'sobol_results'):
+        if method == 'sobol' and self.sobol_results:
             # Use Sobol indices if available
+            first_metric = next(iter(self.sobol_results))
             importance = pd.Series({
-                param: self.sobol_results['S1'][i]
-                for i, param in enumerate(self.parameters)
+                param: self.sobol_results[first_metric]['S1'][i]
+                for i, param in enumerate(self.parameter_ranges.keys())
             })
-        elif method == 'correlation' and hasattr(self, 'correlations'):
+
+        elif method == 'correlation' and self.correlations:
             # Use correlation-based importance if available
             importance = pd.Series({
-                param: self.correlations.get(param, {}).max()
-                for param in self.parameters
+                param: max([abs(corr) for metric, corr in param_corrs.items()])
+                for param, param_corrs in self.correlations.items()
             })
+
         else:
             # Fallback to range-based importance (always works)
             importance = {}
 
-            # Get unique parameter values
-            for param in self.parameters:
+            # Get unique parameter values from the results
+            for param in self.parameter_ranges.keys():
+                if param not in self.results.columns:
+                    # Skip parameters not in results
+                    importance[param] = 0.0
+                    continue
+
                 param_values = self.results[param].unique()
 
                 if len(param_values) <= 1:
@@ -286,6 +231,9 @@ class ParameterSensitivityAnalyzer:
                 # Calculate total impact across all metrics
                 total_impact = 0.0
                 for metric in self.metrics:
+                    if metric not in self.results.columns:
+                        continue
+
                     # Calculate max variation for each metric
                     metric_values = []
                     for param_value in param_values:
@@ -313,569 +261,672 @@ class ParameterSensitivityAnalyzer:
         # Sort in descending order
         return importance.sort_values(ascending=False)
 
-    def identify_interaction_effects(self):
+    def calculate_parameter_correlations(self):
         """
-        Identify parameters with strong interaction effects.
+        Calculate correlations between parameters and metrics.
 
         Returns:
-            DataFrame of parameter pairs with interaction measures
-        """
-        if not hasattr(self, 'sensitivity_indices'):
-            raise ValueError("Must run global sensitivity analysis before identifying interactions")
-
-        interactions = []
-
-        for metric, indices in self.sensitivity_indices.items():
-            # Sobol total effect - first order effect = interaction effect
-            for param in indices['S1'].keys():
-                interaction = indices['ST'][param] - indices['S1'][param]
-                interactions.append({
-                    'metric': metric,
-                    'parameter': param,
-                    'interaction_effect': interaction
-                })
-
-        return pd.DataFrame(interactions)
-
-    def run_sequential_dependency_analysis(self, dependency_chains):
-        """
-        Analyze how parameter changes propagate through dependency chains.
-
-        Args:
-            dependency_chains: List of parameter chains to analyze, where each chain
-                              is a list of parameters in sequence of dependency
-
-        Returns:
-            DataFrame with propagation analysis results
-        """
-        results = []
-
-        for chain in dependency_chains:
-            # Modify first parameter in chain
-            for param_name in chain:
-                if param_name not in self.parameter_ranges:
-                    continue
-
-                param_values = self.parameter_ranges[param_name]
-
-                for value in param_values:
-                    # Create parameter set with modified value
-                    params = self.base_parameters.copy()
-                    params[param_name] = value
-
-                    # Run simulation
-                    result = self.simulation_runner(params)
-
-                    # Record impact on each parameter in the chain
-                    entry = {
-                        'chain': '->'.join(chain),
-                        'modified_param': param_name,
-                        'value': value
-                    }
-
-                    # Extract relevant metrics for parameters in chain
-                    for chain_param in chain:
-                        for metric in self.output_metrics:
-                            if chain_param in metric:  # Simple heuristic to find relevant metrics
-                                if isinstance(result, dict) and metric in result:
-                                    entry[f"{chain_param}_{metric}"] = result[metric]
-                                elif hasattr(result, metric):
-                                    entry[f"{chain_param}_{metric}"] = getattr(result, metric)
-
-                    results.append(entry)
-
-        return pd.DataFrame(results)
-
-    def plot_sensitivity_tornado(self, metric, top_n=10):
-        """
-        Create tornado plot for sensitivity of one output metric.
-
-        Args:
-            metric: Name of output metric to analyze
-            top_n: Number of most important parameters to include
-
-        Returns:
-            matplotlib Figure
+            dict: Correlations between parameters and metrics
         """
         if self.results is None:
-            raise ValueError("Must run sensitivity analysis before plotting")
+            self.run_one_at_a_time_sensitivity()
 
-        # Get baseline value
-        baseline = self.results[self.results['parameter'] == 'baseline'][metric].values[0]
+        self._calculate_correlations()
+        return self.correlations
+
+    def identify_interaction_effects(self):
+        """
+        Identify interaction effects between parameters.
+
+        Returns:
+            dict: Interaction effects between parameters
+        """
+        if self.global_results is None:
+            # We need global sensitivity analysis results
+            try:
+                self.run_global_sensitivity_analysis()
+            except Exception as e:
+                raise ValueError(f"Must run global sensitivity analysis before identifying interactions: {e}")
+
+        self._calculate_interaction_effects()
+        return self.interaction_effects
+
+    def generate_tornado_plot(self, metric=None, figsize=(10, 8), top_n=None):
+        """
+        Generate a tornado plot showing parameter sensitivity.
+
+        Args:
+            metric (str): Metric to plot, or None to use first metric
+            figsize (tuple): Figure size
+            top_n (int): Number of top parameters to show
+
+        Returns:
+            matplotlib.figure.Figure: Tornado plot
+        """
+        if self.results is None:
+            self.run_one_at_a_time_sensitivity()
+
+        # Choose metric
+        if metric is None:
+            metric = self.metrics[0]
+        elif metric not in self.metrics:
+            raise ValueError(f"Metric {metric} not in available metrics: {self.metrics}")
+
+        # Calculate baseline value
+        baseline_mask = True
+        for param in self.parameter_ranges:
+            baseline_mask &= (self.results[param] == self.base_parameters[param])
+        baseline_value = self.results.loc[baseline_mask, metric].values[0] if baseline_mask.any() else 0
 
         # Calculate parameter impacts
-        impacts = []
+        impacts = {}
+        for param, (min_val, max_val, _) in self.parameter_ranges.items():
+            min_mask = (self.results[param] == min_val) & (self.results['changed_parameter'] == param)
+            max_mask = (self.results[param] == max_val) & (self.results['changed_parameter'] == param)
 
-        for param in self.parameter_ranges.keys():
-            param_results = self.results[self.results['parameter'] == param]
-            if param_results.empty:
-                continue
+            if min_mask.any() and max_mask.any():
+                min_value = self.results.loc[min_mask, metric].values[0]
+                max_value = self.results.loc[max_mask, metric].values[0]
+                impacts[param] = (min_value - baseline_value, max_value - baseline_value)
 
-            min_val = param_results[metric].min()
-            max_val = param_results[metric].max()
+        # Sort by absolute impact
+        sorted_impacts = sorted(
+            impacts.items(),
+            key=lambda x: max(abs(x[1][0]), abs(x[1][1])),
+            reverse=True
+        )
 
-            impacts.append({
-                'parameter': param,
-                'min_impact': min_val - baseline,
-                'max_impact': max_val - baseline,
-                'range': max_val - min_val
-            })
+        # Limit to top N if specified
+        if top_n is not None:
+            sorted_impacts = sorted_impacts[:top_n]
 
-        # Convert to DataFrame and sort by impact range
-        impacts_df = pd.DataFrame(impacts).sort_values('range', ascending=False).head(top_n)
+        # Create plot
+        fig, ax = plt.subplots(figsize=figsize)
 
-        # Create tornado plot
-        fig, ax = plt.subplots(figsize=(10, 8))
+        # Plot parameters
+        param_names = [p[0] for p in sorted_impacts]
+        y_pos = np.arange(len(param_names))
 
-        # Plot horizontal bars
-        y_pos = np.arange(len(impacts_df))
-        ax.barh(y_pos, impacts_df['max_impact'], left=baseline, color='green', alpha=0.6)
-        ax.barh(y_pos, impacts_df['min_impact'], left=baseline, color='red', alpha=0.6)
+        # Plot bars
+        for i, (param, (min_impact, max_impact)) in enumerate(sorted_impacts):
+            # Plot decreasing impact in blue
+            ax.barh(
+                y_pos[i],
+                min_impact if min_impact < 0 else 0,
+                align='center',
+                color='blue',
+                alpha=0.6,
+                height=0.5
+            )
 
-        # Add parameter names
+            # Plot increasing impact in red
+            ax.barh(
+                y_pos[i],
+                max_impact if max_impact > 0 else 0,
+                align='center',
+                color='red',
+                alpha=0.6,
+                height=0.5
+            )
+
+        # Customize plot
         ax.set_yticks(y_pos)
-        ax.set_yticklabels(impacts_df['parameter'])
+        ax.set_yticklabels(param_names)
+        ax.invert_yaxis()  # Highest values at top
+        ax.set_xlabel(f'Change in {metric}')
+        ax.set_title(f'Tornado Plot - Impact on {metric}')
+        ax.axvline(x=0, color='black', linestyle='-', alpha=0.3)
+        ax.grid(True, alpha=0.3)
 
-        # Add vertical line at baseline
-        ax.axvline(x=baseline, color='black', linestyle='--')
-
-        # Add labels
-        ax.set_xlabel(f'Impact on {metric}')
-        ax.set_title(f'Sensitivity of {metric} to Parameters')
-
-        plt.tight_layout()
         return fig
 
-    def plot_parameter_importance(self, method='correlation'):
+    def generate_sensitivity_heatmap(self, figsize=(12, 10)):
         """
-        Plot overall parameter importance across all outputs.
+        Generate a heatmap of parameter sensitivity across all metrics.
 
         Args:
-            method: Method to use for importance calculation
+            figsize (tuple): Figure size
 
         Returns:
-            matplotlib Figure
+            matplotlib.figure.Figure: Heatmap plot
         """
-        importance = self.calculate_parameter_importance(method)
+        # Ensure we have correlation results
+        if not self.correlations and self.results is not None:
+            self._calculate_correlations()
 
-        # Create bar plot
-        fig, ax = plt.subplots(figsize=(10, 8))
-        importance.plot(kind='bar', ax=ax)
+        if not self.correlations:
+            raise ValueError("No correlation data available. Run sensitivity analysis first.")
 
-        # Add labels
-        ax.set_ylabel('Importance Score')
-        ax.set_title(f'Parameter Importance ({method})')
+        # Create correlation matrix
+        corr_matrix = np.zeros((len(self.parameter_ranges), len(self.metrics)))
+        parameters = list(self.parameter_ranges.keys())
 
-        plt.tight_layout()
+        for i, param in enumerate(parameters):
+            if param in self.correlations:
+                for j, metric in enumerate(self.metrics):
+                    if metric in self.correlations[param]:
+                        corr_matrix[i, j] = self.correlations[param][metric]
+
+        # Create plot
+        fig, ax = plt.subplots(figsize=figsize)
+        im = ax.imshow(corr_matrix, cmap='coolwarm', vmin=-1, vmax=1)
+
+        # Add colorbar
+        cbar = ax.figure.colorbar(im, ax=ax)
+
+        # Set ticks and labels
+        ax.set_xticks(np.arange(len(self.metrics)))
+        ax.set_yticks(np.arange(len(parameters)))
+        ax.set_xticklabels(self.metrics)
+        ax.set_yticklabels(parameters)
+
+        # Rotate x labels for readability
+        plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+
+        # Add text annotations
+        for i in range(len(parameters)):
+            for j in range(len(self.metrics)):
+                ax.text(j, i, f"{corr_matrix[i, j]:.2f}",
+                        ha="center", va="center",
+                        color="black" if abs(corr_matrix[i, j]) < 0.5 else "white")
+
+        # Add title and labels
+        ax.set_title("Parameter-Metric Sensitivity Correlation")
+
+        fig.tight_layout()
         return fig
 
-    def plot_parameter_interactions(self, threshold=0.1):
+    def generate_interaction_network(self, figsize=(12, 10), threshold=0.1):
         """
-        Plot parameter interaction network.
+        Generate a network visualization of parameter interactions.
 
         Args:
-            threshold: Minimum interaction strength to include
+            figsize (tuple): Figure size
+            threshold (float): Minimum interaction strength to display
 
         Returns:
-            matplotlib Figure
+            matplotlib.figure.Figure: Network plot
         """
+        # Ensure we have interaction data
+        if not self.interaction_effects and self.global_results is not None:
+            self._calculate_interaction_effects()
+
+        if not self.interaction_effects:
+            # Try to run global sensitivity first
+            try:
+                self.run_global_sensitivity_analysis(samples=50)
+            except Exception:
+                raise ValueError("No interaction data available and could not run global sensitivity analysis")
+
+        # Import networkx for graph visualization
         try:
             import networkx as nx
-            from matplotlib.cm import get_cmap
         except ImportError:
-            print("networkx is required for interaction networks.")
-            print("Install it with: pip install networkx")
-            return None
-
-        interactions_df = self.identify_interaction_effects()
-
-        # Filter by threshold
-        strong_interactions = interactions_df[interactions_df['interaction_effect'] > threshold]
+            raise ImportError("networkx is required for interaction network visualization")
 
         # Create graph
         G = nx.Graph()
 
         # Add nodes (parameters)
-        for param in self.parameter_ranges.keys():
+        parameters = list(self.parameter_ranges.keys())
+        for param in parameters:
             G.add_node(param)
 
         # Add edges (interactions)
-        for _, row in strong_interactions.iterrows():
-            param = row['parameter']
-            for other_param in self.parameter_ranges.keys():
-                if param != other_param:
-                    # Check if this pair has strong interactions
-                    other_row = strong_interactions[
-                        (strong_interactions['parameter'] == other_param) &
-                        (strong_interactions['metric'] == row['metric'])
-                        ]
+        for p1, p2, strength in self.interaction_effects:
+            if abs(strength) >= threshold:
+                G.add_edge(p1, p2, weight=abs(strength), color='red' if strength > 0 else 'blue')
 
-                    if not other_row.empty:
-                        # Add edge with weight based on interaction effect
-                        weight = (row['interaction_effect'] + other_row['interaction_effect'].values[0]) / 2
-                        if weight > threshold:
-                            G.add_edge(param, other_param, weight=weight, metric=row['metric'])
+        # Create plot
+        fig, ax = plt.subplots(figsize=figsize)
 
-        # Plot network
-        fig, ax = plt.subplots(figsize=(12, 10))
-
-        # Layout
+        # Use spring layout for node positions
         pos = nx.spring_layout(G, seed=42)
 
-        # Get edge weights for width and color
-        edges = G.edges()
-        weights = [G[u][v]['weight'] * 5 for u, v in edges]  # Scale for visibility
+        # Get edge colors and weights
+        edge_colors = [G[u][v]['color'] for u, v in G.edges()]
+        edge_weights = [2 * G[u][v]['weight'] for u, v in G.edges()]
 
-        # Color map based on associated metric
-        unique_metrics = interactions_df['metric'].unique()
-        color_map = get_cmap('tab10', len(unique_metrics))
-        metric_colors = {metric: color_map(i) for i, metric in enumerate(unique_metrics)}
+        # Draw network
+        nx.draw_networkx_nodes(G, pos, ax=ax, node_size=500, alpha=0.8)
+        nx.draw_networkx_labels(G, pos, ax=ax)
+        nx.draw_networkx_edges(G, pos, ax=ax, width=edge_weights, edge_color=edge_colors, alpha=0.7)
 
-        edge_colors = [metric_colors[G[u][v]['metric']] for u, v in edges]
+        # Add legend
+        ax.plot([0], [0], color='red', linewidth=2, label='Positive Interaction')
+        ax.plot([0], [0], color='blue', linewidth=2, label='Negative Interaction')
+        ax.legend()
 
-        # Draw
-        nx.draw_networkx_nodes(G, pos, node_size=500, alpha=0.8)
-        nx.draw_networkx_labels(G, pos, font_size=10)
-        nx.draw_networkx_edges(G, pos, width=weights, edge_color=edge_colors, alpha=0.7)
+        # Remove axis
+        ax.set_axis_off()
 
-        # Add legend for metrics
-        handles = [plt.Line2D([0], [0], color=color, lw=4) for color in metric_colors.values()]
-        labels = list(metric_colors.keys())
-        plt.legend(handles, labels, title='Metrics')
-
-        plt.title('Parameter Interaction Network')
-        plt.axis('off')
+        # Add title
+        ax.set_title("Parameter Interaction Network")
 
         return fig
 
-    def generate_comprehensive_report(self, output_dir):
+    def generate_comprehensive_report(self, output_dir=None):
         """
-        Generate comprehensive HTML report of sensitivity analysis.
+        Generate a comprehensive report of sensitivity analysis results.
 
         Args:
-            output_dir: Directory to save report files
+            output_dir (str): Directory to save the report
+
+        Returns:
+            str: Path to the report
         """
+        import os
+
+        # Create output directory if needed
+        if output_dir is not None:
+            os.makedirs(output_dir, exist_ok=True)
+
+        # Generate plots
         try:
-            import json
-            from pathlib import Path
-            import base64
-            from io import BytesIO
-        except ImportError:
-            print("Required packages missing for report generation.")
+            # Tornado plot for each metric
+            for metric in self.metrics:
+                fig = self.generate_tornado_plot(metric=metric)
+                if output_dir is not None:
+                    plt.savefig(os.path.join(output_dir, f"tornado_{metric}.png"), dpi=300)
+                plt.close(fig)
+
+            # Sensitivity heatmap
+            fig = self.generate_sensitivity_heatmap()
+            if output_dir is not None:
+                plt.savefig(os.path.join(output_dir, "sensitivity_heatmap.png"), dpi=300)
+            plt.close(fig)
+
+            # Parameter importance
+            importance = self.calculate_parameter_importance()
+            fig, ax = plt.subplots(figsize=(10, 6))
+            importance.plot(kind='bar', ax=ax)
+            ax.set_title("Parameter Importance")
+            ax.set_ylabel("Normalized Importance")
+            plt.tight_layout()
+            if output_dir is not None:
+                plt.savefig(os.path.join(output_dir, "parameter_importance.png"), dpi=300)
+            plt.close(fig)
+
+            # Try to generate interaction network if we have global results
+            try:
+                if self.global_results is not None or self.interaction_effects:
+                    fig = self.generate_interaction_network()
+                    if output_dir is not None:
+                        plt.savefig(os.path.join(output_dir, "interaction_network.png"), dpi=300)
+                    plt.close(fig)
+            except Exception as e:
+                print(f"Could not generate interaction network: {e}")
+
+            # Generate HTML report
+            if output_dir is not None:
+                self._generate_html_report(output_dir)
+
+            print(f"Comprehensive report generated in {output_dir}")
+            return output_dir
+
+        except Exception as e:
+            print(f"Error generating comprehensive report: {e}")
+            if output_dir is not None:
+                # Try to generate a basic report
+                self._generate_basic_report(output_dir)
+                return output_dir
+            else:
+                return None
+
+    def _generate_random_samples(self, problem, samples):
+        """Generate random samples for parameters."""
+        num_vars = problem['num_vars']
+        bounds = problem['bounds']
+
+        # Generate random values within bounds
+        x = np.random.random((samples, num_vars))
+        for i, bound in enumerate(bounds):
+            x[:, i] = x[:, i] * (bound[1] - bound[0]) + bound[0]
+
+        return x
+
+    def _run_sequential_simulations(self, parameter_sets):
+        """Run simulations sequentially."""
+        results = []
+        for params in tqdm(parameter_sets, desc="Running simulations"):
+            try:
+                # Run simulation
+                sim_result = self.simulation_function(params)
+
+                # Add parameters to result
+                result = params.copy()
+                result.update(sim_result)
+
+                results.append(result)
+            except Exception as e:
+                print(f"Error running simulation with parameters {params}: {e}")
+
+        return results
+
+    def _run_parallel_simulations(self, parameter_sets):
+        """Run simulations in parallel."""
+        # Determine number of workers
+        try:
+            num_cpus = multiprocessing.cpu_count()
+            num_workers = max(1, num_cpus - 1)  # Leave one CPU free
+        except:
+            num_workers = 2
+
+        # Run simulations in parallel
+        results = []
+        with ProcessPoolExecutor(max_workers=num_workers) as executor:
+            futures = [executor.submit(self._run_single_simulation, params) for params in parameter_sets]
+
+            # Collect results as they complete
+            for future in tqdm(futures, desc="Running simulations"):
+                try:
+                    result = future.result()
+                    if result is not None:
+                        results.append(result)
+                except Exception as e:
+                    print(f"Error in simulation: {e}")
+
+        return results
+
+    def _run_single_simulation(self, params):
+        """Run a single simulation and handle errors."""
+        try:
+            # Run simulation
+            sim_result = self.simulation_function(params)
+
+            # Add parameters to result
+            result = params.copy()
+            result.update(sim_result)
+
+            return result
+        except Exception as e:
+            print(f"Error running simulation with parameters {params}: {e}")
+            return None
+
+    def _calculate_correlations(self):
+        """Calculate correlations between parameters and metrics."""
+        if self.results is None:
             return
 
-        # Create output directory
-        Path(output_dir).mkdir(parents=True, exist_ok=True)
+        self.correlations = {}
 
-        # Generate all plots
-        plots = {}
+        # Calculate correlations for each parameter and metric
+        for param in self.parameter_ranges:
+            if param not in self.results.columns:
+                continue
 
-        # Sensitivity tornados for each metric
-        for metric in self.output_metrics:
-            fig = self.plot_sensitivity_tornado(metric)
-            buf = BytesIO()
-            fig.savefig(buf, format='png')
-            plt.close(fig)
-            plots[f"tornado_{metric}"] = base64.b64encode(buf.getbuffer()).decode("ascii")
+            self.correlations[param] = {}
 
-        # Parameter importance
-        fig = self.plot_parameter_importance()
-        buf = BytesIO()
-        fig.savefig(buf, format='png')
-        plt.close(fig)
-        plots["parameter_importance"] = base64.b64encode(buf.getbuffer()).decode("ascii")
+            for metric in self.metrics:
+                if metric not in self.results.columns:
+                    continue
 
-        # Parameter interactions
-        fig = self.plot_parameter_interactions()
-        if fig:
-            buf = BytesIO()
-            fig.savefig(buf, format='png')
-            plt.close(fig)
-            plots["parameter_interactions"] = base64.b64encode(buf.getbuffer()).decode("ascii")
+                # Calculate correlation for this parameter-metric pair
+                mask = self.results['changed_parameter'] == param
+                if mask.any():
+                    df = self.results.loc[mask, [param, metric]]
+                    if len(df) > 1:
+                        corr = df.corr().iloc[0, 1]
+                        self.correlations[param][metric] = corr
 
-        # Create data for report
-        report_data = {
-            "plots": plots,
-            "parameter_importance": self.parameter_importance.to_dict() if self.parameter_importance is not None else {},
-            "parameter_correlations": self.correlation_matrix.to_dict() if self.correlation_matrix is not None else {},
-            "parameter_ranges": {k: list(v) for k, v in self.parameter_ranges.items()},
-            "output_metrics": self.output_metrics
-        }
+    def run_global_sensitivity(self, num_samples=128):
+        """
+        Run global sensitivity analysis using Sobol method from SALib.
 
-        # Save data as JSON
-        with open(Path(output_dir) / "sensitivity_data.json", "w") as f:
-            json.dump(report_data, f)
+        Parameters:
+            num_samples (int): Number of samples for Sobol sequence
 
-        # Create HTML report
-        html_content = """
+        Returns:
+            dict: Sensitivity indices and results
+        """
+        try:
+            from SALib.sample import saltelli
+            from SALib.analyze import sobol
+
+            # Define problem for SALib
+            problem = {
+                'num_vars': len(self.parameter_ranges),
+                'names': list(self.parameter_ranges.keys()),
+                'bounds': [self.parameter_ranges[name][:2] for name in problem['names']]
+            }
+
+            # Generate samples using Saltelli's extension of Sobol sequence
+            param_values = saltelli.sample(problem, num_samples)
+            print(f"Running {param_values.shape[0]} simulations for global sensitivity analysis...")
+
+            # Parallel computation of model outputs
+            Y = {}
+            for metric in self.metrics:
+                Y[metric] = np.zeros(param_values.shape[0])
+
+            # Run simulations with parameter combinations
+            for i, X in enumerate(param_values):
+                params_dict = dict(zip(problem['names'], X))
+                self.current_params = {**self.base_parameters, **params_dict}
+                sim_results = self.simulation_function(self.current_params)
+
+                for metric in self.metrics:
+                    Y[metric][i] = sim_results[metric]
+
+                if i % 100 == 0:
+                    print(f"  Completed {i}/{param_values.shape[0]} simulations")
+
+            # Perform Sobol analysis for each metric
+            results = {}
+            for metric in self.metrics:
+                Si = sobol.analyze(problem, Y[metric], print_to_console=False)
+                results[metric] = {
+                    'S1': Si['S1'],  # First-order indices
+                    'S2': Si['S2'],  # Second-order indices
+                    'ST': Si['ST'],  # Total-order indices
+                    'parameter_names': problem['names']
+                }
+
+            return results
+
+        except ImportError:
+            print("SALib not installed. Using simpler sampling method.")
+            return self._run_simple_global_sensitivity(num_samples)
+
+    def _calculate_interaction_effects(self):
+        """Calculate interaction effects between parameters."""
+        if self.global_results is None:
+            return
+
+        self.interaction_effects = []
+
+        # Calculate interactions for each parameter pair and metric
+        parameters = list(self.parameter_ranges.keys())
+
+        for i, p1 in enumerate(parameters):
+            for j, p2 in enumerate(parameters):
+                if j <= i:
+                    continue  # Skip duplicate pairs and self-interactions
+
+                # Calculate interaction for this parameter pair
+                if p1 in self.global_results.columns and p2 in self.global_results.columns:
+                    interaction_strength = self._calculate_pair_interaction(p1, p2)
+                    self.interaction_effects.append((p1, p2, interaction_strength))
+
+    def _calculate_pair_interaction(self, p1, p2):
+        """Calculate interaction strength between two parameters."""
+        # Simple method: calculate correlation between parameters in their effect on metrics
+        interaction_strength = 0
+
+        for metric in self.metrics:
+            if metric not in self.global_results.columns:
+                continue
+
+            # Calculate parameter effects on metric
+            effects_p1 = {}
+            effects_p2 = {}
+
+            # Discretize parameter values
+            p1_vals = pd.qcut(self.global_results[p1], 5, duplicates='drop').cat.codes
+            p2_vals = pd.qcut(self.global_results[p2], 5, duplicates='drop').cat.codes
+
+            # Calculate average metric value for each parameter value
+            for val in np.unique(p1_vals):
+                mask = p1_vals == val
+                effects_p1[val] = self.global_results.loc[mask, metric].mean()
+
+            for val in np.unique(p2_vals):
+                mask = p2_vals == val
+                effects_p2[val] = self.global_results.loc[mask, metric].mean()
+
+            # Calculate interaction score based on joint effects
+            total_effect = 0
+            for val1 in np.unique(p1_vals):
+                for val2 in np.unique(p2_vals):
+                    mask = (p1_vals == val1) & (p2_vals == val2)
+                    if mask.any():
+                        joint_effect = self.global_results.loc[mask, metric].mean()
+                        independent_effect = effects_p1[val1] + effects_p2[val2] - self.global_results[metric].mean()
+
+                        # Interaction is difference between joint and independent effects
+                        diff = joint_effect - independent_effect
+                        total_effect += diff * mask.sum() / len(self.global_results)
+
+            interaction_strength += total_effect
+
+        # Average across metrics
+        if len(self.metrics) > 0:
+            interaction_strength /= len(self.metrics)
+
+        return interaction_strength
+
+    def _generate_html_report(self, output_dir):
+        """Generate HTML report of sensitivity analysis results."""
+        from datetime import datetime
+
+        html = """
         <!DOCTYPE html>
         <html>
         <head>
             <title>Parameter Sensitivity Analysis Report</title>
             <style>
-                body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-                h1, h2, h3 { color: #333; }
-                .container { max-width: 1200px; margin: 0 auto; }
-                .plot-container { margin: 20px 0; }
-                .plot { max-width: 100%; height: auto; border: 1px solid #ddd; }
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1200px; margin: 0 auto; padding: 20px; }
+                h1, h2, h3 { color: #2c3e50; }
+                .section { margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+                .image-container { margin: 20px 0; text-align: center; }
+                img { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; }
                 table { border-collapse: collapse; width: 100%; margin: 20px 0; }
                 th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
                 th { background-color: #f2f2f2; }
                 tr:nth-child(even) { background-color: #f9f9f9; }
-                .metric-section { margin-bottom: 40px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
-                .summary { background-color: #f8f8f8; padding: 15px; border-radius: 5px; margin: 20px 0; }
+                .footer { margin-top: 40px; text-align: center; font-size: 0.8em; color: #777; }
             </style>
         </head>
         <body>
-            <div class="container">
-                <h1>Parameter Sensitivity Analysis Report</h1>
+            <h1>Parameter Sensitivity Analysis Report</h1>
+            <p>Generated on: """ + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + """</p>
 
-                <div class="summary">
-                    <h2>Executive Summary</h2>
-                    <p>This report analyzes the sensitivity of simulation outputs to various input parameters across the equation hierarchy.</p>
+            <div class="section">
+                <h2>Executive Summary</h2>
+                <p>This report analyzes the sensitivity of simulation outputs to changes in input parameters.</p>
+            </div>
+
+            <div class="section">
+                <h2>Parameter Importance</h2>
+                <p>The chart below shows the relative importance of each parameter:</p>
+                <div class="image-container">
+                    <img src="parameter_importance.png" alt="Parameter Importance">
                 </div>
 
-                <h2>Overall Parameter Importance</h2>
-                <div class="plot-container">
-                    <img class="plot" src="data:image/png;base64,{plots['parameter_importance']}" alt="Parameter Importance">
-                </div>
-
-                <h2>Parameter Interactions</h2>
-                <div class="plot-container">
-                    <img class="plot" src="data:image/png;base64,{plots.get('parameter_interactions', '')}" alt="Parameter Interactions">
-                </div>
-
-                <h2>Sensitivity Analysis by Metric</h2>
-        """
-
-        # Add tornado plots for each metric
-        for metric in self.output_metrics:
-            html_content += f"""
-                <div class="metric-section">
-                    <h3>Sensitivity of {metric}</h3>
-                    <div class="plot-container">
-                        <img class="plot" src="data:image/png;base64,{plots[f'tornado_{metric}']}" alt="Tornado Plot for {metric}">
-                    </div>
-                </div>
-            """
-
-        # Add importance table
-        html_content += """
-                <h2>Parameter Importance Rankings</h2>
+                <h3>Parameter Importance Values</h3>
                 <table>
                     <tr>
                         <th>Parameter</th>
-                        <th>Importance Score</th>
+                        <th>Importance</th>
                     </tr>
         """
 
-        for param, score in self.parameter_importance.items():
-            html_content += f"""
+        # Add parameter importance values
+        importance = self.calculate_parameter_importance()
+        for param, value in importance.items():
+            html += f"""
                     <tr>
                         <td>{param}</td>
-                        <td>{score:.4f}</td>
+                        <td>{value:.4f}</td>
                     </tr>
             """
 
-        html_content += """
+        html += """
                 </table>
+            </div>
 
-                <h2>Recommendations</h2>
-                <div class="summary">
-                    <p>Based on the sensitivity analysis, the following parameters should be prioritized for empirical validation:</p>
-                    <ul>
+            <div class="section">
+                <h2>Tornado Plots</h2>
+                <p>These plots show how varying each parameter affects specific metrics:</p>
         """
 
-        # Add recommendations for top 5 parameters
-        for param in self.parameter_importance.index[:5]:
-            html_content += f"""
-                        <li><strong>{param}</strong>: High sensitivity across multiple outputs</li>
+        # Add tornado plots for each metric
+        for metric in self.metrics:
+            html += f"""
+                <h3>Impact on {metric}</h3>
+                <div class="image-container">
+                    <img src="tornado_{metric}.png" alt="Tornado Plot for {metric}">
+                </div>
             """
 
-        html_content += """
-                    </ul>
+        html += """
+            </div>
+
+            <div class="section">
+                <h2>Parameter-Metric Sensitivity Heatmap</h2>
+                <p>This heatmap shows the correlation between parameters and metrics:</p>
+                <div class="image-container">
+                    <img src="sensitivity_heatmap.png" alt="Sensitivity Heatmap">
                 </div>
+            </div>
+        """
+
+        # Add interaction network if available
+        if os.path.exists(os.path.join(output_dir, "interaction_network.png")):
+            html += """
+            <div class="section">
+                <h2>Parameter Interaction Network</h2>
+                <p>This network visualizes interactions between parameters:</p>
+                <div class="image-container">
+                    <img src="interaction_network.png" alt="Parameter Interaction Network">
+                </div>
+            </div>
+            """
+
+        html += """
+            <div class="footer">
+                <p>Generated using ParameterSensitivityAnalyzer</p>
             </div>
         </body>
         </html>
         """
 
-        # Save HTML report
-        with open(Path(output_dir) / "sensitivity_report.html", "w") as f:
-            f.write(html_content.format(plots=plots))
+        # Write HTML to file
+        with open(os.path.join(output_dir, "sensitivity_report.html"), "w") as f:
+            f.write(html)
 
-        print(f"Report generated in {output_dir}")
+    def _generate_basic_report(self, output_dir):
+        """Generate a basic text report of sensitivity analysis results."""
+        from datetime import datetime
 
+        report = f"""
+        Parameter Sensitivity Analysis Report
+        ====================================
+        Generated on: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
-# Example usage:
-def run_example_sensitivity_analysis():
-    """
-    Example of how to use the sensitivity analyzer with the axiomatic framework.
-    """
-    # Import necessary components
-    from config.equations import (
-        intelligence_growth, truth_adoption, wisdom_field,
-        resistance_resurgence, suppression_feedback
-    )
+        Executive Summary
+        -----------------
+        This report analyzes the sensitivity of simulation outputs to changes in input parameters.
 
-    # Define a simple simulation runner for demonstration
-    def simple_simulation(params):
-        """Simple simulation that returns key metrics."""
-        # Initial values
-        I = params.get('I_0', 5.0)
-        K = params.get('K_0', 1.0)
-        S = params.get('S_0', 10.0)
-        T = params.get('T_0', 1.0)
+        Parameter Importance
+        -------------------
+        """
 
-        # Time steps
-        dt = 1.0
-        steps = 100
+        # Add parameter importance values
+        importance = self.calculate_parameter_importance()
+        for param, value in importance.items():
+            report += f"{param}: {value:.4f}\n"
 
-        # Results storage
-        results = {
-            'I': np.zeros(steps),
-            'K': np.zeros(steps),
-            'S': np.zeros(steps),
-            'T': np.zeros(steps)
-        }
-
-        results['I'][0] = I
-        results['K'][0] = K
-        results['S'][0] = S
-        results['T'][0] = T
-
-        # Simulation loop
-        for t in range(1, steps):
-            # Calculate wisdom
-            W = wisdom_field(
-                1.0,
-                params.get('alpha_wisdom', 0.1),
-                results['S'][t - 1],
-                params.get('resistance', 2.0),
-                results['K'][t - 1]
-            )
-
-            # Update intelligence
-            i_growth = intelligence_growth(
-                results['K'][t - 1],
-                W,
-                params.get('resistance', 2.0),
-                results['S'][t - 1],
-                1.5
-            )
-            results['I'][t] = max(0, results['I'][t - 1] + i_growth * dt)
-
-            # Update truth
-            truth_change = truth_adoption(
-                results['T'][t - 1],
-                params.get('truth_adoption_rate', 0.5),
-                params.get('truth_max', 40.0)
-            )
-            results['T'][t] = max(0, results['T'][t - 1] + truth_change * dt)
-
-            # Update suppression
-            suppression_fb = suppression_feedback(
-                params.get('alpha_feedback', 0.1),
-                results['S'][t - 1],
-                params.get('beta_feedback', 0.05),
-                results['K'][t - 1]
-            )
-            results['S'][t] = max(0, results['S'][t - 1] + suppression_fb * dt)
-
-            # Update knowledge
-            if results['T'][t - 1] > params.get('t_crit_phase', 20.0):
-                # Phase transition
-                growth_term = params.get('knowledge_growth_rate', 0.05) * results['K'][t - 1] * (
-                        1 + params.get('gamma_phase', 0.1) * (results['T'][t - 1] - params.get('t_crit_phase', 20.0)) /
-                        (1 + abs(results['T'][t - 1] - params.get('t_crit_phase', 20.0)))
-                )
-            else:
-                # Simple growth
-                growth_term = params.get('knowledge_growth_rate', 0.05) * results['K'][t - 1]
-
-            results['K'][t] = max(0, results['K'][t - 1] + growth_term * dt)
-
-        # Calculate summary metrics
-        return {
-            'final_intelligence': results['I'][-1],
-            'final_knowledge': results['K'][-1],
-            'final_suppression': results['S'][-1],
-            'final_truth': results['T'][-1],
-            'max_intelligence': np.max(results['I']),
-            'knowledge_growth_rate': (results['K'][-1] - results['K'][0]) / steps,
-            'truth_convergence_time': np.argmax(results['T'] > 0.9 * params.get('truth_max', 40.0)) if np.any(
-                results['T'] > 0.9 * params.get('truth_max', 40.0)) else steps,
-            'suppression_decay_rate': (results['S'][0] - results['S'][-1]) / steps if results['S'][0] > results['S'][
-                -1] else 0
-        }
-
-    # Base parameters
-    base_params = {
-        'K_0': 1.0,  # Initial knowledge
-        'S_0': 10.0,  # Initial suppression
-        'I_0': 5.0,  # Initial intelligence
-        'T_0': 1.0,  # Initial truth
-        'knowledge_growth_rate': 0.05,  # Base knowledge growth rate
-        'truth_adoption_rate': 0.5,  # Truth adoption acceleration
-        'truth_max': 40.0,  # Maximum theoretical truth
-        'suppression_decay': 0.05,  # Suppression decay rate
-        'alpha_feedback': 0.1,  # Suppression reinforcement coefficient
-        'beta_feedback': 0.05,  # Knowledge disruption coefficient
-        'alpha_wisdom': 0.1,  # Wisdom scaling with suppression
-        'resistance': 2.0,  # Base resistance level
-        'gamma_phase': 0.1,  # Phase transition sharpness
-        't_crit_phase': 20.0  # Critical threshold for transition
-    }
-
-    # Output metrics to track
-    output_metrics = [
-        'final_intelligence',
-        'final_knowledge',
-        'final_suppression',
-        'final_truth',
-        'max_intelligence',
-        'knowledge_growth_rate',
-        'truth_convergence_time',
-        'suppression_decay_rate'
-    ]
-
-    # Create sensitivity analyzer
-    analyzer = ParameterSensitivityAnalyzer(
-        simple_simulation,
-        output_metrics,
-        base_params
-    )
-
-    # Define parameter ranges
-    analyzer.define_parameter_ranges({
-        'K_0': (0.1, 5.0, 5),
-        'S_0': (5.0, 20.0, 5),
-        'truth_adoption_rate': (0.1, 1.0, 5),
-        'alpha_feedback': (0.05, 0.2, 5),
-        'beta_feedback': (0.01, 0.1, 5),
-        'gamma_phase': (0.05, 0.2, 5),
-        't_crit_phase': (10.0, 30.0, 5)
-    })
-
-    # Define parameter groups by equation level
-    analyzer.define_parameter_groups({
-        'Level 1 (Core)': ['K_0', 'S_0', 'I_0', 'T_0', 'truth_adoption_rate'],
-        'Level 2 (Extended)': ['alpha_feedback', 'beta_feedback', 'gamma_phase', 't_crit_phase'],
-        'Level 3 (Quantum)': [],  # No quantum parameters in this simple example
-        'Level 4 (Multi-Civ)': [],  # No multi-civilization parameters in this simple example
-        'Level 5 (Astrophysics)': []  # No astrophysics parameters in this simple example
-    })
-
-    # Run one-at-a-time sensitivity analysis
-    results = analyzer.run_one_at_a_time_sensitivity()
-
-    # Calculate correlations
-    correlations = analyzer.calculate_parameter_correlations()
-
-    # Calculate parameter importance
-    importance = analyzer.calculate_parameter_importance()
-
-    # Generate report
-    analyzer.generate_comprehensive_report("sensitivity_analysis_report")
-
-    return analyzer
+        # Write report to file
+        with open(os.path.join(output_dir, "sensitivity_report.txt"), "w") as f:
+            f.write(report)

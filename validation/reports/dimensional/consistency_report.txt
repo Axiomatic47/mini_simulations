@@ -1,0 +1,12 @@
+
+    Dimensional Consistency Check:
+
+    1. Knowledge (K): DimensionalValue(10.0, Dimension.KNOWLEDGE, None)
+    2. Wisdom (W): DimensionalValue(1.0, Dimension.WISDOM, None)
+    3. Resistance (R): DimensionalValue(2.0, Dimension.RESISTANCE, None)
+    4. Suppression (S): DimensionalValue(5.0, Dimension.SUPPRESSION, None)
+
+    Intelligence Growth: DimensionalValue(3.59090909090909, Dimension.INTELLIGENCE, None)
+    
+
+Validation succeeded. All dimensions are consistent.

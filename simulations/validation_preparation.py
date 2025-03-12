@@ -20,6 +20,23 @@ from config.equations import (
     resistance_resurgence, suppression_feedback
 )
 
+# Try to import stabilized versions if available
+try:
+    from config.stabilized_equations import (
+        intelligence_growth as intelligence_growth_stabilized,
+        truth_adoption as truth_adoption_stabilized,
+        wisdom_field as wisdom_field_stabilized,
+        resistance_resurgence as resistance_resurgence_stabilized,
+        suppression_feedback as suppression_feedback_stabilized,
+        wisdom_field_enhanced
+    )
+
+    stabilized_available = True
+    print("Stabilized equations are available for comparison.")
+except ImportError:
+    stabilized_available = False
+    print("Stabilized equations not found. Only analyzing original equations.")
+
 # Try to import extensions if available
 try:
     from config.quantum_em_extensions import (
@@ -67,6 +84,49 @@ def run_simulation(params):
         "final_suppression": suppression_decay,
         "truth_convergence_time": 100 / (params.get("truth_adoption_rate", 0.5) + 0.1)
     }
+
+
+def run_simulation_stabilized(params):
+    """
+    Simulation function using stabilized equations for sensitivity analysis.
+    """
+    if not stabilized_available:
+        return run_simulation(params)
+
+    # Extract parameters
+    K_0 = params.get("K_0", 1.0)
+    S_0 = params.get("S_0", 10.0)
+    alpha_wisdom = params.get("alpha_wisdom", 0.1)
+    resistance = params.get("resistance", 2.0)
+
+    # Run calculation with stabilized equations
+    W = wisdom_field_stabilized(1.0, alpha_wisdom, S_0, resistance, K_0)
+    I = intelligence_growth_stabilized(K_0, W, resistance, S_0, 1.5)
+    T = truth_adoption_stabilized(1.0, params.get("truth_adoption_rate", 0.5), 40.0)
+
+    # Calculate metrics with stabilized approaches
+    knowledge_growth = K_0 * (1 + W * 0.1)
+    suppression_decay = S_0 * (1 - 0.1 * T)
+
+    # Try enhanced wisdom if available
+    try:
+        W_enhanced = wisdom_field_enhanced(1.0, alpha_wisdom, S_0, resistance, K_0)
+        knowledge_growth_enhanced = K_0 * (1 + W_enhanced * 0.1)
+        return {
+            "final_knowledge": knowledge_growth,
+            "final_intelligence": I,
+            "final_suppression": suppression_decay,
+            "truth_convergence_time": 100 / (params.get("truth_adoption_rate", 0.5) + 0.1),
+            "wisdom_enhanced": W_enhanced,
+            "knowledge_enhanced": knowledge_growth_enhanced
+        }
+    except:
+        return {
+            "final_knowledge": knowledge_growth,
+            "final_intelligence": I,
+            "final_suppression": suppression_decay,
+            "truth_convergence_time": 100 / (params.get("truth_adoption_rate", 0.5) + 0.1)
+        }
 
 
 def main():
@@ -129,6 +189,15 @@ def main():
         print(f"Error calculating parameter importance: {e}")
         print("Continuing with validation process...")
 
+    # Try to run global sensitivity analysis for interaction effects
+    try:
+        print("\nRunning global sensitivity analysis (this may take a moment)...")
+        analyzer.run_global_sensitivity_analysis(samples=50, method='random')
+        print("Global sensitivity analysis complete")
+    except Exception as e:
+        print(f"Error running global sensitivity analysis: {e}")
+        print("Continuing with validation process...")
+
     # Generate comprehensive report
     try:
         sensitivity_dir = report_dir / "sensitivity"
@@ -137,7 +206,47 @@ def main():
         print(f"Sensitivity analysis report generated in {sensitivity_dir}")
     except Exception as e:
         print(f"Error generating sensitivity report: {e}")
+        print(f"  {str(e)}")
         print("Continuing with validation process...")
+
+    # Run sensitivity analysis with stabilized equations if available
+    if stabilized_available:
+        print("\nRunning sensitivity analysis with stabilized equations...")
+
+        # Enhanced metrics include stability-specific outputs
+        enhanced_metrics = ["final_knowledge", "final_intelligence", "final_suppression",
+                            "truth_convergence_time", "wisdom_enhanced", "knowledge_enhanced"]
+
+        # Create new analyzer for stabilized equations
+        stabilized_analyzer = ParameterSensitivityAnalyzer(
+            run_simulation_stabilized,
+            enhanced_metrics,
+            base_params
+        )
+
+        # Use wider parameter ranges to stress test the stabilized equations
+        stabilized_analyzer.define_parameter_ranges({
+            'K_0': (0.01, 10.0, 5),  # More extreme range
+            'S_0': (0.1, 50.0, 5),  # More extreme range
+            'alpha_wisdom': (0.01, 0.5, 5),  # More extreme range
+            'resistance': (0.1, 10.0, 5),  # More extreme range
+            'truth_adoption_rate': (0.01, 2.0, 5)  # More extreme range
+        })
+
+        # Run analysis and generate report
+        try:
+            print("Running sensitivity analysis with stabilized equations...")
+            stabilized_results = stabilized_analyzer.run_one_at_a_time_sensitivity()
+            print(f"Stabilized analysis complete, analyzing {len(stabilized_results)} parameter combinations")
+
+            # Generate report for stabilized version
+            stabilized_dir = report_dir / "sensitivity_stabilized"
+            stabilized_dir.mkdir(exist_ok=True)
+            stabilized_analyzer.generate_comprehensive_report(str(stabilized_dir))
+            print(f"Stabilized sensitivity analysis report generated in {stabilized_dir}")
+        except Exception as e:
+            print(f"Error running stabilized sensitivity analysis: {e}")
+            print("Continuing with validation process...")
 
     # 3. Validate cross-level coupling
     print("\n3. Validating cross-level coupling...")
@@ -148,6 +257,7 @@ def main():
         'truth_adoption': truth_adoption,
         'wisdom_field': wisdom_field,
         'suppression_feedback': suppression_feedback,
+        'resistance_resurgence': resistance_resurgence,
         'knowledge_field_influence': knowledge_field_influence,
         'quantum_tunneling_probability': quantum_tunneling_probability,
         'civilization_lifecycle_phase': civilization_lifecycle_phase
@@ -155,7 +265,7 @@ def main():
 
     hierarchy_levels = {
         'Level 1 (Core)': ['intelligence_growth', 'truth_adoption', 'wisdom_field'],
-        'Level 2 (Extended)': ['suppression_feedback'],
+        'Level 2 (Extended)': ['suppression_feedback', 'resistance_resurgence'],
         'Level 3 (Quantum)': ['knowledge_field_influence', 'quantum_tunneling_probability'],
         'Level 5 (Astrophysics)': ['civilization_lifecycle_phase']
     }
@@ -216,6 +326,51 @@ def main():
     checker.generate_edge_case_completion_report(str(edge_case_dir))
     print(f"Edge case report generated in {edge_case_dir}")
 
+    # Create the fixed functions directory for saving improved versions
+    fixed_dir = Path("outputs/fixed_functions")
+    fixed_dir.mkdir(parents=True, exist_ok=True)
+
+    # Generate and save fixed versions of all functions
+    for func_name in equation_functions:
+        try:
+            fixed_code = checker.generate_fixes(func_name)
+            with open(fixed_dir / f"{func_name}_fixed.py", "w") as f:
+                f.write(fixed_code)
+            print(f"Fixed version of {func_name} saved to {fixed_dir / f'{func_name}_fixed.py'}")
+        except Exception as e:
+            print(f"Error generating fixed version of {func_name}: {e}")
+
+    # Check stabilized equations if available
+    if stabilized_available:
+        print("\nAnalyzing stabilized equations for edge cases...")
+        stabilized_functions = {
+            'intelligence_growth_stabilized': intelligence_growth_stabilized,
+            'truth_adoption_stabilized': truth_adoption_stabilized,
+            'wisdom_field_stabilized': wisdom_field_stabilized,
+            'resistance_resurgence_stabilized': resistance_resurgence_stabilized,
+            'suppression_feedback_stabilized': suppression_feedback_stabilized,
+            'wisdom_field_enhanced': wisdom_field_enhanced
+        }
+
+        stabilized_checker = EdgeCaseChecker(stabilized_functions)
+        stabilized_results = stabilized_checker.analyze_all_functions()
+
+        # Count edge cases in stabilized functions
+        stabilized_edge_cases = 0
+        for func_name, result in stabilized_results.items():
+            if 'edge_case_count' in result:
+                stabilized_edge_cases += result['edge_case_count']
+
+        print(f"Found {stabilized_edge_cases} potential edge cases in stabilized functions")
+
+        # Compare with original functions
+        if stabilized_edge_cases < total_edge_cases:
+            print(f"✓ Stabilized equations have {total_edge_cases - stabilized_edge_cases} fewer edge cases")
+        elif stabilized_edge_cases > total_edge_cases:
+            print(f"⚠ Stabilized equations have {stabilized_edge_cases - total_edge_cases} more edge cases")
+        else:
+            print("Stabilized equations have the same number of edge cases as original equations")
+
     # 5. Verify dimensional consistency
     print("\n5. Verifying dimensional consistency...")
 
@@ -246,9 +401,35 @@ def main():
         growth_term = (K.value * W.value) / (1.0 + K.value / 100.0)
         return DimensionalValue(growth_term - R.value - S.value + N_factor, Dimension.INTELLIGENCE)
 
-    # Test the function
+    # Create a stabilized version if available
+    if stabilized_available:
+        def intelligence_growth_stabilized_with_dimensions(K, W, R, S, N_factor):
+            """Dimensionally-validated version of stabilized intelligence growth equation."""
+            # Check input dimensions
+            if K.dimension != Dimension.KNOWLEDGE:
+                raise ValueError(f"Expected KNOWLEDGE dimension, got {K.dimension}")
+            if W.dimension != Dimension.WISDOM:
+                raise ValueError(f"Expected WISDOM dimension, got {W.dimension}")
+            if R.dimension != Dimension.RESISTANCE:
+                raise ValueError(f"Expected RESISTANCE dimension, got {R.dimension}")
+            if S.dimension != Dimension.SUPPRESSION:
+                raise ValueError(f"Expected SUPPRESSION dimension, got {S.dimension}")
+
+            # Use stabilized equation implementation internally with value only
+            result_value = intelligence_growth_stabilized(
+                K.value, W.value, R.value, S.value, N_factor
+            )
+
+            # Return with proper dimension
+            return DimensionalValue(result_value, Dimension.INTELLIGENCE)
+
+    # Test the functions
     I = intelligence_growth_with_dimensions(K, W, R, S, 1.5)
     print(f"Intelligence growth calculation: {I}")
+
+    if stabilized_available:
+        I_stabilized = intelligence_growth_stabilized_with_dimensions(K, W, R, S, 1.5)
+        print(f"Stabilized intelligence growth calculation: {I_stabilized}")
 
     # Create a dimensional consistency report
     dim_report = f"""
@@ -260,9 +441,12 @@ def main():
     4. Suppression (S): {S}
 
     Intelligence Growth: {I}
-
-    Validation succeeded. All dimensions are consistent.
     """
+
+    if stabilized_available:
+        dim_report += f"\nStabilized Intelligence Growth: {I_stabilized}"
+
+    dim_report += "\n\nValidation succeeded. All dimensions are consistent."
 
     # Save dimensional consistency report
     dim_dir = report_dir / "dimensional"
@@ -274,6 +458,23 @@ def main():
 
     print("\nValidation preparation complete!")
     print(f"Reports generated in {report_dir}")
+
+    # Return a summary of validation results
+    return {
+        "edge_cases": {
+            "total": total_edge_cases,
+            "recommendations": recommendation_count
+        },
+        "dependencies": {
+            "valid": dependencies['is_valid'],
+            "violations": len(dependencies.get('violations', [])),
+            "feedback_loops": len(loops)
+        },
+        "stabilized_comparison": {
+            "available": stabilized_available,
+            "edge_cases": stabilized_edge_cases if stabilized_available else None
+        }
+    }
 
 
 if __name__ == "__main__":

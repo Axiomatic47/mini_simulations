@@ -1,6 +1,6 @@
 # Axiomatic Intelligence Growth Simulation Framework
 
-This project implements a mathematical framework for modeling intelligence growth, truth adoption, and suppression dynamics using parallels to fundamental physics principles.
+This project implements a mathematical framework for modeling intelligence growth, truth adoption, and suppression dynamics using parallels to fundamental physics principles. The framework includes comprehensive numerical stability safeguards to ensure reliable simulation results.
 
 ## Directory Structure
 
@@ -8,7 +8,7 @@ This project implements a mathematical framework for modeling intelligence growt
 mini_axiomatic_simulation/
 ├── config/                # Equation modules and parameters
 │   ├── __init__.py        # Makes config a proper package
-│   ├── equations.py       # Core equation functions
+│   ├── equations.py       # Core equation functions with enhanced stability
 │   ├── parameters.py      # Centralized simulation parameters
 │   ├── quantum_em_extensions.py  # EM and quantum mechanics extensions
 │   ├── historical_validation.py  # Historical validation module
@@ -17,11 +17,22 @@ mini_axiomatic_simulation/
 │
 ├── utils/                 # Utility functions and classes
 │   ├── __init__.py        # Makes utils a proper package
-│   └── circuit_breaker.py # Numerical stability utility
+│   ├── circuit_breaker.py # Numerical stability utility
+│   ├── dim_handler.py     # Dimension mismatch handler
+│   ├── sensitivity_analyzer.py  # Parameter sensitivity analysis
+│   ├── cross_level_validator.py # Hierarchical validation
+│   ├── edge_case_checker.py     # Edge case detection and fixing
+│   └── dimensional_consistency.py # Physical dimension validation
+│
+├── validation/            # Validation framework components
+│   ├── __init__.py         # Makes validation a proper package
+│   ├── empirical_validation.py  # Historical data validation
+│   └── reports/            # Validation reports directory
 │
 ├── outputs/               # Generated outputs from simulations
 │   ├── data/              # CSV data files
-│   └── plots/             # Generated plots
+│   ├── plots/             # Generated plots
+│   └── fixed_functions/   # Auto-fixed function implementations
 │
 ├── simulations/           # Simulation scripts
 │   ├── comprehensive_simulation.py  # All core dynamics
@@ -30,14 +41,16 @@ mini_axiomatic_simulation/
 │   ├── multi_agent_simulation.py    # Individual agent focus
 │   ├── quantum_em_simulation.py     # EM and quantum extensions
 │   ├── astrophysics_simulation.py   # Astrophysics analogies
-│   └── multi_civilization_simulation.py  # Multi-civilization dynamics
+│   ├── multi_civilization_simulation.py  # Multi-civilization dynamics
+│   └── validation_preparation.py    # Runs validation framework
 │
 ├── tests/                 # Test modules
 │   ├── test_equations.py  # Core equation tests
 │   ├── test_historical_validation.py  # Historical validation tests
 │   ├── test_astrophysics_extensions.py  # Astrophysics extension tests
 │   ├── test_multi_civilization_extensions.py  # Multi-civilization tests
-│   └── test_quantum_em_extensions.py  # Quantum extension tests
+│   ├── test_quantum_em_extensions.py  # Quantum extension tests
+│   └── test_cross_level_coupling.py  # Cross-level validation tests
 │
 ├── run_tests.py          # Python test runner script
 ├── run_tests.sh          # Bash test runner script
@@ -57,7 +70,41 @@ The framework models societal dynamics as analogies to fundamental physics princ
 7. **Astrophysics**: Civilization lifecycle analogies to stellar evolution
 8. **Multi-Civilization Dynamics**: Interactions between civilization groups across conceptual space
 
-## Numerical Stability Features
+## Comprehensive Validation Framework
+
+The framework now includes an extensive validation system with five key components:
+
+1. **Dimensionality Mismatch Handler**: Automatically detects and fixes array dimension inconsistencies
+   - Verifies array dimensions match expected shapes
+   - Automatically resizes arrays when needed
+   - Provides safe multi-civilization update operations
+   - Prevents indexing errors and shape mismatches
+
+2. **Parameter Sensitivity Analysis**: Identifies which parameters most affect outcomes
+   - Supports one-at-a-time sensitivity testing
+   - Implements global sensitivity analysis with enhanced techniques
+   - Calculates parameter correlations and importance rankings
+   - Generates comprehensive sensitivity reports
+
+3. **Cross-Level Coupling Validation**: Ensures proper interactions between hierarchy levels
+   - Builds and validates dependency graphs
+   - Detects potential feedback loops
+   - Analyzes signal propagation across levels
+   - Validates convergence properties
+
+4. **Edge Case Completion**: Identifies and fixes potential numerical stability issues
+   - Automatically detects division by zero, sqrt of negative, etc.
+   - Generates recommendations for improving robustness
+   - Creates fixed versions of functions with proper safeguards
+   - Adds circuit breaker integration to functions
+
+5. **Dimensional Consistency**: Ensures physical dimension consistency in equations
+   - Tracks physical dimensions like knowledge, resistance, etc.
+   - Validates that equation operations respect dimensions
+   - Prevents physically meaningless calculations
+   - Enforces dimensional homogeneity
+
+## Enhanced Numerical Stability Features
 
 The framework includes comprehensive numerical stability safeguards:
 
@@ -67,26 +114,31 @@ The framework includes comprehensive numerical stability safeguards:
    - Provides safe mathematical operations (exp, log, sqrt, div)
    - Recommends timestep adjustments for stability
    - Tracks energy usage and checks gradients for excessive steepness
+   - Records stability incidents for post-simulation analysis
 
 2. **Parameter Bounding**: All parameters and state variables are constrained to reasonable ranges
    - Prevents unbounded growth and numerical overflow
    - Each parameter has explicit min/max values
    - Includes normalization and growth control with safeguards
+   - Applies bounds consistently across all equations
 
 3. **Adaptive Timestep**: Automatically adjusts simulation timestep based on rate of change
    - Reduces timestep when rapid changes occur to maintain stability
    - Increases timestep during stable periods for efficiency
    - Smooths timestep transitions to prevent oscillations
+   - Adapts based on multiple metrics (knowledge, suppression, etc.)
 
 4. **Error Recovery**: Provides mechanisms to recover from numerical errors
    - Fallback to previous values when errors occur
    - Graceful degradation instead of simulation crashes
    - Exception handling with appropriate fallback behavior
+   - Smoothing for abrupt transitions and phase changes
 
-5. **Stability Metrics**: Tracks and reports numerical stability issues
-   - Records instances of bound violations and corrections
-   - Generates stability reports for post-simulation analysis
-   - Reports gradient history and timestep adaptations
+5. **Enhanced Special Case Handling**: Improved handling of edge cases and critical transitions
+   - Smooth transitions for critical threshold crossings
+   - Epsilon-based comparison for special case detection
+   - Gradient damping for extreme parameter values
+   - Improved bound checking and enforcement
 
 ## Running Simulations
 
@@ -112,6 +164,22 @@ python simulations/astrophysics_simulation.py
 python simulations/multi_civilization_simulation.py
 ```
 
+## Running Validation
+
+You can run the complete validation framework or individual components:
+
+```bash
+# Run the complete validation framework
+python simulations/validation_preparation.py
+
+# Run individual validation components
+python simulations/check_dimensions.py
+python simulations/run_sensitivity_analysis.py
+python simulations/validate_cross_level.py
+python simulations/fix_edge_cases.py
+python simulations/check_dimensions.py
+```
+
 ## Running Tests with Stability Checks
 
 You can run tests with or without numerical stability checks:
@@ -133,17 +201,18 @@ bash run_tests.sh --check-stability
 
 ## Key Components
 
-### Equations (config/equations.py)
+### Enhanced Stabilized Equations (config/equations.py)
 
-Core mathematical models for the axiomatic framework:
+Numerically stabilized versions of core equations with circuit breaker integration:
 
-- Intelligence Growth (`intelligence_growth`)
-- Free Will Decisions (`free_will_decision`)
-- Truth Adoption (`truth_adoption`)
-- Wisdom Field (`wisdom_field`)
-- Suppression and Resistance (`resistance_resurgence`, `suppression_feedback`)
-- Knowledge Growth (`knowledge_growth_phase_transition`)
-- Civilization Oscillation (`CivilizationOscillator` class and `civilization_oscillation`)
+- Intelligence Growth with Circuit Breaker (`intelligence_growth`)
+- Free Will Decisions with Bounded Output (`free_will_decision`)
+- Truth Adoption with Additional Damping (`truth_adoption`)
+- Wisdom Field with Numerical Safeguards (`wisdom_field`, `wisdom_field_enhanced`)
+- Suppression and Resistance with Time Bounds (`resistance_resurgence`, `suppression_feedback`)
+- Enhanced Suppression Feedback with Smooth Transitions (`suppression_feedback_enhanced`)
+- Quantum Tunneling with Enhanced Stability (`quantum_tunneling_probability`)
+- Knowledge Field Influence with Stability Safeguards (`knowledge_field_influence`)
 
 ### Quantum and EM Extensions (config/quantum_em_extensions.py)
 
@@ -184,19 +253,6 @@ Models based on astrophysical phenomena:
 - Dark Energy Acceleration (`dark_energy_knowledge_acceleration`)
 - Galactic Structure Models (`galactic_structure_model`)
 
-### Historical Validation (config/historical_validation.py)
-
-Framework for validating models against historical data:
-
-- Synthetic Data Generation (`_generate_synthetic_data`)
-- Historical Event Effects (`_get_event_effects`)
-- Period-Specific Multipliers (`_get_period_multipliers`)
-- Cultural Transfer Dynamics (`_apply_cultural_transfer`)
-- Stability-Enhanced Simulation (`run_simulation`)
-- Normalization Safeguards (`_apply_normalization`, `_apply_growth`)
-- Optimization and Error Calculation (`optimize_parameters`, `calculate_error`)
-- Comprehensive Analysis (`run_comprehensive_analysis`)
-
 ### Circuit Breaker Utility (utils/circuit_breaker.py)
 
 Numerical stability utility providing:
@@ -208,23 +264,7 @@ Numerical stability utility providing:
 - Timestep recommendations (`recommend_timestep`)
 - Gradient checking (`check_gradients`)
 - Status reporting (`get_status_report`)
-
-## Output Examples
-
-Simulations produce both data files (CSV) and visualizations (PNG):
-
-- Intelligence growth over time
-- Truth adoption dynamics
-- Suppression decay patterns
-- Civilization oscillations
-- Knowledge field influences
-- Quantum entanglement correlations
-- Tunneling breakthrough events
-- Civilization lifecycle phases
-- Event horizon boundaries
-- Knowledge inflation periods
-- Multi-civilization interactions
-- Stability metrics reports
+- Comprehensive result validation (`check_and_fix`)
 
 ## Using Numerical Stability Features
 
@@ -235,9 +275,9 @@ To incorporate stability features in your simulations:
 from utils.circuit_breaker import CircuitBreaker
 
 circuit_breaker = CircuitBreaker(
-    threshold=1e-6,
-    max_value=1e6,
-    min_value=-1e6,
+    threshold=1e-10,
+    max_value=1e10,
+    min_value=1e-10,
     max_rate_of_change=1e3
 )
 ```
@@ -257,11 +297,10 @@ sqrt_val = circuit_breaker.safe_sqrt(possibly_negative_value, default=0.0)
 log_val = circuit_breaker.safe_log(possibly_zero_value, default=0.0)
 ```
 
-3. **Check value stability**:
+3. **Check and fix unstable values**:
 ```python
-if circuit_breaker.check_value_stability(calculated_value):
-    # Handle instability - e.g., revert to previous value or use default
-    calculated_value = np.clip(calculated_value, -10.0, 10.0)
+# Apply bounds and check stability
+safe_value = circuit_breaker.check_and_fix(calculated_value, min_val=-10.0, max_val=10.0)
 ```
 
 4. **Implement adaptive timestep**:
@@ -269,14 +308,8 @@ if circuit_breaker.check_value_stability(calculated_value):
 # Calculate rate of change
 max_change = np.max(np.abs(current_values - previous_values) / np.maximum(0.001, np.abs(previous_values)))
 
-# Adjust timestep
-if max_change > threshold_high:
-    dt = max(min_dt, dt * (1.0 - min(max_step_change, max_change / 10)))
-elif max_change < threshold_low:
-    dt = min(max_dt, dt * (1.0 + min(max_step_change, 0.1)))
-
-# Smooth timestep changes
-dt = 0.7 * old_dt + 0.3 * dt
+# Get recommended timestep from circuit breaker
+dt = circuit_breaker.recommend_timestep(dt, max_change)
 ```
 
 5. **Track and report stability metrics**:
@@ -288,10 +321,76 @@ stability_report = circuit_breaker.get_status_report()
 stability_metrics = {
     'stability_issues': circuit_breaker.trigger_count,
     'was_triggered': circuit_breaker.was_triggered,
-    'last_trigger_reason': circuit_breaker.last_trigger_reason,
-    'gradient_metrics': {'max': max_gradient, 'mean': mean_gradient}
+    'last_trigger_reason': circuit_breaker.last_trigger_reason
 }
 pd.DataFrame([stability_metrics]).to_csv('stability_metrics.csv')
+```
+
+## Using the Validation Framework
+
+To validate your simulations before running:
+
+1. **Check dimension consistency**:
+```python
+from utils.dim_handler import DimensionHandler
+
+# Create handler
+dim_handler = DimensionHandler(verbose=True, auto_fix=True)
+
+# Check array dimensions
+arrays = {'positions': positions_array, 'knowledge': knowledge_array}
+expected_shapes = {'positions': (n_civs, 2), 'knowledge': (n_civs,)}
+
+# Verify and fix dimensions
+fixed_arrays = dim_handler.verify_and_fix_if_needed(arrays, expected_shapes, "simulation")
+```
+
+2. **Run parameter sensitivity analysis**:
+```python
+from utils.sensitivity_analyzer import ParameterSensitivityAnalyzer
+
+# Create analyzer
+analyzer = ParameterSensitivityAnalyzer(run_simulation, metrics, base_parameters)
+
+# Define parameter ranges
+analyzer.define_parameter_ranges({
+    'K_0': (0.1, 5.0, 5),
+    'alpha_wisdom': (0.05, 0.2, 5),
+    'gamma_phase': (0.05, 0.2, 5)
+})
+
+# Run analysis
+results = analyzer.run_one_at_a_time_sensitivity()
+importance = analyzer.calculate_parameter_importance()
+```
+
+3. **Check for edge cases**:
+```python
+from utils.edge_case_checker import EdgeCaseChecker
+
+# Create checker
+checker = EdgeCaseChecker(equation_functions)
+
+# Analyze functions
+checker.analyze_all_functions()
+
+# Generate recommendations
+recommendations = checker.generate_recommendations()
+
+# Generate fixes
+fixed_code = checker.generate_fixes('wisdom_field')
+```
+
+4. **Validate dimensional consistency**:
+```python
+from utils.dimensional_consistency import Dimension, DimensionalValue
+
+# Create dimensional values
+K = DimensionalValue(10.0, Dimension.KNOWLEDGE)
+W = DimensionalValue(1.0, Dimension.WISDOM)
+
+# Use in dimensionally-validated function
+result = intelligence_growth_with_dimensions(K, W, R, S, 1.5)
 ```
 
 ## Extending the Framework

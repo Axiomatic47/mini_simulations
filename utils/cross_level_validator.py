@@ -3,6 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import networkx as nx
 from tqdm import tqdm
+import ast
+import inspect
+import re
+from pathlib import Path
 
 
 class CrossLevelValidator:
@@ -26,7 +30,8 @@ class CrossLevelValidator:
 
     def build_dependency_graph(self):
         """
-        Build a directed graph of function dependencies across hierarchy levels.
+        Build a directed graph of function dependencies across hierarchy levels
+        using AST parsing for more accurate dependency detection.
 
         Returns:
             networkx.DiGraph: Dependency graph
@@ -34,8 +39,9 @@ class CrossLevelValidator:
         try:
             import networkx as nx
             import inspect
+            import ast
         except ImportError:
-            print("networkx and inspect are required for dependency graph analysis.")
+            print("networkx, inspect, and ast are required for dependency graph analysis.")
             return None
 
         # Create directed graph
@@ -52,23 +58,97 @@ class CrossLevelValidator:
 
             G.add_node(func_name, level=level)
 
-        # Analyze function calls to determine edges
+        # Create a mapping of function objects to names
+        func_name_map = {}
+        for name, func in self.equation_functions.items():
+            func_name_map[func] = name
+
+        # Analyze function calls to determine edges using AST
         for caller_name, caller_func in self.equation_functions.items():
             # Get function source code
             try:
                 source = inspect.getsource(caller_func)
-            except (TypeError, OSError):
-                # Handle case where source code is not available
-                continue
-
-            # Check for calls to other functions
-            for callee_name in self.equation_functions:
-                if callee_name != caller_name and callee_name in source:
-                    # Add edge from caller to callee
-                    G.add_edge(caller_name, callee_name)
+                self._analyze_dependencies(G, caller_name, source, func_name_map)
+            except (TypeError, OSError) as e:
+                print(f"Error getting source for {caller_name}: {e}")
+                # Try a fallback approach for built-in functions
+                self._analyze_dependencies_fallback(G, caller_name, caller_func, func_name_map)
 
         self.dependency_graph = G
         return G
+
+    def _analyze_dependencies(self, graph, caller_name, source, func_name_map):
+        """
+        Analyze function dependencies using AST parsing.
+
+        Args:
+            graph: NetworkX graph to add edges to
+            caller_name: Name of the calling function
+            source: Source code of the calling function
+            func_name_map: Mapping of function objects to names
+        """
+        try:
+            # Parse the source code into an AST
+            tree = ast.parse(source)
+
+            # Create a visitor to find function calls
+            visitor = FunctionCallVisitor(func_name_map.keys(), self.equation_functions.keys())
+            visitor.visit(tree)
+
+            # Add edges for function calls
+            for callee_name in visitor.function_calls:
+                if callee_name in self.equation_functions and callee_name != caller_name:
+                    graph.add_edge(caller_name, callee_name)
+        except SyntaxError as e:
+            print(f"Syntax error in {caller_name}: {e}")
+            # Fall back to simpler string matching
+            self._analyze_dependencies_fallback(graph, caller_name, source, func_name_map)
+
+    def _analyze_dependencies_fallback(self, graph, caller_name, caller_func_or_source, func_name_map):
+        """
+        Fallback method for analyzing dependencies using string matching.
+
+        Args:
+            graph: NetworkX graph to add edges to
+            caller_name: Name of the calling function
+            caller_func_or_source: Either the function object or its source code
+            func_name_map: Mapping of function objects to names
+        """
+        # Determine if we have source code or a function object
+        if isinstance(caller_func_or_source, str):
+            source = caller_func_or_source
+        else:
+            try:
+                # Try to get docstring or function repr
+                source = caller_func_or_source.__doc__ or str(caller_func_or_source)
+            except:
+                source = str(caller_func_or_source)
+
+        # Check for explicit calls to other functions
+        for callee_name in self.equation_functions:
+            if callee_name != caller_name:
+                # Look for exact function name followed by opening parenthesis
+                pattern = r'\b' + re.escape(callee_name) + r'\s*\('
+                if re.search(pattern, source):
+                    graph.add_edge(caller_name, callee_name)
+
+        # Try to detect dependencies in default arguments or closures
+        if not isinstance(caller_func_or_source, str):
+            try:
+                # Inspect function's defaults and closure
+                try:
+                    defaults = caller_func_or_source.__defaults__ or ()
+                except:
+                    defaults = ()
+
+                # Check if any default value is a function we know
+                for default in defaults:
+                    if default in func_name_map:
+                        callee_name = func_name_map[default]
+                        if callee_name != caller_name:
+                            graph.add_edge(caller_name, callee_name)
+            except:
+                pass
 
     def validate_level_dependencies(self, expected_dependencies=None):
         """
@@ -590,147 +670,12 @@ class CrossLevelValidator:
 
         # Add legend for levels
         handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color_map[level], markersize=10)
-                for level in levels]
+                   for level in levels]
         ax.legend(handles, levels, title='Hierarchy Level', loc='upper left', bbox_to_anchor=(1, 1))
 
         plt.title('Equation Hierarchy Dependency Graph')
         plt.axis('off')
         plt.tight_layout()
-
-        return fig
-
-    def visualize_cross_level_impact(self, figsize=(10, 8)):
-        """
-        Visualize cross-level impact as a heatmap.
-
-        Args:
-            figsize: Size of the figure
-
-        Returns:
-            matplotlib.figure.Figure: The generated figure
-        """
-        if 'cross_level_impact' not in self.validation_results:
-            print("No cross-level impact results found. Run analyze_cross_level_impact first.")
-            return None
-
-        try:
-            import matplotlib.pyplot as plt
-            import numpy as np
-        except ImportError:
-            print("matplotlib is required for visualization.")
-            return None
-
-        # Get level sensitivities
-        level_sensitivities = self.validation_results['cross_level_impact']['level_sensitivities']
-
-        # Get unique levels
-        param_levels = set(k[0] for k in level_sensitivities.keys())
-        metric_levels = set(k[1] for k in level_sensitivities.keys())
-
-        all_levels = sorted(set(param_levels).union(metric_levels))
-
-        # Create sensitivity matrix
-        sensitivity_matrix = np.zeros((len(all_levels), len(all_levels)))
-
-        for i, param_level in enumerate(all_levels):
-            for j, metric_level in enumerate(all_levels):
-                if (param_level, metric_level) in level_sensitivities:
-                    sensitivity_matrix[i, j] = level_sensitivities[(param_level, metric_level)]
-
-        # Create figure
-        fig, ax = plt.subplots(figsize=figsize)
-
-        # Create heatmap
-        im = ax.imshow(sensitivity_matrix, cmap='viridis')
-
-        # Add colorbar
-        cbar = ax.figure.colorbar(im, ax=ax)
-        cbar.ax.set_ylabel('Average Sensitivity', rotation=-90, va="bottom")
-
-        # Add labels
-        ax.set_xticks(np.arange(len(all_levels)))
-        ax.set_yticks(np.arange(len(all_levels)))
-        ax.set_xticklabels(all_levels)
-        ax.set_yticklabels(all_levels)
-
-        # Rotate tick labels and set alignment
-        plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
-
-        # Add annotations
-        for i in range(len(all_levels)):
-            for j in range(len(all_levels)):
-                text = ax.text(j, i, f"{sensitivity_matrix[i, j]:.2f}",
-                            ha="center", va="center", color="w" if sensitivity_matrix[i, j] > 0.5 else "black")
-
-        ax.set_title("Cross-Level Impact Sensitivity")
-        ax.set_xlabel("Output Level")
-        ax.set_ylabel("Input Level")
-
-        fig.tight_layout()
-
-        return fig
-
-    def visualize_signal_propagation(self, figsize=(12, 8)):
-        """
-        Visualize signal propagation across levels.
-
-        Args:
-            figsize: Size of the figure
-
-        Returns:
-            matplotlib.figure.Figure: The generated figure
-        """
-        if 'signal_propagation' not in self.validation_results:
-            print("No signal propagation results found. Run run_signal_propagation_test first.")
-            return None
-
-        try:
-            import matplotlib.pyplot as plt
-            from matplotlib.cm import get_cmap
-        except ImportError:
-            print("matplotlib is required for visualization.")
-            return None
-
-        # Get results
-        results = self.validation_results['signal_propagation']
-        time = results['time_series']['time']
-        metrics = results['time_series']['metrics']
-        stats = results['statistics']
-
-        # Create figure
-        fig, ax = plt.subplots(figsize=figsize)
-
-        # Create color map
-        cmap = get_cmap('tab10', len(metrics))
-
-        # Plot each metric
-        for i, (metric, values) in enumerate(metrics.items()):
-            ax.plot(time, values, label=metric, color=cmap(i))
-
-            # Mark key points
-            first_response = stats['first_response'][metric]
-            peak_response = stats['peak_response'][metric]
-            settling_time = stats['settling_time'][metric]
-
-            if first_response < len(time):
-                ax.scatter(time[first_response], values[first_response], marker='o', color=cmap(i))
-                ax.axvline(x=time[first_response], linestyle='--', alpha=0.3, color=cmap(i))
-
-            if peak_response < len(time):
-                ax.scatter(time[peak_response], values[peak_response], marker='^', color=cmap(i))
-
-            if settling_time < len(time):
-                ax.scatter(time[settling_time], values[settling_time], marker='s', color=cmap(i))
-                ax.axvline(x=time[settling_time], linestyle=':', alpha=0.3, color=cmap(i))
-
-        ax.axhline(y=0, linestyle='-', alpha=0.2, color='black')
-
-        ax.set_title("Signal Propagation Across Levels")
-        ax.set_xlabel("Time Step")
-        ax.set_ylabel("Signal Amplitude")
-        ax.legend()
-
-        fig.tight_layout()
 
         return fig
 
@@ -763,24 +708,6 @@ class CrossLevelValidator:
             fig.savefig(buf, format='png')
             plt.close(fig)
             plots['dependency_graph'] = base64.b64encode(buf.getbuffer()).decode('ascii')
-
-        # Cross-level impact
-        if 'cross_level_impact' in self.validation_results:
-            fig = self.visualize_cross_level_impact()
-            if fig:
-                buf = BytesIO()
-                fig.savefig(buf, format='png')
-                plt.close(fig)
-                plots['cross_level_impact'] = base64.b64encode(buf.getbuffer()).decode('ascii')
-
-        # Signal propagation
-        if 'signal_propagation' in self.validation_results:
-            fig = self.visualize_signal_propagation()
-            if fig:
-                buf = BytesIO()
-                fig.savefig(buf, format='png')
-                plt.close(fig)
-                plots['signal_propagation'] = base64.b64encode(buf.getbuffer()).decode('ascii')
 
         # Create HTML content
         html_content = """
@@ -838,6 +765,196 @@ class CrossLevelValidator:
                         <li><strong>Cross-Level Feedback Loops:</strong> {len(cross_level_feedback_loops)} found</li>
                     </ul>
                 </div>
+
+                <div class="section">
+                    <h2>Equation Hierarchy Dependency Graph</h2>
+        """
+
+        # Add dependency graph plot
+        if 'dependency_graph' in plots:
+            html_content += f"""
+                    <div class="plot-container">
+                        <img class="plot" src="data:image/png;base64,{plots['dependency_graph']}" alt="Dependency Graph">
+                    </div>
+            """
+        else:
+            html_content += """
+                    <p>No dependency graph available. There might be no dependencies between functions.</p>
+            """
+
+        html_content += """
+                </div>
+
+                <div class="section">
+                    <h2>Level Dependency Analysis</h2>
+        """
+
+        # Add level dependency results
+        if 'level_dependencies' in self.validation_results:
+            dependencies = self.validation_results['level_dependencies']
+
+            # Add dependency table if any dependencies exist
+            if dependencies['level_dependencies']:
+                html_content += """
+                    <h3>Level-to-Level Dependencies</h3>
+                    <table>
+                        <tr>
+                            <th>From Level</th>
+                            <th>To Level</th>
+                            <th>Dependencies</th>
+                        </tr>
+                """
+
+                for (from_level, to_level), deps in dependencies['level_dependencies'].items():
+                    html_content += f"""
+                        <tr>
+                            <td>{from_level}</td>
+                            <td>{to_level}</td>
+                            <td>{len(deps)}</td>
+                        </tr>
+                    """
+
+                html_content += """
+                    </table>
+                """
+            else:
+                html_content += """
+                    <div class="warning">
+                        No dependencies detected between functions. This might indicate:
+                        <ul>
+                            <li>Functions are self-contained and don't call each other</li>
+                            <li>Dependencies exist but weren't detected</li>
+                            <li>The code structure uses alternative means of interaction</li>
+                        </ul>
+                    </div>
+                """
+
+            # Add violations if any
+            if dependencies['violations']:
+                html_content += """
+                    <h3>Dependency Violations</h3>
+                    <div class="error">
+                        The following dependencies violate the expected hierarchy structure:
+                    </div>
+                    <table>
+                        <tr>
+                            <th>From Function</th>
+                            <th>From Level</th>
+                            <th>To Function</th>
+                            <th>To Level</th>
+                        </tr>
+                """
+
+                for violation in dependencies['violations']:
+                    html_content += f"""
+                        <tr>
+                            <td>{violation['from_function']}</td>
+                            <td>{violation['from_level']}</td>
+                            <td>{violation['to_function']}</td>
+                            <td>{violation['to_level']}</td>
+                        </tr>
+                    """
+
+                html_content += """
+                    </table>
+                """
+            else:
+                html_content += """
+                    <div class="success">
+                        No dependency violations found. All dependencies follow the expected hierarchy structure.
+                    </div>
+                """
+
+        html_content += """
+                </div>
+
+                <div class="section">
+                    <h2>Feedback Loop Analysis</h2>
+        """
+
+        # Add feedback loop results
+        if feedback_loops:
+            # Count loops by type
+            cross_level_count = len(cross_level_feedback_loops)
+            single_level_count = len(feedback_loops) - cross_level_count
+
+            html_content += f"""
+                    <div class="summary">
+                        <p>Found {len(feedback_loops)} feedback loops in total:</p>
+                        <ul>
+                            <li><strong>Cross-Level Loops:</strong> {cross_level_count}</li>
+                            <li><strong>Single-Level Loops:</strong> {single_level_count}</li>
+                        </ul>
+                    </div>
+            """
+
+            # Add table of loops
+            html_content += """
+                    <h3>Detected Feedback Loops</h3>
+                    <table>
+                        <tr>
+                            <th>Loop</th>
+                            <th>Length</th>
+                            <th>Levels Involved</th>
+                            <th>Cross-Level</th>
+                        </tr>
+            """
+
+            for i, loop in enumerate(feedback_loops):
+                html_content += f"""
+                        <tr>
+                            <td>{' → '.join(loop['functions'])}</td>
+                            <td>{loop['length']}</td>
+                            <td>{', '.join(loop['unique_levels'])}</td>
+                            <td>{'Yes' if loop['is_cross_level'] else 'No'}</td>
+                        </tr>
+                """
+
+            html_content += """
+                    </table>
+            """
+
+            # Add warning if there are cross-level loops
+            if cross_level_feedback_loops:
+                html_content += """
+                    <div class="warning">
+                        <strong>Warning:</strong> Cross-level feedback loops may cause unexpected behaviors and stability issues.
+                        Consider reviewing these loops to ensure they're intentional and well-controlled.
+                    </div>
+                """
+        else:
+            html_content += """
+                    <div class="success">
+                        No feedback loops detected in the equation hierarchy.
+                    </div>
+            """
+
+        html_content += """
+                </div>
+
+                <div class="section">
+                    <h2>Recommendations</h2>
+                    <ul>
+        """
+
+        # Generate recommendations
+        if 'level_dependencies' in self.validation_results and len(
+                self.validation_results['level_dependencies']['level_dependencies']) == 0:
+            html_content += """
+                        <li>
+                            <strong>Consider function dependency analysis:</strong> No function dependencies were detected. If functions are intended to call each other, consider making these dependencies explicit in the code.
+                        </li>
+            """
+
+        html_content += """
+                        <li>
+                            <strong>Document cross-level interactions:</strong> Create explicit documentation about how each hierarchy level interacts with others, even if dependencies aren't directly visible in the code.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </body>
+        </html>
         """
 
         # Save HTML report
@@ -845,3 +962,47 @@ class CrossLevelValidator:
             f.write(html_content)
 
         print(f"Report generated in {output_dir}")
+
+
+class FunctionCallVisitor(ast.NodeVisitor):
+    """
+    AST visitor to detect function calls within source code.
+    """
+
+    def __init__(self, func_objects=None, func_names=None):
+        """
+        Initialize with lists of function objects and names to check.
+
+        Args:
+            func_objects: List of function objects to identify
+            func_names: List of function names to check for
+        """
+        self.func_objects = func_objects or []
+        self.func_names = set(func_names or [])
+        self.function_calls = set()
+
+    def visit_Call(self, node):
+        """Visit a function call node in the AST."""
+        # Check if this is a direct function name call
+        if isinstance(node.func, ast.Name):
+            func_name = node.func.id
+            if func_name in self.func_names:
+                self.function_calls.add(func_name)
+
+        # Check for attribute access (like module.function)
+        elif isinstance(node.func, ast.Attribute):
+            # Try to get the full name
+            try:
+                if isinstance(node.func.value, ast.Name):
+                    module_name = node.func.value.id
+                    func_name = node.func.attr
+                    full_name = f"{module_name}.{func_name}"
+
+                    # Check if this matches any known functions
+                    if func_name in self.func_names:
+                        self.function_calls.add(func_name)
+            except:
+                pass
+
+        # Continue visiting child nodes
+        self.generic_visit(node)

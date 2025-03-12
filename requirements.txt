@@ -8,4 +8,4 @@ tqdm
 matplotlib>=3.5.0
 networkx>=2.6.3
 pandas>=1.3.5
-SALib>=1.4.5  # For sensitivity analysis
+SALib>=1.4.5
