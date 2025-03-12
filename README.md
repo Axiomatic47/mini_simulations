@@ -210,7 +210,7 @@ Numerically stabilized versions of core equations with circuit breaker integrati
 - Truth Adoption with Additional Damping (`truth_adoption`)
 - Wisdom Field with Numerical Safeguards (`wisdom_field`, `wisdom_field_enhanced`)
 - Suppression and Resistance with Time Bounds (`resistance_resurgence`, `suppression_feedback`)
-- Enhanced Suppression Feedback with Smooth Transitions (`suppression_feedback_enhanced`)
+- Enhanced Suppression Feedback with Smooth Transitions (`suppression_feedback_enhanced`) 
 - Quantum Tunneling with Enhanced Stability (`quantum_tunneling_probability`)
 - Knowledge Field Influence with Stability Safeguards (`knowledge_field_influence`)
 

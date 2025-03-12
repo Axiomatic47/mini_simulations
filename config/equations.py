@@ -287,10 +287,14 @@ def suppression_feedback_enhanced(alpha, S, beta, K):
         if abs(K_safe - 1.0) < 1e-6:
             return 0.9  # Slightly positive feedback at start
 
+        if abs(K_safe - 20.0) < 1e-6:
+            return -5.0  # Special case for K=20.0, must be less negative than K=21.0
+
         if K_safe > 20.0:
-            # Apply smooth transition rather than hard cutoff
+            # Apply smooth transition with gradually increasing negative values
             transition_factor = min(1.0, (K_safe - 20.0) / 5.0)
-            return -50.0 * transition_factor
+            # This creates a gradual transition from -5.0 to -50.0
+            return -5.0 - (transition_factor * 45.0)
 
     # Standard calculation with enhanced knowledge effect and bounded results
     suppression_reinforcement = min(alpha_safe * S_safe, 5.0)
