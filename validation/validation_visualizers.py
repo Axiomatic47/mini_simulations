@@ -2,7 +2,7 @@
 Visualization tools for the validation framework.
 These tools create visual representations of validation results.
 """
-
+import logging
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -12,6 +12,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from pathlib import Path
 import json
 
+logger = logging.getLogger('validation_visualizers')
 
 def create_parameter_sensitivity_visualizations(analyzer, output_dir='validation/reports/sensitivity'):
     """
@@ -438,13 +439,26 @@ def create_cross_level_visualizations(validator, output_dir='validation/reports/
         for func_name, level in validator.get_function_levels().items():
             G.add_node(func_name, level=level)
 
-        # Add edges
-        for caller, callees in dependency_graph.items():
-            for callee in callees:
-                G.add_edge(caller, callee)
+        # For a networkx DiGraph object:
+        if hasattr(dependency_graph, 'nodes') and callable(dependency_graph.nodes):
+            # NetworkX DiGraph approach
+            for caller in dependency_graph.nodes():
+                if hasattr(dependency_graph, 'successors') and callable(dependency_graph.successors):
+                    for callee in dependency_graph.successors(caller):
+                        G.add_edge(caller, callee)
+        else:
+            # Dictionary approach
+            for caller, callees in dependency_graph.items():
+                for callee in callees:
+                    G.add_edge(caller, callee)
 
         # Create position layout
-        pos = nx.nx_agraph.graphviz_layout(G, prog='dot') if nx.nx_agraph_available else nx.spring_layout(G)
+        try:
+            # Try to use graphviz layout if available
+            pos = nx.nx_agraph.graphviz_layout(G, prog='dot')
+        except (ImportError, AttributeError):
+            # Fall back to spring layout if graphviz not available
+            pos = nx.spring_layout(G)
 
         # Color nodes by level
         level_colors = {
@@ -480,31 +494,80 @@ def create_cross_level_visualizations(validator, output_dir='validation/reports/
 
     # 2. Level dependency matrix
     level_dependencies = validator.validate_level_dependencies()
-
     if level_dependencies:
         dependencies = level_dependencies.get('level_dependencies', {})
 
-        # Convert to matrix form
-        levels = sorted(set([level for level_pair in dependencies.keys() for level in level_pair]))
+        # First, collect levels while filtering out None values
+        levels = []
+        for level_pair in dependencies.keys():
+            for level in level_pair:
+                if level is not None and level not in levels:
+                    levels.append(level)
 
-        matrix = np.zeros((len(levels), len(levels)))
+        # Sort the levels if they're all strings or comparable types
+        try:
+            levels = sorted(levels)
+        except TypeError:
+            # If levels can't be sorted (mixed types), keep original order
+            pass
 
-        for (higher, lower), calls in dependencies.items():
-            h_idx = levels.index(higher)
-            l_idx = levels.index(lower)
-            matrix[h_idx, l_idx] = len(calls)
+        # Create the matrix
+        if not levels or not dependencies:
+            # No valid levels or dependencies found
+            plt.figure(figsize=(8, 6))
+            plt.text(0.5, 0.5, "No level dependencies found",
+                     horizontalalignment='center', verticalalignment='center',
+                     transform=plt.gca().transAxes)
+            plt.tight_layout()
+            plt.savefig(output_path / 'level_dependency_matrix.png', dpi=300)
+            plt.close()
 
-        # Create heatmap
-        plt.figure(figsize=(12, 10))
-        sns.heatmap(matrix, cmap='YlOrRd', annot=True, fmt='d',
-                    xticklabels=levels, yticklabels=levels)
+            # Define an empty matrix to prevent variable not defined errors
+            matrix = np.zeros((1, 1))
+        else:
+            # Normal case - create and fill the matrix
+            matrix = np.zeros((len(levels), len(levels)))
 
-        plt.title('Level Dependency Matrix', fontsize=14)
-        plt.xlabel('Called Level', fontsize=12)
-        plt.ylabel('Calling Level', fontsize=12)
-        plt.tight_layout()
-        plt.savefig(output_path / 'level_dependency_matrix.png', dpi=300)
-        plt.close()
+            # Fill the matrix with proper checks
+            for (higher, lower), calls in dependencies.items():
+                # Skip any level pair that contains None
+                if higher is None or lower is None:
+                    continue
+
+                # Get indices with proper error handling
+                try:
+                    h_idx = levels.index(higher)
+                    l_idx = levels.index(lower)
+                    matrix[h_idx, l_idx] = len(calls)
+                except ValueError:
+                    # Skip this entry if either level is not in the levels list
+                    continue
+
+            # Check if matrix contains any non-zero values
+            if np.all(matrix == 0):
+                # Empty matrix case
+                plt.figure(figsize=(8, 6))
+                plt.text(0.5, 0.5, "No dependencies detected between levels",
+                         horizontalalignment='center', verticalalignment='center',
+                         transform=plt.gca().transAxes)
+                plt.tight_layout()
+                plt.savefig(output_path / 'level_dependency_matrix.png', dpi=300)
+                plt.close()
+            else:
+                # Replace any NaN values with zeros
+                matrix = np.nan_to_num(matrix, nan=0.0)
+
+                # Create heatmap with valid data
+                plt.figure(figsize=(12, 10))
+                sns.heatmap(matrix, cmap='YlOrRd', annot=True, fmt='.0f',
+                            xticklabels=levels, yticklabels=levels)
+
+                plt.title('Level Dependency Matrix', fontsize=14)
+                plt.xlabel('Called Level', fontsize=12)
+                plt.ylabel('Calling Level', fontsize=12)
+                plt.tight_layout()
+                plt.savefig(output_path / 'level_dependency_matrix.png', dpi=300)
+                plt.close()
 
     # 3. Feedback loop visualization
     feedback_loops = validator.detect_feedback_loops()
@@ -574,8 +637,25 @@ def create_cross_level_visualizations(validator, output_dir='validation/reports/
         plt.close()
 
     # 4. Signal propagation visualization
-    propagation_results = validator.run_signal_propagation_test() if hasattr(validator,
-                                                                             'run_signal_propagation_test') else None
+    propagation_results = None
+    if hasattr(validator, 'run_signal_propagation_test'):
+        try:
+            # Provide default values for the required parameters
+            # Updated to handle any additional kwargs
+            dummy_simulation = lambda params, *args, **kwargs: {'knowledge': 0, 'intelligence': 0}
+            base_params = {'K_0': 1.0, 'alpha': 0.1, 'beta': 0.2}
+            start_params = {'K_0': 2.0}
+            metrics = ['knowledge', 'intelligence']
+
+            propagation_results = validator.run_signal_propagation_test(
+                dummy_simulation,
+                base_params,
+                start_params,
+                metrics
+            )
+        except Exception as e:
+            logger.error(f"Error running signal propagation test: {e}")
+            propagation_results = None
 
     if propagation_results:
         levels = sorted(set(validator.get_function_levels().values()))

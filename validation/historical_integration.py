@@ -170,98 +170,125 @@ class HistoricalDataValidator:
         if self.circuit_breaker and isinstance(sim_results, dict):
             for key, values in sim_results.items():
                 if isinstance(values, np.ndarray):
-                    for i in range(len(values)):
-                        values[i] = self.circuit_breaker.check_and_fix(values[i])
+                    # Create an instance if self.circuit_breaker is a class
+                    if isinstance(self.circuit_breaker, type):
+                        cb_instance = self.circuit_breaker()
+                        for i in range(len(values)):
+                            values[i] = cb_instance.check_and_fix(values[i])
+                    else:
+                        # Use existing instance
+                        for i in range(len(values)):
+                            values[i] = self.circuit_breaker.check_and_fix(values[i])
 
         return sim_results
 
+    # In historical_integration.py, add the following fix to calculate_errors method
+
     def calculate_errors(self, simulation_data):
         """
-        Calculate error metrics between simulation and historical data.
-
-        Parameters:
-            simulation_data: Dictionary or DataFrame of simulation results
-
-        Returns:
-            Dictionary of error metrics
+        Calculate error metrics between simulation and historical data with enhanced error handling.
         """
-        # Convert simulation data to DataFrame if it's a dictionary
-        if isinstance(simulation_data, dict):
-            sim_df = pd.DataFrame(simulation_data)
-        else:
-            sim_df = simulation_data
-
-        # Ensure both datasets have the same length
-        min_length = min(len(sim_df), len(self.historical_data))
-        sim_df = sim_df.iloc[:min_length]
-        hist_df = self.historical_data.iloc[:min_length]
-
-        # Calculate errors for each metric
-        metrics = set(hist_df.columns) & set(sim_df.columns)
-        metrics = [m for m in metrics if m != 'year']
-
-        errors = {}
-
-        for metric in metrics:
-            # Extract data
-            hist_values = hist_df[metric].values
-            sim_values = sim_df[metric].values
-
-            # Calculate metrics
-            mse = np.mean((hist_values - sim_values) ** 2)
-            rmse = np.sqrt(mse)
-            mae = np.mean(np.abs(hist_values - sim_values))
-
-            # Calculate normalized metrics
-            if np.max(hist_values) > np.min(hist_values):
-                nrmse = rmse / (np.max(hist_values) - np.min(hist_values))
+        try:
+            # Convert simulation data to DataFrame if it's a dictionary
+            if isinstance(simulation_data, dict):
+                sim_df = pd.DataFrame(simulation_data)
             else:
-                nrmse = rmse
+                sim_df = simulation_data
 
-            if np.mean(hist_values) != 0:
-                mape = np.mean(np.abs((hist_values - sim_values) / hist_values)) * 100
+            # Ensure both datasets have the same length
+            min_length = min(len(sim_df), len(self.historical_data))
+            sim_df = sim_df.iloc[:min_length]
+            hist_df = self.historical_data.iloc[:min_length]
+
+            # Calculate errors for each metric
+            metrics = set(hist_df.columns) & set(sim_df.columns)
+            metrics = [m for m in metrics if m != 'year']
+
+            errors = {}
+
+            for metric in metrics:
+                # Extract data with error handling
+                try:
+                    hist_values = hist_df[metric].values
+                    sim_values = sim_df[metric].values
+
+                    # Calculate metrics with proper error checking
+                    mse = np.mean((hist_values - sim_values) ** 2)
+                    rmse = np.sqrt(mse) if not np.isnan(mse) else float('inf')
+                    mae = np.mean(np.abs(hist_values - sim_values))
+
+                    # Calculate normalized metrics
+                    if np.max(hist_values) > np.min(hist_values):
+                        nrmse = rmse / (np.max(hist_values) - np.min(hist_values))
+                    else:
+                        nrmse = rmse
+
+                    if np.mean(hist_values) != 0:
+                        mape = np.mean(np.abs((hist_values - sim_values) / hist_values)) * 100
+                    else:
+                        mape = float('inf')
+
+                    # Store metrics
+                    errors[metric] = {
+                        'mse': mse,
+                        'rmse': rmse,
+                        'mae': mae,
+                        'nrmse': nrmse,
+                        'mape': mape if not np.isnan(mape) and not np.isinf(mape) else None
+                    }
+                except Exception as e:
+                    # Handle any errors in metric calculation
+                    errors[metric] = {
+                        'mse': float('inf'),
+                        'rmse': float('inf'),
+                        'mae': float('inf'),
+                        'nrmse': float('inf'),
+                        'mape': None,
+                        'error': str(e)
+                    }
+
+            # Calculate overall error (weighted RMSE) with proper error handling
+            if metrics:
+                try:
+                    overall_rmse = np.mean([errors[metric]['rmse'] for metric in metrics
+                                            if not np.isnan(errors[metric]['rmse']) and not np.isinf(
+                            errors[metric]['rmse'])])
+                    errors['overall'] = {'rmse': overall_rmse}
+                except Exception:
+                    errors['overall'] = {'rmse': float('inf')}
             else:
-                mape = float('inf')
+                errors['overall'] = {'rmse': float('inf')}
 
-            # Store metrics
-            errors[metric] = {
-                'mse': mse,
-                'rmse': rmse,
-                'mae': mae,
-                'nrmse': nrmse,
-                'mape': mape if not np.isnan(mape) and not np.isinf(mape) else None
+            return errors
+
+        except Exception as e:
+            # Fallback error structure
+            return {
+                'overall': {'rmse': float('inf'), 'error': str(e)},
+                'error_message': str(e)
             }
-
-        # Calculate overall error (weighted RMSE)
-        if metrics:
-            overall_rmse = np.mean([errors[metric]['rmse'] for metric in metrics])
-            errors['overall'] = {'rmse': overall_rmse}
-
-        return errors
 
     def objective_function(self, param_values):
         """
-        Objective function for parameter optimization.
-
-        Parameters:
-            param_values: Array of parameter values
-
-        Returns:
-            Overall error metric (to minimize)
+        Objective function for parameter optimization with improved error handling.
         """
         # Convert parameter values to dictionary
         param_names = list(self.parameter_ranges.keys())
         params = {name: value for name, value in zip(param_names, param_values)}
 
-        # Run simulation
+        # Run simulation with robust error handling
         try:
             sim_results = self.run_simulation_with_validation(params)
             errors = self.calculate_errors(sim_results)
 
-            # Return overall error
-            return errors['overall']['rmse']
+            # Check if errors has the expected structure
+            if 'overall' in errors and 'rmse' in errors['overall']:
+                return errors['overall']['rmse']
+            else:
+                print(f"Error in simulation with params {params}: 'overall' or 'rmse' missing in errors")
+                return float('inf')
         except Exception as e:
-            print(f"Error in simulation with params {params}: {e}")
+            print(f"Error in simulation with params {params}: {str(e)}")
             return float('inf')
 
     def find_best_parameters(self, max_evals=100):

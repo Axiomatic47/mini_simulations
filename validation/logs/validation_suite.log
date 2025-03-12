@@ -349,3 +349,678 @@
 2025-03-12 12:26:35,103 - validation_suite - INFO - Finding best parameters for historical fit
 2025-03-12 12:26:35,107 - validation_suite - ERROR - Error in historical validation: 'NoneType' object is not callable
 2025-03-12 12:26:35,107 - validation_suite - INFO - Full validation completed: 5 components run
+2025-03-12 12:37:19,483 - validation_suite - INFO - Validation suite initialized
+2025-03-12 12:37:19,484 - validation_suite - INFO - Loading validation components
+2025-03-12 12:37:19,485 - validation_suite - INFO - Loaded dimension handler
+2025-03-12 12:37:19,758 - validation_suite - INFO - Loaded sensitivity analyzer
+2025-03-12 12:37:19,853 - validation_suite - INFO - Loaded cross-level validator
+2025-03-12 12:37:19,853 - validation_suite - INFO - Loaded edge case checker
+2025-03-12 12:37:19,854 - validation_suite - INFO - Loaded dimensional validator
+2025-03-12 12:37:19,854 - validation_suite - INFO - Loaded circuit breaker
+2025-03-12 12:37:20,533 - validation_suite - WARNING - Historical validator not available
+2025-03-12 12:37:20,533 - validation_suite - WARNING - Validation reporter not available
+2025-03-12 12:37:20,533 - validation_suite - INFO - All components loaded successfully
+2025-03-12 12:37:20,533 - validation_suite - INFO - Running full validation suite
+2025-03-12 12:37:20,533 - validation_suite - INFO - Loading models and data
+2025-03-12 12:37:20,533 - validation_suite - INFO - Loaded equations module
+2025-03-12 12:37:20,534 - validation_suite - WARNING - Quantum EM extensions not found
+2025-03-12 12:37:20,534 - validation_suite - WARNING - Parameters not found
+2025-03-12 12:37:20,538 - validation_suite - INFO - Loaded historical data: 103 records
+2025-03-12 12:37:20,538 - validation_suite - WARNING - No simulation function provided, using dummy function
+2025-03-12 12:37:20,538 - validation_suite - INFO - Running dimension validation
+2025-03-12 12:37:20,538 - validation_suite - INFO - Running dimension validation
+2025-03-12 12:37:20,538 - dim_mismatch_handler - WARNING - validation_suite - knowledge dimension 0 mismatch: expected 3, got 2
+2025-03-12 12:37:20,539 - dim_mismatch_handler - WARNING - validation_suite - influence has wrong dimensions: expected (3,), got (2, 2)
+2025-03-12 12:37:20,539 - dim_mismatch_handler - INFO - validation_suite - Expanded knowledge dimension 0: 2 -> 3
+2025-03-12 12:37:20,539 - dim_mismatch_handler - INFO - validation_suite - Reduced influence from (2, 2) to (2,) using mean
+2025-03-12 12:37:20,539 - validation_suite - INFO - Dimension validation completed: Warning
+2025-03-12 12:37:20,539 - validation_suite - INFO - Running edge case detection
+2025-03-12 12:37:20,539 - validation_suite - INFO - Running edge case detection
+2025-03-12 12:37:20,539 - validation_suite - INFO - Analyzing 11 functions for edge cases
+2025-03-12 12:37:21,611 - validation_suite - INFO - Generated edge case visualizations
+2025-03-12 12:37:21,628 - validation_suite - INFO - Edge case detection completed: Error
+2025-03-12 12:37:21,628 - validation_suite - INFO - Running cross-level validation
+2025-03-12 12:37:21,628 - validation_suite - INFO - Running cross-level validation
+2025-03-12 12:37:21,628 - validation_suite - INFO - Building dependency graph
+2025-03-12 12:37:21,638 - validation_suite - INFO - Validating level dependencies
+2025-03-12 12:37:21,639 - validation_suite - INFO - Detecting feedback loops
+2025-03-12 12:37:21,649 - validation_suite - ERROR - Error in cross-level validation: module 'networkx' has no attribute 'nx_agraph_available'
+2025-03-12 12:37:21,650 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 12:37:21,650 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 12:37:21,650 - validation_suite - WARNING - No dimensional equations provided, skipping validation
+2025-03-12 12:37:21,650 - validation_suite - INFO - Running historical validation
+2025-03-12 12:47:22,239 - validation_suite - INFO - Validation suite initialized
+2025-03-12 12:47:22,239 - validation_suite - INFO - Loading validation components
+2025-03-12 12:47:22,240 - validation_suite - INFO - Loaded dimension handler
+2025-03-12 12:47:22,521 - validation_suite - INFO - Loaded sensitivity analyzer
+2025-03-12 12:47:22,618 - validation_suite - INFO - Loaded cross-level validator
+2025-03-12 12:47:22,619 - validation_suite - INFO - Loaded edge case checker
+2025-03-12 12:47:22,619 - validation_suite - INFO - Loaded dimensional validator
+2025-03-12 12:47:22,619 - validation_suite - INFO - Loaded circuit breaker
+2025-03-12 12:47:23,269 - validation_suite - WARNING - Historical validator not available
+2025-03-12 12:47:23,269 - validation_suite - WARNING - Validation reporter not available
+2025-03-12 12:47:23,269 - validation_suite - INFO - All components loaded successfully
+2025-03-12 12:47:23,269 - validation_suite - INFO - Running full validation suite
+2025-03-12 12:47:23,269 - validation_suite - INFO - Loading models and data
+2025-03-12 12:47:23,270 - validation_suite - INFO - Loaded equations module
+2025-03-12 12:47:23,270 - validation_suite - WARNING - Quantum EM extensions not found
+2025-03-12 12:47:23,270 - validation_suite - WARNING - Parameters not found
+2025-03-12 12:47:23,275 - validation_suite - INFO - Loaded historical data: 103 records
+2025-03-12 12:47:23,275 - validation_suite - WARNING - No simulation function provided, using dummy function
+2025-03-12 12:47:23,275 - validation_suite - INFO - Running dimension validation
+2025-03-12 12:47:23,275 - validation_suite - INFO - Running dimension validation
+2025-03-12 12:47:23,275 - dim_mismatch_handler - WARNING - validation_suite - knowledge dimension 0 mismatch: expected 3, got 2
+2025-03-12 12:47:23,275 - dim_mismatch_handler - WARNING - validation_suite - influence has wrong dimensions: expected (3,), got (2, 2)
+2025-03-12 12:47:23,275 - dim_mismatch_handler - INFO - validation_suite - Expanded knowledge dimension 0: 2 -> 3
+2025-03-12 12:47:23,275 - dim_mismatch_handler - INFO - validation_suite - Reduced influence from (2, 2) to (2,) using mean
+2025-03-12 12:47:23,276 - validation_suite - INFO - Dimension validation completed: Warning
+2025-03-12 12:47:23,276 - validation_suite - INFO - Running edge case detection
+2025-03-12 12:47:23,276 - validation_suite - INFO - Running edge case detection
+2025-03-12 12:47:23,276 - validation_suite - INFO - Analyzing 11 functions for edge cases
+2025-03-12 12:47:24,346 - validation_suite - INFO - Generated edge case visualizations
+2025-03-12 12:47:24,363 - validation_suite - INFO - Edge case detection completed: Error
+2025-03-12 12:47:24,363 - validation_suite - INFO - Running cross-level validation
+2025-03-12 12:47:24,363 - validation_suite - INFO - Running cross-level validation
+2025-03-12 12:47:24,363 - validation_suite - INFO - Building dependency graph
+2025-03-12 12:47:24,373 - validation_suite - INFO - Validating level dependencies
+2025-03-12 12:47:24,373 - validation_suite - INFO - Detecting feedback loops
+2025-03-12 12:47:24,763 - validation_suite - ERROR - Error in cross-level validation: '<' not supported between instances of 'str' and 'NoneType'
+2025-03-12 12:47:24,764 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 12:47:24,764 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 12:47:24,764 - validation_suite - WARNING - No dimensional equations provided, skipping validation
+2025-03-12 12:47:24,764 - validation_suite - INFO - Running historical validation
+2025-03-12 12:47:24,764 - validation_suite - INFO - Running historical validation
+2025-03-12 12:47:24,764 - validation_suite - WARNING - No simulation function provided, using dummy function
+2025-03-12 12:47:24,765 - validation_suite - INFO - Finding best parameters for historical fit
+2025-03-12 12:47:24,773 - validation_suite - ERROR - Error in historical validation: CircuitBreaker.check_and_fix() missing 1 required positional argument: 'value'
+2025-03-12 12:47:24,774 - validation_suite - INFO - Full validation completed: 5 components run
+2025-03-12 12:55:42,825 - validation_suite - INFO - Validation suite initialized
+2025-03-12 12:55:42,826 - validation_suite - INFO - Loading validation components
+2025-03-12 12:55:42,827 - validation_suite - INFO - Loaded dimension handler
+2025-03-12 12:55:43,142 - validation_suite - INFO - Loaded sensitivity analyzer
+2025-03-12 12:55:43,254 - validation_suite - INFO - Loaded cross-level validator
+2025-03-12 12:55:43,255 - validation_suite - INFO - Loaded edge case checker
+2025-03-12 12:55:43,256 - validation_suite - INFO - Loaded dimensional validator
+2025-03-12 12:55:43,256 - validation_suite - INFO - Loaded circuit breaker
+2025-03-12 12:55:43,965 - validation_suite - WARNING - Historical validator not available
+2025-03-12 12:55:43,965 - validation_suite - WARNING - Validation reporter not available
+2025-03-12 12:55:43,965 - validation_suite - INFO - All components loaded successfully
+2025-03-12 12:55:43,965 - validation_suite - INFO - Running full validation suite
+2025-03-12 12:55:43,965 - validation_suite - INFO - Loading models and data
+2025-03-12 12:55:43,967 - validation_suite - INFO - Loaded equations module
+2025-03-12 12:55:43,967 - validation_suite - WARNING - Quantum EM extensions not found
+2025-03-12 12:55:43,967 - validation_suite - WARNING - Parameters not found
+2025-03-12 12:55:43,972 - validation_suite - INFO - Loaded historical data: 103 records
+2025-03-12 12:55:43,972 - validation_suite - WARNING - No simulation function provided, using dummy function
+2025-03-12 12:55:43,972 - validation_suite - INFO - Running dimension validation
+2025-03-12 12:55:43,972 - validation_suite - INFO - Running dimension validation
+2025-03-12 12:55:43,972 - dim_mismatch_handler - WARNING - validation_suite - knowledge dimension 0 mismatch: expected 3, got 2
+2025-03-12 12:55:43,972 - dim_mismatch_handler - WARNING - validation_suite - influence has wrong dimensions: expected (3,), got (2, 2)
+2025-03-12 12:55:43,973 - dim_mismatch_handler - INFO - validation_suite - Expanded knowledge dimension 0: 2 -> 3
+2025-03-12 12:55:43,973 - dim_mismatch_handler - INFO - validation_suite - Reduced influence from (2, 2) to (2,) using mean
+2025-03-12 12:55:43,973 - validation_suite - INFO - Dimension validation completed: Warning
+2025-03-12 12:55:43,973 - validation_suite - INFO - Running edge case detection
+2025-03-12 12:55:43,973 - validation_suite - INFO - Running edge case detection
+2025-03-12 12:55:43,973 - validation_suite - INFO - Analyzing 11 functions for edge cases
+2025-03-12 12:55:45,114 - validation_suite - INFO - Generated edge case visualizations
+2025-03-12 12:55:45,132 - validation_suite - INFO - Edge case detection completed: Error
+2025-03-12 12:55:45,132 - validation_suite - INFO - Running cross-level validation
+2025-03-12 12:55:45,132 - validation_suite - INFO - Running cross-level validation
+2025-03-12 12:55:45,132 - validation_suite - INFO - Building dependency graph
+2025-03-12 12:55:45,142 - validation_suite - INFO - Validating level dependencies
+2025-03-12 12:55:45,142 - validation_suite - INFO - Detecting feedback loops
+2025-03-12 12:55:45,557 - validation_suite - ERROR - Error in cross-level validation: '<' not supported between instances of 'str' and 'NoneType'
+2025-03-12 12:55:45,558 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 12:55:45,558 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 12:55:45,558 - validation_suite - WARNING - No dimensional equations provided, skipping validation
+2025-03-12 12:55:45,558 - validation_suite - INFO - Running historical validation
+2025-03-12 12:55:45,558 - validation_suite - INFO - Running historical validation
+2025-03-12 12:55:45,558 - validation_suite - WARNING - No simulation function provided, using dummy function
+2025-03-12 12:55:45,559 - validation_suite - INFO - Finding best parameters for historical fit
+2025-03-12 12:55:45,641 - validation_suite - INFO - Generating historical comparison visualizations
+2025-03-12 12:55:45,641 - validation_suite - INFO - Generating historical validation report
+2025-03-12 12:55:45,641 - validation_suite - INFO - Historical validation completed: Warning
+2025-03-12 12:55:45,642 - validation_suite - INFO - Full validation completed: 5 components run
+2025-03-12 12:58:12,740 - validation_suite - INFO - Validation suite initialized
+2025-03-12 12:58:12,741 - validation_suite - INFO - Loading validation components
+2025-03-12 12:58:12,742 - validation_suite - INFO - Loaded dimension handler
+2025-03-12 12:58:13,006 - validation_suite - INFO - Loaded sensitivity analyzer
+2025-03-12 12:58:13,099 - validation_suite - INFO - Loaded cross-level validator
+2025-03-12 12:58:13,100 - validation_suite - INFO - Loaded edge case checker
+2025-03-12 12:58:13,100 - validation_suite - INFO - Loaded dimensional validator
+2025-03-12 12:58:13,101 - validation_suite - INFO - Loaded circuit breaker
+2025-03-12 12:58:13,711 - validation_suite - WARNING - Historical validator not available
+2025-03-12 12:58:13,711 - validation_suite - WARNING - Validation reporter not available
+2025-03-12 12:58:13,711 - validation_suite - INFO - All components loaded successfully
+2025-03-12 12:58:13,711 - validation_suite - INFO - Running full validation suite
+2025-03-12 12:58:13,711 - validation_suite - INFO - Loading models and data
+2025-03-12 12:58:13,712 - validation_suite - INFO - Loaded equations module
+2025-03-12 12:58:13,712 - validation_suite - WARNING - Quantum EM extensions not found
+2025-03-12 12:58:13,712 - validation_suite - WARNING - Parameters not found
+2025-03-12 12:58:13,716 - validation_suite - INFO - Loaded historical data: 103 records
+2025-03-12 12:58:13,716 - validation_suite - WARNING - No simulation function provided, using dummy function
+2025-03-12 12:58:13,717 - validation_suite - INFO - Running dimension validation
+2025-03-12 12:58:13,717 - validation_suite - INFO - Running dimension validation
+2025-03-12 12:58:13,717 - dim_mismatch_handler - WARNING - validation_suite - knowledge dimension 0 mismatch: expected 3, got 2
+2025-03-12 12:58:13,717 - dim_mismatch_handler - WARNING - validation_suite - influence has wrong dimensions: expected (3,), got (2, 2)
+2025-03-12 12:58:13,717 - dim_mismatch_handler - INFO - validation_suite - Expanded knowledge dimension 0: 2 -> 3
+2025-03-12 12:58:13,717 - dim_mismatch_handler - INFO - validation_suite - Reduced influence from (2, 2) to (2,) using mean
+2025-03-12 12:58:13,717 - validation_suite - INFO - Dimension validation completed: Warning
+2025-03-12 12:58:13,717 - validation_suite - INFO - Running edge case detection
+2025-03-12 12:58:13,717 - validation_suite - INFO - Running edge case detection
+2025-03-12 12:58:13,717 - validation_suite - INFO - Analyzing 11 functions for edge cases
+2025-03-12 12:58:14,774 - validation_suite - INFO - Generated edge case visualizations
+2025-03-12 12:58:14,792 - validation_suite - INFO - Edge case detection completed: Error
+2025-03-12 12:58:14,792 - validation_suite - INFO - Running cross-level validation
+2025-03-12 12:58:14,792 - validation_suite - INFO - Running cross-level validation
+2025-03-12 12:58:14,792 - validation_suite - INFO - Building dependency graph
+2025-03-12 12:58:14,802 - validation_suite - INFO - Validating level dependencies
+2025-03-12 12:58:14,802 - validation_suite - INFO - Detecting feedback loops
+2025-03-12 12:58:15,203 - validation_suite - ERROR - Error generating cross-level visualizations: None is not in list
+2025-03-12 12:58:15,204 - validation_suite - INFO - Cross-level validation completed: Error
+2025-03-12 12:58:15,204 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 12:58:15,204 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 12:58:15,204 - validation_suite - WARNING - No dimensional equations provided, skipping validation
+2025-03-12 12:58:15,204 - validation_suite - INFO - Running historical validation
+2025-03-12 12:58:15,204 - validation_suite - INFO - Running historical validation
+2025-03-12 12:58:15,205 - validation_suite - INFO - Finding best parameters for historical fit
+2025-03-12 12:58:15,299 - validation_suite - INFO - Generating historical comparison visualizations
+2025-03-12 12:58:15,299 - validation_suite - INFO - Generating historical validation report
+2025-03-12 12:58:15,299 - validation_suite - INFO - Historical validation completed: Warning
+2025-03-12 12:58:15,299 - validation_suite - INFO - Full validation completed: 5 components run
+2025-03-12 13:04:00,113 - validation_suite - INFO - Validation suite initialized
+2025-03-12 13:04:00,114 - validation_suite - INFO - Loading validation components
+2025-03-12 13:04:00,114 - validation_suite - INFO - Loaded dimension handler
+2025-03-12 13:04:00,383 - validation_suite - INFO - Loaded sensitivity analyzer
+2025-03-12 13:04:00,478 - validation_suite - INFO - Loaded cross-level validator
+2025-03-12 13:04:00,478 - validation_suite - INFO - Loaded edge case checker
+2025-03-12 13:04:00,479 - validation_suite - INFO - Loaded dimensional validator
+2025-03-12 13:04:00,479 - validation_suite - INFO - Loaded circuit breaker
+2025-03-12 13:04:01,106 - validation_suite - WARNING - Historical validator not available
+2025-03-12 13:04:01,106 - validation_suite - WARNING - Validation reporter not available
+2025-03-12 13:04:01,106 - validation_suite - INFO - All components loaded successfully
+2025-03-12 13:04:01,106 - validation_suite - INFO - Running full validation suite
+2025-03-12 13:04:01,106 - validation_suite - INFO - Loading models and data
+2025-03-12 13:04:01,107 - validation_suite - INFO - Loaded equations module
+2025-03-12 13:04:01,107 - validation_suite - WARNING - Quantum EM extensions not found
+2025-03-12 13:04:01,107 - validation_suite - WARNING - Parameters not found
+2025-03-12 13:04:01,112 - validation_suite - INFO - Loaded historical data: 103 records
+2025-03-12 13:04:01,112 - validation_suite - WARNING - No simulation function provided, using dummy function
+2025-03-12 13:04:01,112 - validation_suite - INFO - Running dimension validation
+2025-03-12 13:04:01,112 - validation_suite - INFO - Running dimension validation
+2025-03-12 13:04:01,112 - dim_mismatch_handler - WARNING - validation_suite - knowledge dimension 0 mismatch: expected 3, got 2
+2025-03-12 13:04:01,112 - dim_mismatch_handler - WARNING - validation_suite - influence has wrong dimensions: expected (3,), got (2, 2)
+2025-03-12 13:04:01,112 - dim_mismatch_handler - INFO - validation_suite - Expanded knowledge dimension 0: 2 -> 3
+2025-03-12 13:04:01,112 - dim_mismatch_handler - INFO - validation_suite - Reduced influence from (2, 2) to (2,) using mean
+2025-03-12 13:04:01,112 - validation_suite - INFO - Dimension validation completed: Warning
+2025-03-12 13:04:01,113 - validation_suite - INFO - Running edge case detection
+2025-03-12 13:04:01,113 - validation_suite - INFO - Running edge case detection
+2025-03-12 13:04:01,113 - validation_suite - INFO - Analyzing 11 functions for edge cases
+2025-03-12 13:04:02,206 - validation_suite - INFO - Generated edge case visualizations
+2025-03-12 13:04:02,225 - validation_suite - INFO - Edge case detection completed: Error
+2025-03-12 13:04:02,225 - validation_suite - INFO - Running cross-level validation
+2025-03-12 13:04:02,225 - validation_suite - INFO - Running cross-level validation
+2025-03-12 13:04:02,225 - validation_suite - INFO - Building dependency graph
+2025-03-12 13:04:02,236 - validation_suite - INFO - Validating level dependencies
+2025-03-12 13:04:02,236 - validation_suite - INFO - Detecting feedback loops
+2025-03-12 13:04:02,673 - validation_suite - ERROR - Error generating cross-level visualizations: cannot access local variable 'matrix' where it is not associated with a value
+2025-03-12 13:04:02,674 - validation_suite - INFO - Cross-level validation completed: Error
+2025-03-12 13:04:02,674 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 13:04:02,674 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 13:04:02,674 - validation_suite - WARNING - No dimensional equations provided, skipping validation
+2025-03-12 13:04:02,674 - validation_suite - INFO - Running historical validation
+2025-03-12 13:04:02,674 - validation_suite - INFO - Running historical validation
+2025-03-12 13:04:02,675 - validation_suite - INFO - Finding best parameters for historical fit
+2025-03-12 13:04:02,767 - validation_suite - INFO - Generating historical comparison visualizations
+2025-03-12 13:04:02,898 - validation_suite - INFO - Generating historical validation report
+2025-03-12 13:04:02,900 - validation_suite - INFO - Historical validation completed: Warning
+2025-03-12 13:04:02,900 - validation_suite - INFO - Full validation completed: 5 components run
+2025-03-12 13:05:32,297 - validation_suite - INFO - Validation suite initialized
+2025-03-12 13:05:32,297 - validation_suite - INFO - Loading validation components
+2025-03-12 13:05:32,298 - validation_suite - INFO - Loaded dimension handler
+2025-03-12 13:05:32,567 - validation_suite - INFO - Loaded sensitivity analyzer
+2025-03-12 13:05:32,661 - validation_suite - INFO - Loaded cross-level validator
+2025-03-12 13:05:32,662 - validation_suite - INFO - Loaded edge case checker
+2025-03-12 13:05:32,663 - validation_suite - INFO - Loaded dimensional validator
+2025-03-12 13:05:32,663 - validation_suite - INFO - Loaded circuit breaker
+2025-03-12 13:05:33,286 - validation_suite - WARNING - Historical validator not available
+2025-03-12 13:05:33,286 - validation_suite - WARNING - Validation reporter not available
+2025-03-12 13:05:33,286 - validation_suite - INFO - All components loaded successfully
+2025-03-12 13:05:33,286 - validation_suite - INFO - Running full validation suite
+2025-03-12 13:05:33,286 - validation_suite - INFO - Loading models and data
+2025-03-12 13:05:33,287 - validation_suite - INFO - Loaded equations module
+2025-03-12 13:05:33,287 - validation_suite - WARNING - Quantum EM extensions not found
+2025-03-12 13:05:33,287 - validation_suite - WARNING - Parameters not found
+2025-03-12 13:05:33,294 - validation_suite - INFO - Loaded historical data: 103 records
+2025-03-12 13:05:33,294 - validation_suite - WARNING - No simulation function provided, using dummy function
+2025-03-12 13:05:33,294 - validation_suite - INFO - Running dimension validation
+2025-03-12 13:05:33,294 - validation_suite - INFO - Running dimension validation
+2025-03-12 13:05:33,294 - dim_mismatch_handler - WARNING - validation_suite - knowledge dimension 0 mismatch: expected 3, got 2
+2025-03-12 13:05:33,294 - dim_mismatch_handler - WARNING - validation_suite - influence has wrong dimensions: expected (3,), got (2, 2)
+2025-03-12 13:05:33,294 - dim_mismatch_handler - INFO - validation_suite - Expanded knowledge dimension 0: 2 -> 3
+2025-03-12 13:05:33,294 - dim_mismatch_handler - INFO - validation_suite - Reduced influence from (2, 2) to (2,) using mean
+2025-03-12 13:05:33,294 - validation_suite - INFO - Dimension validation completed: Warning
+2025-03-12 13:05:33,294 - validation_suite - INFO - Running edge case detection
+2025-03-12 13:05:33,295 - validation_suite - INFO - Running edge case detection
+2025-03-12 13:05:33,295 - validation_suite - INFO - Analyzing 11 functions for edge cases
+2025-03-12 13:05:34,350 - validation_suite - INFO - Generated edge case visualizations
+2025-03-12 13:05:34,367 - validation_suite - INFO - Edge case detection completed: Error
+2025-03-12 13:05:34,367 - validation_suite - INFO - Running cross-level validation
+2025-03-12 13:05:34,367 - validation_suite - INFO - Running cross-level validation
+2025-03-12 13:05:34,367 - validation_suite - INFO - Building dependency graph
+2025-03-12 13:05:34,377 - validation_suite - INFO - Validating level dependencies
+2025-03-12 13:05:34,377 - validation_suite - INFO - Detecting feedback loops
+2025-03-12 13:05:34,837 - validation_suite - ERROR - Error generating cross-level visualizations: Unknown format code 'd' for object of type 'float'
+2025-03-12 13:05:34,840 - validation_suite - INFO - Cross-level validation completed: Error
+2025-03-12 13:05:34,840 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 13:05:34,840 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 13:05:34,840 - validation_suite - WARNING - No dimensional equations provided, skipping validation
+2025-03-12 13:05:34,840 - validation_suite - INFO - Running historical validation
+2025-03-12 13:05:34,840 - validation_suite - INFO - Running historical validation
+2025-03-12 13:05:34,840 - validation_suite - INFO - Finding best parameters for historical fit
+2025-03-12 13:05:34,932 - validation_suite - INFO - Generating historical comparison visualizations
+2025-03-12 13:05:35,073 - validation_suite - INFO - Generating historical validation report
+2025-03-12 13:05:35,075 - validation_suite - INFO - Historical validation completed: Warning
+2025-03-12 13:05:35,075 - validation_suite - INFO - Full validation completed: 5 components run
+2025-03-12 13:07:08,949 - validation_suite - INFO - Validation suite initialized
+2025-03-12 13:07:08,950 - validation_suite - INFO - Loading validation components
+2025-03-12 13:07:08,951 - validation_suite - INFO - Loaded dimension handler
+2025-03-12 13:07:09,227 - validation_suite - INFO - Loaded sensitivity analyzer
+2025-03-12 13:07:09,324 - validation_suite - INFO - Loaded cross-level validator
+2025-03-12 13:07:09,324 - validation_suite - INFO - Loaded edge case checker
+2025-03-12 13:07:09,325 - validation_suite - INFO - Loaded dimensional validator
+2025-03-12 13:07:09,325 - validation_suite - INFO - Loaded circuit breaker
+2025-03-12 13:07:09,949 - validation_suite - WARNING - Historical validator not available
+2025-03-12 13:07:09,949 - validation_suite - WARNING - Validation reporter not available
+2025-03-12 13:07:09,949 - validation_suite - INFO - All components loaded successfully
+2025-03-12 13:07:09,949 - validation_suite - INFO - Running full validation suite
+2025-03-12 13:07:09,949 - validation_suite - INFO - Loading models and data
+2025-03-12 13:07:09,950 - validation_suite - INFO - Loaded equations module
+2025-03-12 13:07:09,950 - validation_suite - WARNING - Quantum EM extensions not found
+2025-03-12 13:07:09,950 - validation_suite - WARNING - Parameters not found
+2025-03-12 13:07:09,955 - validation_suite - INFO - Loaded historical data: 103 records
+2025-03-12 13:07:09,955 - validation_suite - WARNING - No simulation function provided, using dummy function
+2025-03-12 13:07:09,955 - validation_suite - INFO - Running dimension validation
+2025-03-12 13:07:09,955 - validation_suite - INFO - Running dimension validation
+2025-03-12 13:07:09,955 - dim_mismatch_handler - WARNING - validation_suite - knowledge dimension 0 mismatch: expected 3, got 2
+2025-03-12 13:07:09,955 - dim_mismatch_handler - WARNING - validation_suite - influence has wrong dimensions: expected (3,), got (2, 2)
+2025-03-12 13:07:09,955 - dim_mismatch_handler - INFO - validation_suite - Expanded knowledge dimension 0: 2 -> 3
+2025-03-12 13:07:09,955 - dim_mismatch_handler - INFO - validation_suite - Reduced influence from (2, 2) to (2,) using mean
+2025-03-12 13:07:09,955 - validation_suite - INFO - Dimension validation completed: Warning
+2025-03-12 13:07:09,955 - validation_suite - INFO - Running edge case detection
+2025-03-12 13:07:09,955 - validation_suite - INFO - Running edge case detection
+2025-03-12 13:07:09,955 - validation_suite - INFO - Analyzing 11 functions for edge cases
+2025-03-12 13:07:11,001 - validation_suite - INFO - Generated edge case visualizations
+2025-03-12 13:07:11,018 - validation_suite - INFO - Edge case detection completed: Error
+2025-03-12 13:07:11,018 - validation_suite - INFO - Running cross-level validation
+2025-03-12 13:07:11,018 - validation_suite - INFO - Running cross-level validation
+2025-03-12 13:07:11,018 - validation_suite - INFO - Building dependency graph
+2025-03-12 13:07:11,028 - validation_suite - INFO - Validating level dependencies
+2025-03-12 13:07:11,028 - validation_suite - INFO - Detecting feedback loops
+2025-03-12 13:07:11,703 - validation_suite - ERROR - Error generating cross-level visualizations: CrossLevelValidator.run_signal_propagation_test() missing 4 required positional arguments: 'simulation_function', 'base_parameters', 'start_params', and 'output_metrics'
+2025-03-12 13:07:11,704 - validation_suite - INFO - Cross-level validation completed: Error
+2025-03-12 13:07:11,704 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 13:07:11,704 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 13:07:11,704 - validation_suite - WARNING - No dimensional equations provided, skipping validation
+2025-03-12 13:07:11,705 - validation_suite - INFO - Running historical validation
+2025-03-12 13:07:11,705 - validation_suite - INFO - Running historical validation
+2025-03-12 13:07:11,705 - validation_suite - INFO - Finding best parameters for historical fit
+2025-03-12 13:07:11,794 - validation_suite - INFO - Generating historical comparison visualizations
+2025-03-12 13:07:11,925 - validation_suite - INFO - Generating historical validation report
+2025-03-12 13:07:11,928 - validation_suite - INFO - Historical validation completed: Warning
+2025-03-12 13:07:11,928 - validation_suite - INFO - Full validation completed: 5 components run
+2025-03-12 13:43:18,034 - validation_suite - INFO - Validation suite initialized
+2025-03-12 13:43:18,034 - validation_suite - INFO - Loading validation components
+2025-03-12 13:43:18,036 - validation_suite - INFO - Loaded dimension handler
+2025-03-12 13:43:18,349 - validation_suite - INFO - Loaded sensitivity analyzer
+2025-03-12 13:43:18,471 - validation_suite - INFO - Loaded cross-level validator
+2025-03-12 13:43:18,471 - validation_suite - INFO - Loaded edge case checker
+2025-03-12 13:43:18,472 - validation_suite - INFO - Loaded dimensional validator
+2025-03-12 13:43:18,472 - validation_suite - INFO - Loaded circuit breaker
+2025-03-12 13:43:19,163 - validation_suite - WARNING - Historical validator not available
+2025-03-12 13:43:19,163 - validation_suite - WARNING - Validation reporter not available
+2025-03-12 13:43:19,163 - validation_suite - INFO - All components loaded successfully
+2025-03-12 13:43:19,163 - validation_suite - INFO - Running full validation suite
+2025-03-12 13:43:19,163 - validation_suite - INFO - Loading models and data
+2025-03-12 13:43:19,164 - validation_suite - INFO - Loaded equations module
+2025-03-12 13:43:19,164 - validation_suite - WARNING - Quantum EM extensions not found
+2025-03-12 13:43:19,164 - validation_suite - WARNING - Parameters not found
+2025-03-12 13:43:19,170 - validation_suite - INFO - Loaded historical data: 103 records
+2025-03-12 13:43:19,170 - validation_suite - WARNING - No simulation function provided, using dummy function
+2025-03-12 13:43:19,170 - validation_suite - INFO - Running dimension validation
+2025-03-12 13:43:19,170 - validation_suite - INFO - Running dimension validation
+2025-03-12 13:43:19,170 - dim_mismatch_handler - WARNING - validation_suite - knowledge dimension 0 mismatch: expected 3, got 2
+2025-03-12 13:43:19,170 - dim_mismatch_handler - WARNING - validation_suite - influence has wrong dimensions: expected (3,), got (2, 2)
+2025-03-12 13:43:19,170 - dim_mismatch_handler - INFO - validation_suite - Expanded knowledge dimension 0: 2 -> 3
+2025-03-12 13:43:19,170 - dim_mismatch_handler - INFO - validation_suite - Reduced influence from (2, 2) to (2,) using mean
+2025-03-12 13:43:19,170 - validation_suite - INFO - Dimension validation completed: Warning
+2025-03-12 13:43:19,170 - validation_suite - INFO - Running edge case detection
+2025-03-12 13:43:19,170 - validation_suite - INFO - Running edge case detection
+2025-03-12 13:43:19,170 - validation_suite - INFO - Analyzing 11 functions for edge cases
+2025-03-12 13:43:20,947 - validation_suite - INFO - Generated edge case visualizations
+2025-03-12 13:43:20,965 - validation_suite - INFO - Edge case detection completed: Error
+2025-03-12 13:43:20,965 - validation_suite - INFO - Running cross-level validation
+2025-03-12 13:43:20,965 - validation_suite - INFO - Running cross-level validation
+2025-03-12 13:43:20,965 - validation_suite - INFO - Building dependency graph
+2025-03-12 13:43:20,976 - validation_suite - INFO - Validating level dependencies
+2025-03-12 13:43:20,976 - validation_suite - INFO - Detecting feedback loops
+2025-03-12 13:43:21,665 - validation_suite - ERROR - Error generating cross-level visualizations: CrossLevelValidator.run_signal_propagation_test() missing 4 required positional arguments: 'simulation_function', 'base_parameters', 'start_params', and 'output_metrics'
+2025-03-12 13:43:21,667 - validation_suite - INFO - Cross-level validation completed: Error
+2025-03-12 13:43:21,667 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 13:43:21,667 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 13:43:21,667 - validation_suite - WARNING - No dimensional equations provided, skipping validation
+2025-03-12 13:43:21,667 - validation_suite - INFO - Running historical validation
+2025-03-12 13:43:21,667 - validation_suite - INFO - Running historical validation
+2025-03-12 13:43:21,668 - validation_suite - INFO - Finding best parameters for historical fit
+2025-03-12 13:43:21,762 - validation_suite - INFO - Generating historical comparison visualizations
+2025-03-12 13:43:21,894 - validation_suite - INFO - Generating historical validation report
+2025-03-12 13:43:21,896 - validation_suite - INFO - Historical validation completed: Warning
+2025-03-12 13:43:21,897 - validation_suite - INFO - Full validation completed: 5 components run
+2025-03-12 13:44:15,130 - validation_suite - INFO - Validation suite initialized
+2025-03-12 13:44:15,131 - validation_suite - INFO - Loading validation components
+2025-03-12 13:44:15,131 - validation_suite - INFO - Loaded dimension handler
+2025-03-12 13:44:15,412 - validation_suite - INFO - Loaded sensitivity analyzer
+2025-03-12 13:44:15,508 - validation_suite - INFO - Loaded cross-level validator
+2025-03-12 13:44:15,509 - validation_suite - INFO - Loaded edge case checker
+2025-03-12 13:44:15,509 - validation_suite - INFO - Loaded dimensional validator
+2025-03-12 13:44:15,510 - validation_suite - INFO - Loaded circuit breaker
+2025-03-12 13:44:16,133 - validation_suite - WARNING - Historical validator not available
+2025-03-12 13:44:16,134 - validation_suite - WARNING - Validation reporter not available
+2025-03-12 13:44:16,134 - validation_suite - INFO - All components loaded successfully
+2025-03-12 13:44:16,134 - validation_suite - INFO - Running full validation suite
+2025-03-12 13:44:16,134 - validation_suite - INFO - Loading models and data
+2025-03-12 13:44:16,134 - validation_suite - INFO - Loaded equations module
+2025-03-12 13:44:16,134 - validation_suite - WARNING - Quantum EM extensions not found
+2025-03-12 13:44:16,135 - validation_suite - WARNING - Parameters not found
+2025-03-12 13:44:16,140 - validation_suite - INFO - Loaded historical data: 103 records
+2025-03-12 13:44:16,140 - validation_suite - WARNING - No simulation function provided, using dummy function
+2025-03-12 13:44:16,140 - validation_suite - INFO - Running dimension validation
+2025-03-12 13:44:16,140 - validation_suite - INFO - Running dimension validation
+2025-03-12 13:44:16,140 - dim_mismatch_handler - WARNING - validation_suite - knowledge dimension 0 mismatch: expected 3, got 2
+2025-03-12 13:44:16,140 - dim_mismatch_handler - WARNING - validation_suite - influence has wrong dimensions: expected (3,), got (2, 2)
+2025-03-12 13:44:16,140 - dim_mismatch_handler - INFO - validation_suite - Expanded knowledge dimension 0: 2 -> 3
+2025-03-12 13:44:16,140 - dim_mismatch_handler - INFO - validation_suite - Reduced influence from (2, 2) to (2,) using mean
+2025-03-12 13:44:16,140 - validation_suite - INFO - Dimension validation completed: Warning
+2025-03-12 13:44:16,140 - validation_suite - INFO - Running edge case detection
+2025-03-12 13:44:16,140 - validation_suite - INFO - Running edge case detection
+2025-03-12 13:44:16,140 - validation_suite - INFO - Analyzing 11 functions for edge cases
+2025-03-12 13:44:17,190 - validation_suite - INFO - Generated edge case visualizations
+2025-03-12 13:44:17,207 - validation_suite - INFO - Edge case detection completed: Error
+2025-03-12 13:44:17,207 - validation_suite - INFO - Running cross-level validation
+2025-03-12 13:44:17,207 - validation_suite - INFO - Running cross-level validation
+2025-03-12 13:44:17,207 - validation_suite - INFO - Building dependency graph
+2025-03-12 13:44:17,217 - validation_suite - INFO - Validating level dependencies
+2025-03-12 13:44:17,217 - validation_suite - INFO - Detecting feedback loops
+2025-03-12 13:44:17,878 - validation_suite - ERROR - Error generating cross-level visualizations: CrossLevelValidator.run_signal_propagation_test() missing 4 required positional arguments: 'simulation_function', 'base_parameters', 'start_params', and 'output_metrics'
+2025-03-12 13:44:17,880 - validation_suite - INFO - Cross-level validation completed: Error
+2025-03-12 13:44:17,880 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 13:44:17,880 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 13:44:17,880 - validation_suite - WARNING - No dimensional equations provided, skipping validation
+2025-03-12 13:44:17,880 - validation_suite - INFO - Running historical validation
+2025-03-12 13:44:17,880 - validation_suite - INFO - Running historical validation
+2025-03-12 13:44:17,881 - validation_suite - INFO - Finding best parameters for historical fit
+2025-03-12 13:44:17,974 - validation_suite - INFO - Generating historical comparison visualizations
+2025-03-12 13:44:18,114 - validation_suite - INFO - Generating historical validation report
+2025-03-12 13:44:18,116 - validation_suite - INFO - Historical validation completed: Warning
+2025-03-12 13:44:18,116 - validation_suite - INFO - Full validation completed: 5 components run
+2025-03-12 13:55:56,126 - validation_suite - INFO - Validation suite initialized
+2025-03-12 13:55:56,127 - validation_suite - INFO - Loading validation components
+2025-03-12 13:55:56,128 - validation_suite - INFO - Loaded dimension handler
+2025-03-12 13:55:56,396 - validation_suite - INFO - Loaded sensitivity analyzer
+2025-03-12 13:55:56,492 - validation_suite - INFO - Loaded cross-level validator
+2025-03-12 13:55:56,492 - validation_suite - INFO - Loaded edge case checker
+2025-03-12 13:55:56,493 - validation_suite - INFO - Loaded dimensional validator
+2025-03-12 13:55:56,493 - validation_suite - INFO - Loaded circuit breaker
+2025-03-12 13:55:57,108 - validation_suite - WARNING - Historical validator not available
+2025-03-12 13:55:57,108 - validation_suite - WARNING - Validation reporter not available
+2025-03-12 13:55:57,108 - validation_suite - INFO - All components loaded successfully
+2025-03-12 13:55:57,108 - validation_suite - INFO - Running full validation suite
+2025-03-12 13:55:57,108 - validation_suite - INFO - Loading models and data
+2025-03-12 13:55:57,109 - validation_suite - INFO - Loaded equations module
+2025-03-12 13:55:57,109 - validation_suite - WARNING - Quantum EM extensions not found
+2025-03-12 13:55:57,109 - validation_suite - WARNING - Parameters not found
+2025-03-12 13:55:57,113 - validation_suite - INFO - Loaded historical data: 103 records
+2025-03-12 13:55:57,114 - validation_suite - WARNING - No simulation function provided, using dummy function
+2025-03-12 13:55:57,114 - validation_suite - INFO - Running dimension validation
+2025-03-12 13:55:57,114 - validation_suite - INFO - Running dimension validation
+2025-03-12 13:55:57,114 - dim_mismatch_handler - WARNING - validation_suite - knowledge dimension 0 mismatch: expected 3, got 2
+2025-03-12 13:55:57,114 - dim_mismatch_handler - WARNING - validation_suite - influence has wrong dimensions: expected (3,), got (2, 2)
+2025-03-12 13:55:57,114 - dim_mismatch_handler - INFO - validation_suite - Expanded knowledge dimension 0: 2 -> 3
+2025-03-12 13:55:57,114 - dim_mismatch_handler - INFO - validation_suite - Reduced influence from (2, 2) to (2,) using mean
+2025-03-12 13:55:57,114 - validation_suite - INFO - Dimension validation completed: Warning
+2025-03-12 13:55:57,114 - validation_suite - INFO - Running edge case detection
+2025-03-12 13:55:57,114 - validation_suite - INFO - Running edge case detection
+2025-03-12 13:55:57,114 - validation_suite - INFO - Analyzing 11 functions for edge cases
+2025-03-12 13:55:57,127 - validation_suite - ERROR - Error in edge case detection: invalid syntax (validation_visualizers.py, line 559)
+2025-03-12 13:55:57,127 - validation_suite - INFO - Running cross-level validation
+2025-03-12 13:55:57,127 - validation_suite - INFO - Running cross-level validation
+2025-03-12 13:55:57,127 - validation_suite - INFO - Building dependency graph
+2025-03-12 13:55:57,139 - validation_suite - INFO - Validating level dependencies
+2025-03-12 13:55:57,139 - validation_suite - INFO - Detecting feedback loops
+2025-03-12 13:55:57,144 - validation_suite - ERROR - Error generating cross-level visualizations: invalid syntax (validation_visualizers.py, line 559)
+2025-03-12 13:55:57,144 - validation_suite - INFO - Cross-level validation completed: Error
+2025-03-12 13:55:57,144 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 13:55:57,144 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 13:55:57,144 - validation_suite - WARNING - No dimensional equations provided, skipping validation
+2025-03-12 13:55:57,144 - validation_suite - INFO - Running historical validation
+2025-03-12 13:55:57,144 - validation_suite - INFO - Running historical validation
+2025-03-12 13:55:57,145 - validation_suite - INFO - Finding best parameters for historical fit
+2025-03-12 13:55:57,243 - validation_suite - INFO - Generating historical comparison visualizations
+2025-03-12 13:55:57,530 - validation_suite - INFO - Generating historical validation report
+2025-03-12 13:55:57,532 - validation_suite - INFO - Historical validation completed: Warning
+2025-03-12 13:55:57,532 - validation_suite - INFO - Full validation completed: 5 components run
+2025-03-12 13:58:18,701 - validation_suite - INFO - Validation suite initialized
+2025-03-12 13:58:18,701 - validation_suite - INFO - Loading validation components
+2025-03-12 13:58:18,702 - validation_suite - INFO - Loaded dimension handler
+2025-03-12 13:58:18,982 - validation_suite - INFO - Loaded sensitivity analyzer
+2025-03-12 13:58:19,083 - validation_suite - INFO - Loaded cross-level validator
+2025-03-12 13:58:19,084 - validation_suite - INFO - Loaded edge case checker
+2025-03-12 13:58:19,084 - validation_suite - INFO - Loaded dimensional validator
+2025-03-12 13:58:19,085 - validation_suite - INFO - Loaded circuit breaker
+2025-03-12 13:58:19,750 - validation_suite - WARNING - Historical validator not available
+2025-03-12 13:58:19,750 - validation_suite - WARNING - Validation reporter not available
+2025-03-12 13:58:19,750 - validation_suite - INFO - All components loaded successfully
+2025-03-12 13:58:19,750 - validation_suite - INFO - Running full validation suite
+2025-03-12 13:58:19,750 - validation_suite - INFO - Loading models and data
+2025-03-12 13:58:19,751 - validation_suite - INFO - Loaded equations module
+2025-03-12 13:58:19,751 - validation_suite - WARNING - Quantum EM extensions not found
+2025-03-12 13:58:19,751 - validation_suite - WARNING - Parameters not found
+2025-03-12 13:58:19,756 - validation_suite - INFO - Loaded historical data: 103 records
+2025-03-12 13:58:19,756 - validation_suite - WARNING - No simulation function provided, using dummy function
+2025-03-12 13:58:19,756 - validation_suite - INFO - Running dimension validation
+2025-03-12 13:58:19,756 - validation_suite - INFO - Running dimension validation
+2025-03-12 13:58:19,757 - dim_mismatch_handler - WARNING - validation_suite - knowledge dimension 0 mismatch: expected 3, got 2
+2025-03-12 13:58:19,757 - dim_mismatch_handler - WARNING - validation_suite - influence has wrong dimensions: expected (3,), got (2, 2)
+2025-03-12 13:58:19,757 - dim_mismatch_handler - INFO - validation_suite - Expanded knowledge dimension 0: 2 -> 3
+2025-03-12 13:58:19,757 - dim_mismatch_handler - INFO - validation_suite - Reduced influence from (2, 2) to (2,) using mean
+2025-03-12 13:58:19,757 - validation_suite - INFO - Dimension validation completed: Warning
+2025-03-12 13:58:19,757 - validation_suite - INFO - Running edge case detection
+2025-03-12 13:58:19,757 - validation_suite - INFO - Running edge case detection
+2025-03-12 13:58:19,757 - validation_suite - INFO - Analyzing 11 functions for edge cases
+2025-03-12 13:58:20,797 - validation_suite - INFO - Generated edge case visualizations
+2025-03-12 13:58:20,815 - validation_suite - INFO - Edge case detection completed: Error
+2025-03-12 13:58:20,815 - validation_suite - INFO - Running cross-level validation
+2025-03-12 13:58:20,815 - validation_suite - INFO - Running cross-level validation
+2025-03-12 13:58:20,815 - validation_suite - INFO - Building dependency graph
+2025-03-12 13:58:20,825 - validation_suite - INFO - Validating level dependencies
+2025-03-12 13:58:20,825 - validation_suite - INFO - Detecting feedback loops
+2025-03-12 13:58:21,470 - validation_suite - ERROR - Error generating cross-level visualizations: name 'logger' is not defined
+2025-03-12 13:58:21,473 - validation_suite - INFO - Cross-level validation completed: Error
+2025-03-12 13:58:21,473 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 13:58:21,473 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 13:58:21,473 - validation_suite - WARNING - No dimensional equations provided, skipping validation
+2025-03-12 13:58:21,473 - validation_suite - INFO - Running historical validation
+2025-03-12 13:58:21,473 - validation_suite - INFO - Running historical validation
+2025-03-12 13:58:21,474 - validation_suite - INFO - Finding best parameters for historical fit
+2025-03-12 13:58:21,564 - validation_suite - INFO - Generating historical comparison visualizations
+2025-03-12 13:58:21,701 - validation_suite - INFO - Generating historical validation report
+2025-03-12 13:58:21,703 - validation_suite - INFO - Historical validation completed: Warning
+2025-03-12 13:58:21,703 - validation_suite - INFO - Full validation completed: 5 components run
+2025-03-12 14:00:12,655 - validation_suite - INFO - Validation suite initialized
+2025-03-12 14:00:12,656 - validation_suite - INFO - Loading validation components
+2025-03-12 14:00:12,656 - validation_suite - INFO - Loaded dimension handler
+2025-03-12 14:00:12,942 - validation_suite - INFO - Loaded sensitivity analyzer
+2025-03-12 14:00:13,044 - validation_suite - INFO - Loaded cross-level validator
+2025-03-12 14:00:13,044 - validation_suite - INFO - Loaded edge case checker
+2025-03-12 14:00:13,045 - validation_suite - INFO - Loaded dimensional validator
+2025-03-12 14:00:13,045 - validation_suite - INFO - Loaded circuit breaker
+2025-03-12 14:00:13,670 - validation_suite - WARNING - Historical validator not available
+2025-03-12 14:00:13,670 - validation_suite - WARNING - Validation reporter not available
+2025-03-12 14:00:13,670 - validation_suite - INFO - All components loaded successfully
+2025-03-12 14:00:13,670 - validation_suite - INFO - Running full validation suite
+2025-03-12 14:00:13,670 - validation_suite - INFO - Loading models and data
+2025-03-12 14:00:13,671 - validation_suite - INFO - Loaded equations module
+2025-03-12 14:00:13,671 - validation_suite - WARNING - Quantum EM extensions not found
+2025-03-12 14:00:13,671 - validation_suite - WARNING - Parameters not found
+2025-03-12 14:00:13,675 - validation_suite - INFO - Loaded historical data: 103 records
+2025-03-12 14:00:13,675 - validation_suite - WARNING - No simulation function provided, using dummy function
+2025-03-12 14:00:13,675 - validation_suite - INFO - Running dimension validation
+2025-03-12 14:00:13,675 - validation_suite - INFO - Running dimension validation
+2025-03-12 14:00:13,676 - dim_mismatch_handler - WARNING - validation_suite - knowledge dimension 0 mismatch: expected 3, got 2
+2025-03-12 14:00:13,676 - dim_mismatch_handler - WARNING - validation_suite - influence has wrong dimensions: expected (3,), got (2, 2)
+2025-03-12 14:00:13,676 - dim_mismatch_handler - INFO - validation_suite - Expanded knowledge dimension 0: 2 -> 3
+2025-03-12 14:00:13,676 - dim_mismatch_handler - INFO - validation_suite - Reduced influence from (2, 2) to (2,) using mean
+2025-03-12 14:00:13,676 - validation_suite - INFO - Dimension validation completed: Warning
+2025-03-12 14:00:13,676 - validation_suite - INFO - Running edge case detection
+2025-03-12 14:00:13,676 - validation_suite - INFO - Running edge case detection
+2025-03-12 14:00:13,676 - validation_suite - INFO - Analyzing 11 functions for edge cases
+2025-03-12 14:00:13,689 - validation_suite - ERROR - Error in edge case detection: name 'logging' is not defined
+2025-03-12 14:00:13,690 - validation_suite - INFO - Running cross-level validation
+2025-03-12 14:00:13,690 - validation_suite - INFO - Running cross-level validation
+2025-03-12 14:00:13,690 - validation_suite - INFO - Building dependency graph
+2025-03-12 14:00:13,701 - validation_suite - INFO - Validating level dependencies
+2025-03-12 14:00:13,701 - validation_suite - INFO - Detecting feedback loops
+2025-03-12 14:00:13,702 - validation_suite - ERROR - Error generating cross-level visualizations: name 'logging' is not defined
+2025-03-12 14:00:13,702 - validation_suite - INFO - Cross-level validation completed: Error
+2025-03-12 14:00:13,702 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 14:00:13,702 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 14:00:13,702 - validation_suite - WARNING - No dimensional equations provided, skipping validation
+2025-03-12 14:00:13,702 - validation_suite - INFO - Running historical validation
+2025-03-12 14:00:13,702 - validation_suite - INFO - Running historical validation
+2025-03-12 14:00:13,703 - validation_suite - INFO - Finding best parameters for historical fit
+2025-03-12 14:00:13,799 - validation_suite - INFO - Generating historical comparison visualizations
+2025-03-12 14:00:14,092 - validation_suite - INFO - Generating historical validation report
+2025-03-12 14:00:14,094 - validation_suite - INFO - Historical validation completed: Warning
+2025-03-12 14:00:14,094 - validation_suite - INFO - Full validation completed: 5 components run
+2025-03-12 14:01:35,532 - validation_suite - INFO - Validation suite initialized
+2025-03-12 14:01:35,532 - validation_suite - INFO - Loading validation components
+2025-03-12 14:01:35,533 - validation_suite - INFO - Loaded dimension handler
+2025-03-12 14:01:35,800 - validation_suite - INFO - Loaded sensitivity analyzer
+2025-03-12 14:01:35,893 - validation_suite - INFO - Loaded cross-level validator
+2025-03-12 14:01:35,894 - validation_suite - INFO - Loaded edge case checker
+2025-03-12 14:01:35,895 - validation_suite - INFO - Loaded dimensional validator
+2025-03-12 14:01:35,895 - validation_suite - INFO - Loaded circuit breaker
+2025-03-12 14:01:36,506 - validation_suite - WARNING - Historical validator not available
+2025-03-12 14:01:36,506 - validation_suite - WARNING - Validation reporter not available
+2025-03-12 14:01:36,506 - validation_suite - INFO - All components loaded successfully
+2025-03-12 14:01:36,506 - validation_suite - INFO - Running full validation suite
+2025-03-12 14:01:36,506 - validation_suite - INFO - Loading models and data
+2025-03-12 14:01:36,507 - validation_suite - INFO - Loaded equations module
+2025-03-12 14:01:36,507 - validation_suite - WARNING - Quantum EM extensions not found
+2025-03-12 14:01:36,507 - validation_suite - WARNING - Parameters not found
+2025-03-12 14:01:36,512 - validation_suite - INFO - Loaded historical data: 103 records
+2025-03-12 14:01:36,512 - validation_suite - WARNING - No simulation function provided, using dummy function
+2025-03-12 14:01:36,512 - validation_suite - INFO - Running dimension validation
+2025-03-12 14:01:36,512 - validation_suite - INFO - Running dimension validation
+2025-03-12 14:01:36,512 - dim_mismatch_handler - WARNING - validation_suite - knowledge dimension 0 mismatch: expected 3, got 2
+2025-03-12 14:01:36,512 - dim_mismatch_handler - WARNING - validation_suite - influence has wrong dimensions: expected (3,), got (2, 2)
+2025-03-12 14:01:36,512 - dim_mismatch_handler - INFO - validation_suite - Expanded knowledge dimension 0: 2 -> 3
+2025-03-12 14:01:36,513 - dim_mismatch_handler - INFO - validation_suite - Reduced influence from (2, 2) to (2,) using mean
+2025-03-12 14:01:36,513 - validation_suite - INFO - Dimension validation completed: Warning
+2025-03-12 14:01:36,513 - validation_suite - INFO - Running edge case detection
+2025-03-12 14:01:36,513 - validation_suite - INFO - Running edge case detection
+2025-03-12 14:01:36,513 - validation_suite - INFO - Analyzing 11 functions for edge cases
+2025-03-12 14:01:37,625 - validation_suite - INFO - Generated edge case visualizations
+2025-03-12 14:01:37,643 - validation_suite - INFO - Edge case detection completed: Error
+2025-03-12 14:01:37,643 - validation_suite - INFO - Running cross-level validation
+2025-03-12 14:01:37,643 - validation_suite - INFO - Running cross-level validation
+2025-03-12 14:01:37,643 - validation_suite - INFO - Building dependency graph
+2025-03-12 14:01:37,653 - validation_suite - INFO - Validating level dependencies
+2025-03-12 14:01:37,653 - validation_suite - INFO - Detecting feedback loops
+2025-03-12 14:01:38,606 - validation_suite - INFO - Generated cross-level visualizations
+2025-03-12 14:01:38,606 - validation_suite - INFO - Cross-level validation completed: Error
+2025-03-12 14:01:38,607 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 14:01:38,607 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 14:01:38,607 - validation_suite - WARNING - No dimensional equations provided, skipping validation
+2025-03-12 14:01:38,607 - validation_suite - INFO - Running historical validation
+2025-03-12 14:01:38,607 - validation_suite - INFO - Running historical validation
+2025-03-12 14:01:38,608 - validation_suite - INFO - Finding best parameters for historical fit
+2025-03-12 14:01:38,697 - validation_suite - INFO - Generating historical comparison visualizations
+2025-03-12 14:01:38,833 - validation_suite - INFO - Generating historical validation report
+2025-03-12 14:01:38,834 - validation_suite - INFO - Historical validation completed: Warning
+2025-03-12 14:01:38,834 - validation_suite - INFO - Full validation completed: 5 components run
+2025-03-12 14:07:48,126 - validation_suite - INFO - Validation suite initialized
+2025-03-12 14:07:48,127 - validation_suite - INFO - Loading validation components
+2025-03-12 14:07:48,127 - validation_suite - INFO - Loaded dimension handler
+2025-03-12 14:07:48,362 - validation_suite - INFO - Loaded sensitivity analyzer
+2025-03-12 14:07:48,449 - validation_suite - INFO - Loaded cross-level validator
+2025-03-12 14:07:48,450 - validation_suite - INFO - Loaded edge case checker
+2025-03-12 14:07:48,450 - validation_suite - INFO - Loaded dimensional validator
+2025-03-12 14:07:48,451 - validation_suite - INFO - Loaded circuit breaker
+2025-03-12 14:07:49,056 - validation_suite - WARNING - Historical validator not available
+2025-03-12 14:07:49,056 - validation_suite - WARNING - Validation reporter not available
+2025-03-12 14:07:49,056 - validation_suite - INFO - All components loaded successfully
+2025-03-12 14:07:49,056 - validation_suite - INFO - Running full validation suite
+2025-03-12 14:07:49,056 - validation_suite - INFO - Loading models and data
+2025-03-12 14:07:49,057 - validation_suite - INFO - Loaded equations module
+2025-03-12 14:07:49,057 - validation_suite - WARNING - Quantum EM extensions not found
+2025-03-12 14:07:49,057 - validation_suite - WARNING - Parameters not found
+2025-03-12 14:07:49,060 - validation_suite - INFO - Loaded historical data: 103 records
+2025-03-12 14:07:49,060 - validation_suite - WARNING - No simulation function provided, using dummy function
+2025-03-12 14:07:49,061 - validation_suite - INFO - Running dimension validation
+2025-03-12 14:07:49,061 - validation_suite - INFO - Running dimension validation
+2025-03-12 14:07:49,061 - dim_mismatch_handler - WARNING - validation_suite - knowledge dimension 0 mismatch: expected 3, got 2
+2025-03-12 14:07:49,061 - dim_mismatch_handler - WARNING - validation_suite - influence has wrong dimensions: expected (3,), got (2, 2)
+2025-03-12 14:07:49,061 - dim_mismatch_handler - INFO - validation_suite - Expanded knowledge dimension 0: 2 -> 3
+2025-03-12 14:07:49,061 - dim_mismatch_handler - INFO - validation_suite - Reduced influence from (2, 2) to (2,) using mean
+2025-03-12 14:07:49,061 - validation_suite - INFO - Dimension validation completed: Warning
+2025-03-12 14:07:49,061 - validation_suite - INFO - Running edge case detection
+2025-03-12 14:14:01,692 - validation_suite - INFO - Validation suite initialized
+2025-03-12 14:14:01,692 - validation_suite - INFO - Loading validation components
+2025-03-12 14:14:01,693 - validation_suite - INFO - Loaded dimension handler
+2025-03-12 14:14:01,981 - validation_suite - INFO - Loaded sensitivity analyzer
+2025-03-12 14:14:02,098 - validation_suite - INFO - Loaded cross-level validator
+2025-03-12 14:14:02,099 - validation_suite - INFO - Loaded edge case checker
+2025-03-12 14:14:02,099 - validation_suite - INFO - Loaded dimensional validator
+2025-03-12 14:14:02,100 - validation_suite - INFO - Loaded circuit breaker
+2025-03-12 14:14:02,728 - validation_suite - WARNING - Historical validator not available
+2025-03-12 14:14:02,728 - validation_suite - WARNING - Validation reporter not available
+2025-03-12 14:14:02,728 - validation_suite - INFO - All components loaded successfully
+2025-03-12 14:14:02,728 - validation_suite - INFO - Running full validation suite
+2025-03-12 14:14:02,728 - validation_suite - INFO - Loading models and data
+2025-03-12 14:14:02,729 - validation_suite - INFO - Loaded equations module
+2025-03-12 14:14:02,729 - validation_suite - WARNING - Quantum EM extensions not found
+2025-03-12 14:14:02,729 - validation_suite - WARNING - Parameters not found
+2025-03-12 14:14:02,733 - validation_suite - INFO - Loaded historical data: 103 records
+2025-03-12 14:14:02,733 - validation_suite - WARNING - No simulation function provided, using dummy function
+2025-03-12 14:14:02,734 - validation_suite - INFO - Running dimension validation
+2025-03-12 14:14:02,734 - validation_suite - INFO - Running dimension validation
+2025-03-12 14:14:02,734 - dim_mismatch_handler - WARNING - validation_suite - knowledge dimension 0 mismatch: expected 3, got 2
+2025-03-12 14:14:02,734 - dim_mismatch_handler - WARNING - validation_suite - influence has wrong dimensions: expected (3,), got (2, 2)
+2025-03-12 14:14:02,734 - dim_mismatch_handler - INFO - validation_suite - Expanded knowledge dimension 0: 2 -> 3
+2025-03-12 14:14:02,734 - dim_mismatch_handler - INFO - validation_suite - Reduced influence from (2, 2) to (2,) using mean
+2025-03-12 14:14:02,734 - validation_suite - INFO - Dimension validation completed: Warning
+2025-03-12 14:14:02,734 - validation_suite - INFO - Running edge case detection
+2025-03-12 14:14:02,734 - validation_suite - INFO - Running edge case detection
+2025-03-12 14:14:02,734 - validation_suite - INFO - Analyzing 11 functions for edge cases
+2025-03-12 14:14:02,748 - validation_suite - ERROR - Error generating edge case visualizations: 'EdgeCaseChecker' object has no attribute 'items'
+2025-03-12 14:14:02,762 - validation_suite - INFO - Edge case detection completed: Success
+2025-03-12 14:14:02,762 - validation_suite - INFO - Edge case detection completed: Success
+2025-03-12 14:14:02,762 - validation_suite - INFO - Running cross-level validation
+2025-03-12 14:14:02,762 - validation_suite - INFO - Running cross-level validation
+2025-03-12 14:14:02,762 - validation_suite - INFO - Building dependency graph
+2025-03-12 14:14:02,773 - validation_suite - INFO - Validating level dependencies
+2025-03-12 14:14:02,773 - validation_suite - INFO - Detecting feedback loops
+2025-03-12 14:14:03,727 - validation_suite - INFO - Generated cross-level visualizations
+2025-03-12 14:14:03,727 - validation_suite - WARNING - Cross-level validation found issues: ['Level dependencies violate expectations']
+2025-03-12 14:14:03,728 - validation_suite - INFO - Cross-level validation completed: Warning
+2025-03-12 14:14:03,728 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 14:14:03,728 - validation_suite - INFO - Running dimensional consistency validation
+2025-03-12 14:14:03,728 - validation_suite - WARNING - No dimensional equations provided, skipping validation
+2025-03-12 14:14:03,728 - validation_suite - INFO - Running historical validation
+2025-03-12 14:14:03,728 - validation_suite - INFO - Running historical validation
+2025-03-12 14:14:03,729 - validation_suite - INFO - Finding best parameters for historical fit
+2025-03-12 14:14:03,823 - validation_suite - INFO - Generating historical comparison visualizations
+2025-03-12 14:14:03,966 - validation_suite - INFO - Generating historical validation report
+2025-03-12 14:14:03,968 - validation_suite - INFO - Historical validation completed: Warning
+2025-03-12 14:14:03,968 - validation_suite - INFO - Full validation completed: 5 components run
