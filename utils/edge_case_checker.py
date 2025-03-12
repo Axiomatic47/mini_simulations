@@ -21,6 +21,9 @@ class EdgeCaseChecker:
         """
         self.equation_functions = equation_functions
         self.analysis_results = {}
+        self.results = {}  # Adding this attribute that's referenced in visualization code
+        self.analyzed_functions = {}  # Initialize this attribute
+        self.function_code = {}  # Initialize other attributes
         self.numeric_patterns = {
             'division_by_zero': {
                 'pattern': r'\/\s*([a-zA-Z_][a-zA-Z0-9_]*|\d*\.?\d+)',
@@ -144,19 +147,54 @@ class EdgeCaseChecker:
 
     def analyze_all_functions(self):
         """
-        Analyze all equations for potential edge cases.
+        Analyze all functions in the equation_functions dictionary for potential edge cases.
 
         Returns:
             dict: Analysis results for all functions
         """
-        all_results = {}
+        for func_name, func in self.equation_functions.items():
+            self.analyzed_functions[func_name] = self.analyze_function(func_name)
 
-        for func_name in self.equation_functions:
-            result = self.analyze_function(func_name)
-            all_results[func_name] = result
+            # Update the results dictionary that's used by visualization code
+            self.results[func_name] = {
+                'issues': self.analyzed_functions[func_name],
+                'score': self._calculate_score(self.analyzed_functions[func_name])
+            }
 
-        self.analysis_results = all_results
-        return all_results
+        return self.analyzed_functions
+
+    def _calculate_score(self, analysis_result):
+        """
+        Calculate a safety score based on analysis results.
+
+        Args:
+            analysis_result (dict): Analysis results for a function
+
+        Returns:
+            float: Safety score between 0-100
+        """
+        # Return the safety score directly if it exists
+        if 'safety_score' in analysis_result:
+            return analysis_result['safety_score']
+
+        # Otherwise calculate a basic score
+        score = 100
+
+        # Reduce score based on unprotected patterns
+        for pattern_name, pattern_result in analysis_result.get('patterns_found', {}).items():
+            unprotected_count = pattern_result.get('unprotected_matches', 0)
+            severity = pattern_result.get('severity', 'medium')
+
+            # Adjust score based on severity
+            if severity == 'high':
+                score -= 15 * unprotected_count
+            elif severity == 'medium':
+                score -= 8 * unprotected_count
+            else:  # low
+                score -= 3 * unprotected_count
+
+        # Ensure score is between 0-100
+        return max(0, min(100, score))
 
     def generate_recommendations(self):
         """

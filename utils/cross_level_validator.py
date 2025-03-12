@@ -77,6 +77,19 @@ class CrossLevelValidator:
         self.dependency_graph = G
         return G
 
+    def get_function_levels(self):
+        """
+        Returns a dictionary mapping function names to their hierarchy levels.
+
+        Returns:
+            dict: Mapping of function names to their hierarchy levels
+        """
+        result = {}
+        for level, funcs in self.hierarchy_levels.items():
+            for func_name in funcs:
+                result[func_name] = level
+        return result
+
     def _analyze_dependencies(self, graph, caller_name, source, func_name_map):
         """
         Analyze function dependencies using AST parsing.
