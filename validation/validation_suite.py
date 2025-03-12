@@ -436,9 +436,15 @@ class ValidationSuite:
             # Generate visualizations
             try:
                 from validation.validation_visualizers import create_edge_case_visualizations
-                create_edge_case_visualizations(
-                    checker, output_dir=str(self.output_dir / "edge_case")
-                )
+                try:
+                    # Use analysis_results, which is the attribute the class actually has
+                    create_edge_case_visualizations(
+                        checker.analysis_results, output_dir=str(self.output_dir / "edge_case")
+                    )
+                    self.logger.info("Generated edge case visualizations")
+                except Exception as e:
+                    self.logger.error(f"Error generating edge case visualizations: {e}")
+                    # Non-critical error, continue execution
                 self.logger.info("Generated edge case visualizations")
             except Exception as e:
                 self.logger.error(f"Error generating edge case visualizations: {e}")

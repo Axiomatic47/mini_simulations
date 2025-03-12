@@ -449,6 +449,12 @@ After running the validation suite, use these guidelines for empirical validatio
    - Document parameter values that produce best empirical fit
 
 
+# Add these instructions to complete the update to validation_framework.md:
+
+1. Open validation_framework.md
+2. Go to the end of the file
+3. Add the following section:
+
 ## Robust Error Handling
 
 The validation framework includes comprehensive error handling and graceful degradation features to ensure validation processes can continue even when individual components encounter issues.
@@ -467,13 +473,14 @@ The validation framework includes comprehensive error handling and graceful degr
 # Example of robust error handling in cross-level validation
 try:
     # Try to create visualizations
-    create_cross_level_visualizations(validator, output_dir=output_path)
+    create_cross_level_visualizations(
+        validator, output_dir=str(self.output_dir / "cross_level")
+    )
     logger.info("Generated cross-level visualizations")
 except Exception as e:
     # Log error but continue with validation
     logger.error(f"Error generating cross-level visualizations: {e}")
-    # Create fallback simple visualization if needed
-    create_simple_fallback_visualization(output_path)
+    # This is a non-critical error - continue without failing
     
 # Example of handling None values in level dependencies
 levels = []
@@ -481,3 +488,23 @@ for level_pair in dependencies.keys():
     for level in level_pair:
         if level is not None and level not in levels:
             levels.append(level)
+```
+
+### Improved Status Reporting
+
+The validation framework now uses a consistent approach to status reporting:
+
+- **Success**: Component ran without issues and no problems were detected
+- **Warning**: Component completed but found issues or non-critical problems
+- **Error**: Component failed to run due to critical issues
+
+This allows for more nuanced reporting of validation results and helps identify which components require attention.
+
+### NaN and Edge Case Handling
+
+Special attention is given to handling numerical edge cases:
+
+- Automatic replacement of NaN values in visualization data
+- Checks for empty or all-zero matrices before visualization
+- Fallback visualizations when normal visualization isn't possible
+- Safe mathematical operations through the CircuitBreaker utility

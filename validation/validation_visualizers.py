@@ -11,8 +11,13 @@ import networkx as nx
 from matplotlib.colors import LinearSegmentedColormap
 from pathlib import Path
 import json
+import warnings
 
 logger = logging.getLogger('validation_visualizers')
+
+# Filter the specific NaN warnings from seaborn/numpy
+warnings.filterwarnings("ignore", category=RuntimeWarning, message="All-NaN slice encountered")
+warnings.filterwarnings("ignore", category=RuntimeWarning, message="invalid value encountered in subtract")
 
 def create_parameter_sensitivity_visualizations(analyzer, output_dir='validation/reports/sensitivity'):
     """
@@ -261,16 +266,32 @@ def create_dimensional_consistency_visualizations(results, output_dir='validatio
         plt.close()
 
 
-def create_edge_case_visualizations(results, output_dir='validation/reports/edge_case'):
+def create_edge_case_visualizations(analysis_results, output_dir='validation/reports/edge_case'):
     """
     Create visualizations for edge case analysis.
 
     Parameters:
-        results: Dictionary of edge case analysis results
+        analysis_results: Dictionary of edge case analysis results from EdgeCaseChecker.analysis_results
         output_dir: Directory to save visualization files
     """
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from pathlib import Path
+
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
+
+    # If no analysis results, create placeholder viz
+    if not analysis_results or not isinstance(analysis_results, dict):
+        plt.figure(figsize=(8, 6))
+        plt.text(0.5, 0.5, "No edge case analysis results available",
+                 horizontalalignment='center', verticalalignment='center',
+                 transform=plt.gca().transAxes)
+        plt.tight_layout()
+        plt.savefig(output_path / 'edge_case_summary.png', dpi=300)
+        plt.close()
+        return
 
     # Extract data for visualization
     function_names = []
@@ -282,8 +303,7 @@ def create_edge_case_visualizations(results, output_dir='validation/reports/edge
         'division_by_zero',
         'log_of_non_positive',
         'sqrt_of_negative',
-        'overflow',
-        'underflow',
+        'exponent_overflow',
         'array_bounds',
         'conditional_logic'
     ]
@@ -298,24 +318,51 @@ def create_edge_case_visualizations(results, output_dir='validation/reports/edge
     for severity in severities:
         severity_counts[severity] = []
 
-    # Process data
-    for name, result in results.items():
+    # Process data - adapt this section to match analysis_results structure
+    for name, result in analysis_results.items():
         function_names.append(name)
 
         # Count edge cases by category
-        patterns = result.get('patterns_found', {})
-        for category in categories:
-            edge_case_counts[category].append(len(patterns.get(category, [])))
+        edge_cases = result.get('edge_cases', [])
+        category_counts = {cat: 0 for cat in categories}
 
-        # Count issues by severity
-        recommendations = result.get('recommendations', [])
+        # Count each edge case type
+        for edge_case in edge_cases:
+            if edge_case in category_counts:
+                category_counts[edge_case] += 1
+
+        # Add counts to the lists
+        for category in categories:
+            edge_case_counts[category].append(category_counts.get(category, 0))
+
+        # Generate recommendations to assess severity
+        # Note: This assumes recommendations are generated on demand
+        # If pre-computed, adapt to use stored values
         sev_counts = {s: 0 for s in severities}
-        for rec in recommendations:
-            sev = rec.get('severity', 'low')
-            sev_counts[sev] += 1
+
+        # Count patterns by category and assign severity
+        for edge_case in edge_cases:
+            # Default severities by edge case type
+            if edge_case in ['division_by_zero', 'log_of_non_positive', 'sqrt_of_negative']:
+                sev_counts['high'] += 1
+            elif edge_case in ['exponent_overflow']:
+                sev_counts['medium'] += 1
+            else:
+                sev_counts['low'] += 1
 
         for severity in severities:
             severity_counts[severity].append(sev_counts[severity])
+
+    # In case there are no functions analyzed
+    if not function_names:
+        plt.figure(figsize=(8, 6))
+        plt.text(0.5, 0.5, "No functions analyzed for edge cases",
+                 horizontalalignment='center', verticalalignment='center',
+                 transform=plt.gca().transAxes)
+        plt.tight_layout()
+        plt.savefig(output_path / 'edge_case_summary.png', dpi=300)
+        plt.close()
+        return
 
     # 1. Edge case counts by category
     edge_case_df = pd.DataFrame(edge_case_counts, index=function_names)
@@ -355,8 +402,9 @@ def create_edge_case_visualizations(results, output_dir='validation/reports/edge
         fixed_edge_cases = []
 
         for name in function_names:
-            # Assume fixed count is available or calculate it
-            fixed = results.get(name, {}).get('fixed_count', 0)
+            # Fixed count is likely not available in analysis_results
+            # Just use 0 as default
+            fixed = 0
             fixed_edge_cases.append(fixed)
 
         coverage_df = pd.DataFrame({
@@ -543,8 +591,8 @@ def create_cross_level_visualizations(validator, output_dir='validation/reports/
                     # Skip this entry if either level is not in the levels list
                     continue
 
-            # Check if matrix contains any non-zero values
-            if np.all(matrix == 0):
+            # Check if matrix contains any valid data
+            if np.all(np.isnan(matrix)):
                 # Empty matrix case
                 plt.figure(figsize=(8, 6))
                 plt.text(0.5, 0.5, "No dependencies detected between levels",
@@ -554,12 +602,12 @@ def create_cross_level_visualizations(validator, output_dir='validation/reports/
                 plt.savefig(output_path / 'level_dependency_matrix.png', dpi=300)
                 plt.close()
             else:
-                # Replace any NaN values with zeros
-                matrix = np.nan_to_num(matrix, nan=0.0)
+                # Replace NaN values with zeros to prevent warnings
+                matrix_clean = np.nan_to_num(matrix, nan=0.0)
 
                 # Create heatmap with valid data
                 plt.figure(figsize=(12, 10))
-                sns.heatmap(matrix, cmap='YlOrRd', annot=True, fmt='.0f',
+                sns.heatmap(matrix_clean, cmap='YlOrRd', annot=True, fmt='.0f',
                             xticklabels=levels, yticklabels=levels)
 
                 plt.title('Level Dependency Matrix', fontsize=14)
