@@ -2,7 +2,7 @@
 """
 Run script for the improved historical validation module.
 This script allows testing the axiomatic model against historical data and optimizing parameters.
-With added numerical stability options.
+With added numerical stability options and dimensional consistency analysis.
 """
 
 import argparse
@@ -56,6 +56,14 @@ def main():
     parser.add_argument("--min-timestep", type=float, default=0.1, help="Minimum timestep for adaptive calculations")
     parser.add_argument("--max-timestep", type=float, default=5.0, help="Maximum timestep for adaptive calculations")
 
+    # New dimensional consistency parameters
+    parser.add_argument("--enable-dimensional-analysis", action="store_true",
+                        help="Enable dimensional consistency analysis")
+    parser.add_argument("--dimensional-check-only", action="store_true",
+                        help="Only check dimensional consistency without running full simulation")
+    parser.add_argument("--save-dimensional-metrics", action="store_true",
+                        help="Save dimensional consistency metrics to file")
+
     args = parser.parse_args()
 
     # Create output directory
@@ -73,22 +81,44 @@ def main():
 
     # Initialize historical validation with numerical stability parameters
     print(f"Initializing historical validation ({args.start_year}-{args.end_year}, interval: {args.interval} years)...")
-    validator = HistoricalValidation(
-        data_source=data_source,
-        start_year=args.start_year,
-        end_year=args.end_year,
-        interval=args.interval,
-        # New numerical stability parameters
-        max_knowledge=args.max_knowledge,
-        max_suppression=args.max_suppression,
-        max_intelligence=args.max_intelligence,
-        max_truth=args.max_truth,
-        enable_circuit_breaker=args.enable_circuit_breaker,
-        stability_threshold=args.stability_threshold,
-        enable_adaptive_timestep=args.enable_adaptive_timestep,
-        min_timestep=args.min_timestep,
-        max_timestep=args.max_timestep
-    )
+
+    # Prepare initialization parameters
+    init_params = {
+        'data_source': data_source,
+        'start_year': args.start_year,
+        'end_year': args.end_year,
+        'interval': args.interval,
+        # Numerical stability parameters
+        'max_knowledge': args.max_knowledge,
+        'max_suppression': args.max_suppression,
+        'max_intelligence': args.max_intelligence,
+        'max_truth': args.max_truth,
+        'enable_circuit_breaker': args.enable_circuit_breaker,
+        'stability_threshold': args.stability_threshold,
+        'enable_adaptive_timestep': args.enable_adaptive_timestep,
+        'min_timestep': args.min_timestep,
+        'max_timestep': args.max_timestep
+    }
+
+    # Add dimensional analysis parameter if available in the class
+    try:
+        # Check if the class accepts the enable_dimensional_analysis parameter
+        validator = HistoricalValidation(
+            **init_params,
+            enable_dimensional_analysis=args.enable_dimensional_analysis
+        )
+    except TypeError:
+        # If the parameter is not accepted, initialize without it
+        print("Note: Dimensional analysis parameter not supported by the validation class.")
+        validator = HistoricalValidation(**init_params)
+
+        # Try to set the parameter after initialization if there's a setter method
+        if args.enable_dimensional_analysis:
+            if hasattr(validator, 'set_dimensional_analysis'):
+                validator.set_dimensional_analysis(True)
+                print("Enabled dimensional analysis via setter method.")
+            else:
+                print("Warning: Dimensional analysis requested but not supported by validation class.")
 
     # Parse parameters to optimize
     if args.optimize_params:
@@ -109,6 +139,22 @@ def main():
             "war_suppression_multiplier"
         ]
 
+    # Check for dimensional consistency only if requested
+    if args.dimensional_check_only:
+        if hasattr(validator, 'check_dimensional_consistency'):
+            print("Running dimensional consistency check...")
+            results = validator.check_dimensional_consistency()
+            print("\nDimensional Consistency Check Results:")
+            for name, result in results.items():
+                print(f"{name}: {result['status']}")
+
+            if args.save_dimensional_metrics:
+                validator.save_dimensional_metrics(save_path=str(output_dir / "dimensional_metrics.csv"))
+                print(f"Dimensional metrics saved to: {output_dir / 'dimensional_metrics.csv'}")
+        else:
+            print("Error: Dimensional consistency check requested but not supported by validation class.")
+        return
+
     # Run comprehensive analysis
     if args.default:
         # Run without optimization
@@ -122,6 +168,12 @@ def main():
         # Save stability metrics if circuit breaker was enabled
         if args.enable_circuit_breaker and hasattr(validator, 'circuit_breaker'):
             validator.save_stability_metrics(save_path=str(output_dir / "default" / "stability_metrics.csv"))
+
+        # Save dimensional consistency metrics if enabled
+        if args.enable_dimensional_analysis and args.save_dimensional_metrics:
+            if hasattr(validator, 'save_dimensional_metrics'):
+                validator.save_dimensional_metrics(save_path=str(output_dir / "default" / "dimensional_metrics.csv"))
+                print(f"Dimensional metrics saved to: {output_dir / 'default' / 'dimensional_metrics.csv'}")
     else:
         # Run comprehensive analysis
         print("Running comprehensive analysis...")
@@ -140,6 +192,19 @@ def main():
             print(f"Number of instabilities detected: {validator.circuit_breaker.trigger_count}")
         else:
             print("Simulation completed without numerical instabilities.")
+
+    # Print dimensional analysis information if enabled
+    if args.enable_dimensional_analysis:
+        if hasattr(validator, 'dimensional_consistency_status'):
+            print("\nDimensional Consistency Status:")
+            consistency_status = validator.dimensional_consistency_status
+            if consistency_status['consistent']:
+                print("✅ All equations are dimensionally consistent.")
+            else:
+                print("⚠️ Some equations have dimensional inconsistencies:")
+                for equation, status in consistency_status['equations'].items():
+                    if status['consistent'] == False:
+                        print(f"  - {equation}: {status['message']}")
 
 
 if __name__ == "__main__":

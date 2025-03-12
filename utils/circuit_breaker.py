@@ -30,6 +30,8 @@ class CircuitBreaker:
         self.energy_history = []
         self.last_trigger_reason = None
         self.timestep_recommendations = []
+        self.last_fixed_value = None
+        self.last_prev_value = None
 
     def check_value_stability(self, value):
         """
@@ -55,6 +57,16 @@ class CircuitBreaker:
             self.last_trigger_reason = f"Value {value} outside allowed range [{self.min_value}, {self.max_value}]"
             return True
 
+        # Check for rate of change if we have a previous value
+        if self.last_prev_value is not None:
+            if abs(value - self.last_prev_value) > self.max_rate_of_change * abs(self.last_prev_value):
+                self.was_triggered = True
+                self.trigger_count += 1
+                self.last_trigger_reason = "Rate of change exceeds threshold"
+                return True
+
+        # Update state
+        self.last_prev_value = value
         return False
 
     def check_array_stability(self, array):
@@ -216,6 +228,109 @@ class CircuitBreaker:
             return default
         return np.log(x)
 
+    def check_and_fix(self, value, min_val=None, max_val=None, default=None):
+        """
+        Check if a value is stable and fix it if not.
+
+        Args:
+            value: Value to check
+            min_val (float): Minimum allowed value (default: self.min_value)
+            max_val (float): Maximum allowed value (default: self.max_value)
+            default: Default value to use if fixing fails
+
+        Returns:
+            Value with stability issues fixed
+        """
+        # Use instance defaults if not provided
+        min_val = self.min_value if min_val is None else min_val
+        max_val = self.max_value if max_val is None else max_val
+
+        # Use current value as default if not provided
+        if default is None:
+            if self.last_fixed_value is not None:
+                default = self.last_fixed_value
+            else:
+                default = 0.0
+
+        # Check for array values
+        if isinstance(value, np.ndarray):
+            return self._fix_array(value, min_val, max_val, default)
+
+        # Try to convert to float if not already numeric
+        try:
+            value = float(value)
+        except (TypeError, ValueError):
+            self.was_triggered = True
+            self.trigger_count += 1
+            self.last_trigger_reason = "Non-numeric value replaced"
+            self.last_fixed_value = default
+            return default
+
+        # Check for non-finite values
+        if not np.isfinite(value):
+            self.was_triggered = True
+            self.trigger_count += 1
+            self.last_trigger_reason = "Non-finite value replaced"
+            self.last_fixed_value = default
+            return default
+
+        # Check for extreme values
+        if abs(value) > max_val:
+            self.was_triggered = True
+            self.trigger_count += 1
+            self.last_trigger_reason = "Extreme value clipped"
+            self.last_fixed_value = np.sign(value) * max_val
+            return self.last_fixed_value
+
+        # Check for very small non-zero values
+        if value != 0 and abs(value) < abs(min_val):
+            self.was_triggered = True
+            self.trigger_count += 1
+            self.last_trigger_reason = "Very small value replaced"
+            self.last_fixed_value = np.sign(value) * abs(min_val)
+            return self.last_fixed_value
+
+        # Value is stable
+        self.last_fixed_value = value
+        return value
+
+    def _fix_array(self, array, min_val, max_val, default):
+        """Fix stability issues in an array."""
+        try:
+            array = np.array(array, dtype=float)
+        except:
+            self.was_triggered = True
+            self.trigger_count += 1
+            self.last_trigger_reason = "Non-numeric array replaced"
+            if isinstance(default, np.ndarray) and default.shape == array.shape:
+                return default
+            return np.zeros_like(array, dtype=float)
+
+        # Replace non-finite values
+        if not np.all(np.isfinite(array)):
+            self.was_triggered = True
+            self.trigger_count += 1
+            self.last_trigger_reason = "Non-finite array values replaced"
+            array = np.nan_to_num(array, nan=0.0, posinf=max_val, neginf=-max_val)
+
+        # Clip extreme values
+        if np.any(np.abs(array) > max_val):
+            self.was_triggered = True
+            self.trigger_count += 1
+            self.last_trigger_reason = "Extreme array values clipped"
+            array = np.clip(array, -max_val, max_val)
+
+        # Replace very small non-zero values
+        small_mask = (array != 0) & (np.abs(array) < abs(min_val))
+        if np.any(small_mask):
+            self.was_triggered = True
+            self.trigger_count += 1
+            self.last_trigger_reason = "Very small array values replaced"
+            array[small_mask] = np.sign(array[small_mask]) * abs(min_val)
+
+        self.last_fixed_value = array.copy()
+        return array
+
     def recommend_timestep(self, current_dt):
         """
         Recommend a timestep based on collected stability information.
@@ -271,6 +386,10 @@ class CircuitBreaker:
                                abs(self.energy_history[-1] - self.energy_history[-2]) < 0.1 * self.energy_history[-2]
         }
 
+    def get_trigger_count(self):
+        """Get the number of times the circuit breaker was triggered."""
+        return self.trigger_count
+
     def reset(self):
         """Reset the circuit breaker state."""
         self.trigger_count = 0
@@ -278,3 +397,5 @@ class CircuitBreaker:
         self.energy_history = []
         self.last_trigger_reason = None
         self.timestep_recommendations = []
+        self.last_fixed_value = None
+        self.last_prev_value = None

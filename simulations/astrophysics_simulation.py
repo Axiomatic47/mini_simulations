@@ -24,6 +24,17 @@ from config.astrophysics_extensions import (
     galactic_structure_model
 )
 
+# Import dimensional consistency tools
+from utils.dimensional_consistency import (
+    Dimension, DimensionalValue,
+    intelligence_growth_with_dimensions,
+    wisdom_field_with_dimensions,
+    truth_adoption_with_dimensions,
+    suppression_feedback_with_dimensions,
+    resistance_resurgence_with_dimensions,
+    check_dimensional_consistency
+)
+
 # Import circuit breaker for numerical stability
 from utils.circuit_breaker import CircuitBreaker
 
@@ -59,6 +70,9 @@ MIN_TRUTH = 0.0
 MAX_APPARENT_TRUTH = 100.0
 MIN_APPARENT_TRUTH = 0.0
 MIN_DISTANCE = 0.1  # Minimum distance to prevent division by zero
+
+# Enable or disable dimensional analysis
+use_dimensional_analysis = True
 
 # Initialize circuit breaker
 circuit_breaker = CircuitBreaker(
@@ -138,6 +152,28 @@ I[:, 0] = 5.0
 T[0] = 1.0
 E[0] = 0.05
 dE_dt = 0.0  # Initial oscillation velocity
+
+# If using dimensional analysis, set up dimensional containers
+if use_dimensional_analysis:
+    print("Using dimensional analysis for calculations")
+    # Arrays to store dimensional values during simulation
+    K_dim = [[None for _ in range(timesteps)] for _ in range(num_agents)]
+    S_dim = [[None for _ in range(timesteps)] for _ in range(num_agents)]
+    I_dim = [[None for _ in range(timesteps)] for _ in range(num_agents)]
+    T_dim = [None for _ in range(timesteps)]
+    E_dim = [None for _ in range(timesteps)]
+
+    # Initialize first timestep with dimensional values
+    for agent in range(num_agents):
+        K_dim[agent][0] = DimensionalValue(K[agent, 0], Dimension.KNOWLEDGE)
+        S_dim[agent][0] = DimensionalValue(S[agent, 0], Dimension.SUPPRESSION)
+        I_dim[agent][0] = DimensionalValue(I[agent, 0], Dimension.INTELLIGENCE)
+
+    T_dim[0] = DimensionalValue(T[0], Dimension.TRUTH)
+    E_dim[0] = DimensionalValue(E[0], Dimension.DIMENSIONLESS)
+
+    # Create dimensional constants
+    R = DimensionalValue(RESISTANCE, Dimension.RESISTANCE)
 
 # Generate galactic structure influence matrix
 influence_matrix = galactic_structure_model(num_agents)
@@ -290,28 +326,61 @@ for t in range(1, timesteps):
     # Truth adoption update with gravitational lensing effect
     # Use apparent truth for decision-making but actual truth for storage
     try:
-        effective_truth_rate = truth_adoption(
-            np.clip(apparent_truth[t], MIN_APPARENT_TRUTH, MAX_APPARENT_TRUTH),
-            A_TRUTH,
-            T_MAX
-        )
+        if use_dimensional_analysis:
+            # Create dimensional value for apparent truth
+            apparent_truth_dim = DimensionalValue(apparent_truth[t], Dimension.TRUTH)
+
+            # Use dimensional version
+            effective_truth_rate_dim = truth_adoption_with_dimensions(
+                apparent_truth_dim, A_TRUTH, T_MAX
+            )
+            effective_truth_rate = effective_truth_rate_dim.value
+        else:
+            # Use original version
+            effective_truth_rate = truth_adoption(
+                np.clip(apparent_truth[t], MIN_APPARENT_TRUTH, MAX_APPARENT_TRUTH),
+                A_TRUTH,
+                T_MAX
+            )
+
+        # Update truth with stability check
+        if circuit_breaker.check_value_stability(effective_truth_rate):
+            effective_truth_rate = np.clip(effective_truth_rate, -2.0, 2.0)
+            stability_issues += 1
+
         T[t] = np.clip(T[t - 1] + effective_truth_rate * current_dt, MIN_TRUTH, MAX_TRUTH)
+
+        # Store dimensional value if using dimensional analysis
+        if use_dimensional_analysis:
+            T_dim[t] = DimensionalValue(T[t], Dimension.TRUTH)
     except Exception as e:
         print(f"Warning: Error in truth adoption calculation at t={t}: {e}")
         T[t] = T[t - 1]  # Use previous value in case of error
+        if use_dimensional_analysis:
+            T_dim[t] = T_dim[t - 1]  # Use previous dimensional value
         stability_issues += 1
 
     # Update each agent
     for agent in range(num_agents):
         try:
-            # Calculate wisdom with bounds
-            W = wisdom_field(
-                W_0,
-                ALPHA_WISDOM,
-                np.clip(S[agent, t - 1], MIN_SUPPRESSION, MAX_SUPPRESSION),
-                RESISTANCE,
-                np.clip(K[agent, t - 1], MIN_KNOWLEDGE, MAX_KNOWLEDGE)
-            )
+            if use_dimensional_analysis:
+                # Use dimensional versions
+                K_curr_dim = K_dim[agent][t - 1]
+                S_curr_dim = S_dim[agent][t - 1]
+
+                # Calculate wisdom with dimensional analysis
+                W_dim = wisdom_field_with_dimensions(
+                    W_0, ALPHA_WISDOM, S_curr_dim, R, K_curr_dim)
+                W = W_dim.value  # Extract raw value for other calculations
+            else:
+                # Calculate wisdom with bounds (original version)
+                W = wisdom_field(
+                    W_0,
+                    ALPHA_WISDOM,
+                    np.clip(S[agent, t - 1], MIN_SUPPRESSION, MAX_SUPPRESSION),
+                    RESISTANCE,
+                    np.clip(K[agent, t - 1], MIN_KNOWLEDGE, MAX_KNOWLEDGE)
+                )
 
             # Calculate social influence from galactic structure with bounds
             social_influence = 0
@@ -356,33 +425,57 @@ for t in range(1, timesteps):
                 MAX_KNOWLEDGE
             )
 
+            # Store dimensional value if using dimensional analysis
+            if use_dimensional_analysis:
+                K_dim[agent][t] = DimensionalValue(K[agent, t], Dimension.KNOWLEDGE)
+
             # Calculate suppression with lifecycle effects
-            base_suppression = resistance_resurgence(
-                S[agent, 0],
-                LAMBDA_DECAY,
-                t,
-                ALPHA_RESURGE,
-                MU_RESURGE,
-                T_CRIT_RESURGE
-            )
+            if use_dimensional_analysis:
+                # Use dimensional version
+                s_base_dim = resistance_resurgence_with_dimensions(
+                    S[agent, 0], LAMBDA_DECAY, t, ALPHA_RESURGE, MU_RESURGE, T_CRIT_RESURGE)
+                s_base = s_base_dim.value
+            else:
+                # Use original version
+                s_base = resistance_resurgence(
+                    S[agent, 0],
+                    LAMBDA_DECAY,
+                    t,
+                    ALPHA_RESURGE,
+                    MU_RESURGE,
+                    T_CRIT_RESURGE
+                )
 
             # Add suppression feedback - more responsive to knowledge
-            suppression_increment = (
-                    base_suppression +
-                    suppression_feedback(
-                        ALPHA_FEEDBACK,
-                        np.clip(S[agent, t - 1], MIN_SUPPRESSION, MAX_SUPPRESSION),
-                        BETA_FEEDBACK * 1.5,
-                        np.clip(K[agent, t - 1], MIN_KNOWLEDGE, MAX_KNOWLEDGE)
-                    ) * current_dt
-            )
+            if use_dimensional_analysis:
+                # Use dimensional version
+                K_updated_dim = K_dim[agent][t]
+                S_updated_dim = DimensionalValue(S[agent, t - 1], Dimension.SUPPRESSION)
+
+                s_feedback_dim = suppression_feedback_with_dimensions(
+                    ALPHA_FEEDBACK, S_updated_dim,
+                    BETA_FEEDBACK * 1.5, K_updated_dim)
+                s_feedback = s_feedback_dim.value
+            else:
+                # Use original version
+                s_feedback = suppression_feedback(
+                    ALPHA_FEEDBACK,
+                    np.clip(S[agent, t - 1], MIN_SUPPRESSION, MAX_SUPPRESSION),
+                    BETA_FEEDBACK * 1.5,
+                    np.clip(K[agent, t - 1], MIN_KNOWLEDGE, MAX_KNOWLEDGE)
+                ) * current_dt
 
             # Check for stability in suppression calculation
-            if circuit_breaker.check_value_stability(suppression_increment):
-                suppression_increment = np.clip(suppression_increment, 0.0, MAX_SUPPRESSION * 0.1)
+            if circuit_breaker.check_value_stability(s_feedback):
+                s_feedback = np.clip(s_feedback, -2.0, 2.0)
                 stability_issues += 1
 
+            # Apply current_dt to s_feedback if using dimensional version (not included in the function)
+            if use_dimensional_analysis:
+                s_feedback *= current_dt
+
             # Update suppression with bounds
+            suppression_increment = s_base + s_feedback
             S[agent, t] = np.clip(suppression_increment, MIN_SUPPRESSION, MAX_SUPPRESSION)
 
             # Modify suppression based on lifecycle phase
@@ -390,6 +483,10 @@ for t in range(1, timesteps):
                 S[agent, t] = np.clip(S[agent, t] * 1.2, MIN_SUPPRESSION, MAX_SUPPRESSION)
             elif lifecycle_phase[t] == 5:  # Remnant/rebirth phase
                 S[agent, t] = np.clip(S[agent, t] * 0.8, MIN_SUPPRESSION, MAX_SUPPRESSION)
+
+            # Store dimensional value if using dimensional analysis
+            if use_dimensional_analysis:
+                S_dim[agent][t] = DimensionalValue(S[agent, t], Dimension.SUPPRESSION)
 
             # Event horizon effect - if beyond horizon, knowledge growth is severely constrained
             if beyond_horizon[t]:
@@ -401,30 +498,52 @@ for t in range(1, timesteps):
                 )
                 S[agent, t] = np.clip(S[agent, t] * 1.1, MIN_SUPPRESSION, MAX_SUPPRESSION)
 
+                # Update dimensional value if changed
+                if use_dimensional_analysis:
+                    K_dim[agent][t] = DimensionalValue(K[agent, t], Dimension.KNOWLEDGE)
+                    S_dim[agent][t] = DimensionalValue(S[agent, t], Dimension.SUPPRESSION)
+
             # Update intelligence with lifecycle intensity modifiers
-            intelligence_change = intelligence_growth(
-                np.clip(K[agent, t], MIN_KNOWLEDGE, MAX_KNOWLEDGE),
-                W,
-                RESISTANCE,
-                np.clip(S[agent, t], MIN_SUPPRESSION, MAX_SUPPRESSION),
-                NETWORK_EFFECT
-            ) * current_dt * lifecycle_intensity[t]
+            if use_dimensional_analysis:
+                # Use dimensional version
+                K_final_dim = K_dim[agent][t]
+                S_final_dim = S_dim[agent][t]
+
+                i_growth_dim = intelligence_growth_with_dimensions(
+                    K_final_dim, W_dim, R, S_final_dim, NETWORK_EFFECT)
+                i_growth = i_growth_dim.value
+            else:
+                # Use original version
+                i_growth = intelligence_growth(
+                    np.clip(K[agent, t], MIN_KNOWLEDGE, MAX_KNOWLEDGE),
+                    W,
+                    RESISTANCE,
+                    np.clip(S[agent, t], MIN_SUPPRESSION, MAX_SUPPRESSION),
+                    NETWORK_EFFECT
+                )
+
+            # Apply lifecycle intensity to intelligence growth
+            i_growth *= current_dt * lifecycle_intensity[t]
 
             # Check for stability in intelligence growth
-            if circuit_breaker.check_value_stability(intelligence_change):
-                intelligence_change = np.clip(intelligence_change, -5.0, 5.0)
+            if circuit_breaker.check_value_stability(i_growth):
+                i_growth = np.clip(i_growth, -5.0, 5.0)
                 stability_issues += 1
 
             # Apply limits to intelligence - prevent excessive spikes and negative values
             if lifecycle_phase[t] == 5:  # Rebirth phase
                 # Limit rebirth intensity to avoid extreme spikes
-                intelligence_change *= np.clip(REBIRTH_INTENSITY, 0.1, 1.0)
+                i_growth *= np.clip(REBIRTH_INTENSITY, 0.1, 1.0)
 
             I[agent, t] = np.clip(
-                max(MINIMUM_INTELLIGENCE, I[agent, t - 1] + intelligence_change),
+                max(MINIMUM_INTELLIGENCE, I[agent, t - 1] + i_growth),
                 MIN_INTELLIGENCE,
                 MAX_INTELLIGENCE
             )
+
+            # Store dimensional value if using dimensional analysis
+            if use_dimensional_analysis:
+                I_dim[agent][t] = DimensionalValue(I[agent, t], Dimension.INTELLIGENCE)
 
         except Exception as e:
             print(f"Warning: Error updating agent {agent} at t={t}: {e}")
@@ -432,6 +551,13 @@ for t in range(1, timesteps):
             K[agent, t] = K[agent, t - 1]
             S[agent, t] = S[agent, t - 1]
             I[agent, t] = I[agent, t - 1]
+
+            # Store dimensional value if using dimensional analysis
+            if use_dimensional_analysis:
+                K_dim[agent][t] = K_dim[agent][t - 1]
+                S_dim[agent][t] = S_dim[agent][t - 1]
+                I_dim[agent][t] = I_dim[agent][t - 1]
+
             stability_issues += 1
 
     # Civilization oscillation dynamics with bounds
@@ -445,10 +571,19 @@ for t in range(1, timesteps):
 
         dE_dt = np.clip(dE_dt + osc_acceleration * current_dt, -1.0, 1.0)
         E[t] = np.clip(E[t - 1] + dE_dt * current_dt, -1.0, 1.0)
+
+        # Store dimensional value if using dimensional analysis
+        if use_dimensional_analysis:
+            E_dim[t] = DimensionalValue(E[t], Dimension.DIMENSIONLESS)
     except Exception as e:
         print(f"Warning: Error in oscillation calculation at t={t}: {e}")
         dE_dt = 0.0  # Reset acceleration
         E[t] = E[t - 1]  # Use previous value
+
+        # Store dimensional value if using dimensional analysis
+        if use_dimensional_analysis:
+            E_dim[t] = E_dim[t - 1]
+
         stability_issues += 1
 
     # Output progress and current stability state
@@ -457,6 +592,34 @@ for t in range(1, timesteps):
             f"Step {t}/{timesteps} completed. Current timestep: {current_dt:.4f}. Stability issues: {stability_issues}")
 
 print(f"Simulation completed with {stability_issues} stability issues detected.")
+
+# Dimensional consistency check if enabled
+if use_dimensional_analysis:
+    try:
+        # Define the dimensional functions to check
+        dimensional_equations = {
+            'intelligence_growth_with_dimensions': intelligence_growth_with_dimensions,
+            'wisdom_field_with_dimensions': wisdom_field_with_dimensions,
+            'truth_adoption_with_dimensions': truth_adoption_with_dimensions,
+            'suppression_feedback_with_dimensions': suppression_feedback_with_dimensions,
+            'resistance_resurgence_with_dimensions': resistance_resurgence_with_dimensions
+        }
+
+        # Check dimensional consistency
+        consistency_results = check_dimensional_consistency(dimensional_equations)
+        print("\nDimensional Consistency Check Results:")
+        for name, result in consistency_results.items():
+            print(f"{name}: {result['status']}")
+
+        # Save results to file
+        consistency_df = pd.DataFrame([
+            {"Function": name, "Status": result["status"], "Notes": result.get("message", "")}
+            for name, result in consistency_results.items()
+        ])
+        consistency_df.to_csv(data_dir / "astrophysics_dimensional_consistency.csv", index=False)
+        print(f"Dimensional consistency results saved to: {data_dir / 'astrophysics_dimensional_consistency.csv'}")
+    except Exception as e:
+        print(f"Error during dimensional consistency check: {e}")
 
 # Replace any NaN or inf values that might have slipped through
 K = np.nan_to_num(K, nan=1.0, posinf=MAX_KNOWLEDGE, neginf=MIN_KNOWLEDGE)
@@ -611,6 +774,11 @@ ax6.set_xlabel('Suppression Level')
 ax6.set_ylabel('Knowledge Level')
 ax6.grid(True)
 
+# Add annotation about dimensional analysis if used
+if use_dimensional_analysis:
+    plt.figtext(0.5, 0.01, "Using dimensional analysis", ha="center", fontsize=10,
+                bbox={"facecolor": "lightgray", "alpha": 0.5, "pad": 5})
+
 plt.tight_layout()
 
 # Save the enhanced plot
@@ -688,7 +856,8 @@ stability_metrics = {
     'Max_Intelligence': np.max(I),
     'Max_Truth': np.max(T),
     'Max_Inflation': np.max(inflation_multiplier),
-    'Final_Timestep': adaptive_timestep if enable_adaptive_timestep else dt
+    'Final_Timestep': adaptive_timestep if enable_adaptive_timestep else dt,
+    'Used_Dimensional_Analysis': use_dimensional_analysis
 }
 
 stability_df = pd.DataFrame([stability_metrics])

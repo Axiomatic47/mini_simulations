@@ -1,5 +1,9 @@
 import numpy as np
 from scipy.spatial.distance import cdist
+from utils.dim_handler import DimensionHandler, safe_calculate_distance_matrix, safe_process_civilization_interactions
+
+# Create a module-level instance
+dim_handler = DimensionHandler(verbose=True, auto_fix=True)
 
 
 # Multi-Civilization Interaction Models
@@ -61,11 +65,8 @@ def calculate_distance_matrix(positions):
     Returns:
         array: Matrix of distances between civilizations
     """
-    # Handle empty or invalid input
-    if positions.size == 0 or positions.ndim != 2:
-        return np.array([[0.0]])
-
-    return cdist(positions, positions)
+    # Use the safe version
+    return safe_calculate_distance_matrix(positions)
 
 
 def calculate_interaction_strength(distance_matrix, max_interaction_distance=5.0, min_distance=0.1):
@@ -159,7 +160,7 @@ def galactic_collision_effect(civ_i, civ_j, collision_threshold=1.0,
 
 
 def knowledge_diffusion(civilizations, knowledge_array, interaction_strength,
-                      diffusion_rate=0.01, max_diffusion=0.5, min_division=1e-10):
+                        diffusion_rate=0.01, max_diffusion=0.5, min_division=1e-10):
     """
     Model knowledge diffusion between civilizations with numerical stability safeguards.
 
@@ -815,93 +816,52 @@ def remove_civilization(civilizations, knowledge_array, suppression_array, idx):
     return civilizations, knowledge_array, suppression_array
 
 
-def process_all_civilization_interactions(civilizations, knowledge_array, suppression_array,
-                                          influence_array, resources_array, dt=1.0,
-                                          max_spawn_probability=0.05, max_random_spawn_probability=0.01,
-                                          max_civilizations=20, min_division=0.01):
+def _process_interactions(civs_data, num_civs):
     """
-    Process all interactions between civilizations in a single time step.
+    Helper function for process_all_civilization_interactions that assumes correct dimensions.
 
     Parameters:
-        civilizations (dict): Civilization parameters
-        knowledge_array (array): Knowledge levels for all civilizations
-        suppression_array (array): Suppression levels for all civilizations
-        influence_array (array): Influence levels for all civilizations
-        resources_array (array): Resource levels for all civilizations
-        dt (float): Time step size
-        max_spawn_probability (float): Maximum probability for spawning new civilizations
-        max_random_spawn_probability (float): Maximum probability for random new civilizations
-        max_civilizations (int): Maximum number of civilizations allowed
-        min_division (float): Minimum value for division safety
+        civs_data (dict): Dictionary containing civilization data
+        num_civs (int): Number of civilizations
 
     Returns:
-        dict: Updated civilization parameters
-        array: Updated knowledge array
-        array: Updated suppression array
-        array: Updated influence array
-        array: Updated resources array
-        list: Information about key events
+        dict: Updated civilization data
     """
-    # Apply parameter bounds
-    dt = max(0.01, min(2.0, dt))
-    max_spawn_probability = max(0, min(1, max_spawn_probability))
-    max_random_spawn_probability = max(0, min(1, max_random_spawn_probability))
-    max_civilizations = max(1, max_civilizations)
+    # Unpack data
+    civilizations = civs_data['civilizations']
+    knowledge_array = civs_data['knowledge_array']
+    suppression_array = civs_data['suppression_array']
+    influence_array = civs_data['influence_array']
+    resources_array = civs_data['resources_array']
+    dt = civs_data.get('dt', 1.0)
+    max_spawn_probability = civs_data.get('max_spawn_probability', 0.05)
+    max_random_spawn_probability = civs_data.get('max_random_spawn_probability', 0.01)
+    max_civilizations = civs_data.get('max_civilizations', 20)
+    min_division = civs_data.get('min_division', 0.01)
 
-    num_civilizations = len(knowledge_array)
     events = []  # Track significant events
 
     # Skip processing if only 0 or 1 civilization
-    if num_civilizations <= 1:
-        return (civilizations, knowledge_array, suppression_array,
-                influence_array, resources_array, events)
-
-    # Ensure all civilization arrays are of the correct length
-    for key in ["positions", "innovation_rates", "knowledge_retention", "expansion_tendency", "sizes"]:
-        if key not in civilizations or len(civilizations[key]) != num_civilizations:
-            # Create or resize array with default values
-            default_val = 1.0 if key == "sizes" else 0.5
-            new_array = np.full(num_civilizations, default_val)
-
-            # For positions, we need a 2D array
-            if key == "positions" and key in civilizations:
-                new_array = np.zeros((num_civilizations, 2))
-                existing_length = min(len(civilizations[key]), num_civilizations)
-                for i in range(existing_length):
-                    new_array[i] = civilizations[key][i]
-                for i in range(existing_length, num_civilizations):
-                    new_array[i] = np.random.rand(2) * 10  # Random position
-            # Copy any existing values for other arrays
-            elif key in civilizations and len(civilizations[key]) > 0:
-                existing_length = min(len(civilizations[key]), num_civilizations)
-                new_array[:existing_length] = civilizations[key][:existing_length]
-
-            civilizations[key] = new_array
-            print(f"Warning: {key} array resized to match {num_civilizations} civilizations")
+    if num_civs <= 1:
+        return {
+            'civilizations': civilizations,
+            'knowledge_array': knowledge_array,
+            'suppression_array': suppression_array,
+            'influence_array': influence_array,
+            'resources_array': resources_array,
+            'events': events
+        }
 
     # Calculate distance and interaction matrices with array dimension checks
     try:
         distance_matrix = calculate_distance_matrix(civilizations["positions"])
-
-        # Check dimensions match the number of civilizations
-        if distance_matrix.shape[0] != num_civilizations or distance_matrix.shape[1] != num_civilizations:
-            print(
-                f"Warning: Distance matrix dimensions {distance_matrix.shape} don't match number of civilizations {num_civilizations}")
-            # Create a safe distance matrix with correct dimensions
-            safe_distance = np.zeros((num_civilizations, num_civilizations))
-            # Copy values that fit
-            rows = min(distance_matrix.shape[0], num_civilizations)
-            cols = min(distance_matrix.shape[1], num_civilizations)
-            safe_distance[:rows, :cols] = distance_matrix[:rows, :cols]
-            distance_matrix = safe_distance
-
         interaction_strength = calculate_interaction_strength(distance_matrix)
     except Exception as e:
         print(f"Error calculating distance matrix: {e}")
         # Create safe default matrices
-        distance_matrix = np.ones((num_civilizations, num_civilizations)) * 5.0  # Default large distance
+        distance_matrix = np.ones((num_civs, num_civs)) * 5.0  # Default large distance
         np.fill_diagonal(distance_matrix, 0.0)  # Zero distance to self
-        interaction_strength = np.zeros((num_civilizations, num_civilizations))  # No interaction by default
+        interaction_strength = np.zeros((num_civs, num_civs))  # No interaction by default
 
     # Process knowledge diffusion with error handling
     try:
@@ -955,8 +915,8 @@ def process_all_civilization_interactions(civilizations, knowledge_array, suppre
         resource_change = np.zeros_like(resources_array)
 
     # Detect close encounters/collisions
-    for i in range(num_civilizations):
-        for j in range(i + 1, num_civilizations):
+    for i in range(num_civs):
+        for j in range(i + 1, num_civs):
             try:
                 if i < distance_matrix.shape[0] and j < distance_matrix.shape[1] and distance_matrix[i, j] < 1.5:
                     # Process collision effects
@@ -1020,10 +980,10 @@ def process_all_civilization_interactions(civilizations, knowledge_array, suppre
     try:
         collapses = detect_civilization_collapse(knowledge_array, suppression_array, min_division=min_division)
         # Ensure collapses array matches the civilization count
-        if len(collapses) != num_civilizations:
-            print(f"Warning: collapse array size {len(collapses)} doesn't match civilization count {num_civilizations}")
+        if len(collapses) != num_civs:
+            print(f"Warning: collapse array size {len(collapses)} doesn't match civilization count {num_civs}")
             # Create a properly sized array of False values
-            collapses = np.zeros(num_civilizations, dtype=bool)
+            collapses = np.zeros(num_civs, dtype=bool)
 
         collapsed_indices = np.where(collapses)[0]
     except Exception as e:
@@ -1032,7 +992,7 @@ def process_all_civilization_interactions(civilizations, knowledge_array, suppre
 
     # Process collapses from highest index to lowest to avoid reindexing issues
     for idx in sorted(collapsed_indices, reverse=True):
-        if idx < num_civilizations:  # Make sure index is valid
+        if idx < num_civs:  # Make sure index is valid
             events.append({
                 "type": "collapse",
                 "civilization": idx,
@@ -1054,8 +1014,8 @@ def process_all_civilization_interactions(civilizations, knowledge_array, suppre
             except Exception as e:
                 print(f"Error removing collapsed civilization {idx}: {e}")
 
-    # Update num_civilizations after collapses
-    num_civilizations = len(knowledge_array)
+    # Update num_civs after collapses
+    num_civs = len(knowledge_array)
 
     # Detect mergers
     try:
@@ -1067,7 +1027,7 @@ def process_all_civilization_interactions(civilizations, knowledge_array, suppre
     # Filter mergers to ensure valid indices
     valid_mergers = []
     for absorber, absorbed in mergers:
-        if 0 <= absorber < num_civilizations and 0 <= absorbed < num_civilizations:
+        if 0 <= absorber < num_civs and 0 <= absorbed < num_civs:
             valid_mergers.append((absorber, absorbed))
     mergers = valid_mergers
 
@@ -1102,12 +1062,12 @@ def process_all_civilization_interactions(civilizations, knowledge_array, suppre
         except Exception as e:
             print(f"Error processing merger between {absorber} and {absorbed}: {e}")
 
-    # Update num_civilizations after mergers
-    num_civilizations = len(knowledge_array)
+    # Update num_civs after mergers
+    num_civs = len(knowledge_array)
 
     # Check for civilization spawning (with bounds on maximum number)
-    if num_civilizations < max_civilizations:
-        for i in range(min(num_civilizations, len(civilizations["sizes"]))):
+    if num_civs < max_civilizations:
+        for i in range(min(num_civs, len(civilizations["sizes"]))):
             try:
                 # Check if a civilization is large and prosperous enough to spawn an offshoot
                 spawn_probability = min(max_spawn_probability,
@@ -1149,7 +1109,7 @@ def process_all_civilization_interactions(civilizations, knowledge_array, suppre
         # Occasional random new civilization (cosmic origin)
         try:
             random_spawn_probability = min(max_random_spawn_probability,
-                                           0.01 * (num_civilizations < 10))
+                                           0.01 * (num_civs < 10))
             if np.random.random() < random_spawn_probability:
                 # Generate random position
                 new_position = 10 * np.random.rand(2)
@@ -1173,5 +1133,66 @@ def process_all_civilization_interactions(civilizations, knowledge_array, suppre
         except Exception as e:
             print(f"Error spawning random new civilization: {e}")
 
-    return (civilizations, knowledge_array, suppression_array,
-            influence_array, resources_array, events)
+    # Return updated data
+    return {
+        'civilizations': civilizations,
+        'knowledge_array': knowledge_array,
+        'suppression_array': suppression_array,
+        'influence_array': influence_array,
+        'resources_array': resources_array,
+        'events': events
+    }
+
+
+def process_all_civilization_interactions(civilizations, knowledge_array, suppression_array, influence_array,
+                                          resources_array, dt=1.0, max_spawn_probability=0.05,
+                                          max_random_spawn_probability=0.01, max_civilizations=20, min_division=0.01):
+    """
+    Process all interactions between civilizations in a single time step.
+
+    Parameters:
+        civilizations (dict): Civilization parameters
+        knowledge_array (array): Knowledge levels for all civilizations
+        suppression_array (array): Suppression levels for all civilizations
+        influence_array (array): Influence levels for all civilizations
+        resources_array (array): Resource levels for all civilizations
+        dt (float): Time step size
+        max_spawn_probability (float): Maximum probability for spawning new civilizations
+        max_random_spawn_probability (float): Maximum probability for random new civilizations
+        max_civilizations (int): Maximum number of civilizations allowed
+        min_division (float): Minimum value for division safety
+
+    Returns:
+        dict: Updated civilization parameters
+        array: Updated knowledge array
+        array: Updated suppression array
+        array: Updated influence array
+        array: Updated resources array
+        list: Information about key events
+    """
+    # Package data
+    civs_data = {
+        'civilizations': civilizations,
+        'knowledge_array': knowledge_array,
+        'suppression_array': suppression_array,
+        'influence_array': influence_array,
+        'resources_array': resources_array,
+        'dt': dt,
+        'max_spawn_probability': max_spawn_probability,
+        'max_random_spawn_probability': max_random_spawn_probability,
+        'max_civilizations': max_civilizations,
+        'min_division': min_division
+    }
+
+    # Use the safe version
+    result = safe_process_civilization_interactions(civs_data, _process_interactions)
+
+    # Unpack results
+    return (
+        result['civilizations'],
+        result['knowledge_array'],
+        result['suppression_array'],
+        result['influence_array'],
+        result['resources_array'],
+        result['events']
+    )

@@ -10,6 +10,12 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 # Import circuit breaker for numerical stability
 from utils.circuit_breaker import CircuitBreaker
 
+# Import dimensional consistency tools
+from utils.dimensional_consistency import (
+    Dimension, DimensionalValue,
+    check_dimensional_consistency
+)
+
 # Ensure output directories exist
 BASE_DIR = Path(__file__).resolve().parent.parent
 plots_dir = BASE_DIR / 'outputs' / 'plots'
@@ -21,6 +27,9 @@ data_dir.mkdir(parents=True, exist_ok=True)
 timesteps = 200
 dt = 1
 num_agents = 5
+
+# Enable or disable dimensional analysis
+use_dimensional_analysis = True
 
 # Bounds for numerical stability
 MAX_KNOWLEDGE = 50.0  # Knowledge cap
@@ -74,9 +83,73 @@ def safe_exp(x):
     return np.exp(x)
 
 
-print("Starting simulation...")
+# Define dimensional functions for agent calculations
+def knowledge_growth_with_dimensions(K_dim, growth_factor, A):
+    """Dimensionally-consistent knowledge growth calculation."""
+    if K_dim.dimension != Dimension.KNOWLEDGE:
+        raise ValueError(f"Expected KNOWLEDGE dimension, got {K_dim.dimension}")
 
-# Simulation arrays preparation
+    # Calculate the growth increment
+    increment = A * growth_factor
+
+    # Return a dimensional value
+    return DimensionalValue(increment, Dimension.KNOWLEDGE)
+
+
+def suppression_decay_with_dimensions(S_dim, decay_factor):
+    """Dimensionally-consistent suppression decay calculation."""
+    if S_dim.dimension != Dimension.SUPPRESSION:
+        raise ValueError(f"Expected SUPPRESSION dimension, got {S_dim.dimension}")
+
+    # Calculate the decayed value
+    decayed_value = S_dim.value * decay_factor
+
+    # Return a dimensional value
+    return DimensionalValue(decayed_value, Dimension.SUPPRESSION)
+
+
+def decision_probability_with_dimensions(K_dim, S_dim, momentum_factor, prev_decision):
+    """Dimensionally-consistent decision probability calculation."""
+    if K_dim.dimension != Dimension.KNOWLEDGE:
+        raise ValueError(f"Expected KNOWLEDGE dimension, got {K_dim.dimension}")
+    if S_dim.dimension != Dimension.SUPPRESSION:
+        raise ValueError(f"Expected SUPPRESSION dimension, got {S_dim.dimension}")
+
+    # Calculate the raw decision input
+    raw_decision_input = 0.5 * K_dim.value - 0.3 * S_dim.value
+    raw_decision_input = np.clip(raw_decision_input, -10, 10)
+
+    # Calculate the raw decision probability
+    raw_decision = 1 / (1 + safe_exp(-raw_decision_input))
+
+    # Apply momentum
+    momentum_term = momentum_factor * prev_decision
+    non_momentum_term = (1 - momentum_factor) * raw_decision
+
+    # Calculate final probability
+    final_prob = momentum_term + non_momentum_term
+
+    # Return a dimensional probability value
+    return DimensionalValue(final_prob, Dimension.PROBABILITY)
+
+
+print("Starting simulation...")
+if use_dimensional_analysis:
+    print("Using dimensional analysis for key calculations")
+
+# If using dimensional analysis, set up dimensional containers
+if use_dimensional_analysis:
+    K_dim = [[None for _ in range(timesteps)] for _ in range(num_agents)]
+    S_dim = [[None for _ in range(timesteps)] for _ in range(num_agents)]
+    decision_probability_dim = [[None for _ in range(timesteps)] for _ in range(num_agents)]
+
+    # Initialize dimensional values
+    for agent in range(num_agents):
+        K_dim[agent][0] = DimensionalValue(K[agent, 0], Dimension.KNOWLEDGE)
+        S_dim[agent][0] = DimensionalValue(S[agent, 0], Dimension.SUPPRESSION)
+        decision_probability_dim[agent][0] = DimensionalValue(decision_probability[agent, 0], Dimension.PROBABILITY)
+
+# Simulation
 for t in range(1, timesteps):
     # Calculate adaptive timestep if enabled
     if enable_adaptive_timestep and t > 1:
@@ -96,49 +169,109 @@ for t in range(1, timesteps):
         current_dt = dt
 
     for agent in range(num_agents):
-        # Knowledge growth with logistic cap and safety measures
-        growth_factor = 1 - np.exp(-gamma * np.clip(K[agent, t - 1] - T_crit, -20, 20))
-        knowledge_increment = A * np.clip(growth_factor, 0, 1) * current_dt
+        if use_dimensional_analysis:
+            # Use dimensional calculations
+            # Knowledge growth with logistic cap and safety measures
+            growth_factor = 1 - np.exp(-gamma * np.clip(K_dim[agent][t - 1].value - T_crit, -20, 20))
+            growth_factor = np.clip(growth_factor, 0, 1)
 
-        # Check for potential instability in knowledge growth
-        if circuit_breaker.check_value_stability(knowledge_increment):
-            knowledge_increment = np.clip(knowledge_increment, 0, 1.0)  # Limit growth to prevent jumps
-            stability_issues += 1
+            knowledge_increment_dim = knowledge_growth_with_dimensions(
+                K_dim[agent][t - 1], growth_factor, A)
 
-        # Apply increment with bounds
-        K[agent, t] = np.clip(K[agent, t - 1] + knowledge_increment, MIN_KNOWLEDGE, MAX_KNOWLEDGE)
+            # Check for stability and apply increment
+            if circuit_breaker.check_value_stability(knowledge_increment_dim.value):
+                knowledge_increment = np.clip(knowledge_increment_dim.value, 0, 1.0)
+                stability_issues += 1
+            else:
+                knowledge_increment = knowledge_increment_dim.value
 
-        # Suppression decay with floor limit and safety check
-        decay_factor = safe_exp(-lambda_s * current_dt)
-        S[agent, t] = max(S[agent, t - 1] * decay_factor, suppression_floor)
+            # Update knowledge value
+            new_k = K_dim[agent][t - 1].value + knowledge_increment * current_dt
+            new_k = np.clip(new_k, MIN_KNOWLEDGE, MAX_KNOWLEDGE)
+            K[agent, t] = new_k
+            K_dim[agent][t] = DimensionalValue(new_k, Dimension.KNOWLEDGE)
 
-        # Check for potential instability
-        if circuit_breaker.check_value_stability(S[agent, t]):
-            S[agent, t] = np.clip(S[agent, t], suppression_floor, MAX_SUPPRESSION)
-            stability_issues += 1
+            # Suppression decay with floor limit and safety check
+            decay_factor = safe_exp(-lambda_s * current_dt)
+            S_decayed_dim = suppression_decay_with_dimensions(S_dim[agent][t - 1], decay_factor)
 
-        # Apply external shocks at specific times with bounds
-        if t in shock_times:
-            shock_idx = shock_times.index(t)
-            shock_value = np.clip(shock_magnitudes[shock_idx], 0, MAX_SUPPRESSION - S[agent, t])
-            S[agent, t] += shock_value
+            # Apply floor limit
+            new_s = max(S_decayed_dim.value, suppression_floor)
 
-        # Decision probability calculation with safety for exponential
-        raw_decision_input = np.clip(0.5 * K[agent, t] - 0.3 * S[agent, t], -10, 10)
-        raw_decision = 1 / (1 + safe_exp(-raw_decision_input))
+            # Check for stability
+            if circuit_breaker.check_value_stability(new_s):
+                new_s = np.clip(new_s, suppression_floor, MAX_SUPPRESSION)
+                stability_issues += 1
 
-        # Apply momentum with bounds
-        momentum_term = np.clip(momentum_factor * decision_probability[agent, t - 1], 0, 1)
-        non_momentum_term = np.clip((1 - momentum_factor) * raw_decision, 0, 1)
-        decision_probability[agent, t] = momentum_term + non_momentum_term
+            # Apply external shocks at specific times
+            if t in shock_times:
+                shock_idx = shock_times.index(t)
+                shock_value = np.clip(shock_magnitudes[shock_idx], 0, MAX_SUPPRESSION - new_s)
+                new_s += shock_value
 
-        # Ensure stability in probabilities with explicit bounds
-        decision_probability[agent, t] = np.clip(decision_probability[agent, t], MIN_PROB, MAX_PROB)
+            S[agent, t] = new_s
+            S_dim[agent][t] = DimensionalValue(new_s, Dimension.SUPPRESSION)
 
-        # Check for potential instability
-        if circuit_breaker.check_value_stability(decision_probability[agent, t]):
-            decision_probability[agent, t] = np.clip(decision_probability[agent, t], 0.1, 0.9)
-            stability_issues += 1
+            # Decision probability calculation
+            prev_decision = decision_probability_dim[agent][t - 1].value
+            decision_prob_dim = decision_probability_with_dimensions(
+                K_dim[agent][t], S_dim[agent][t], momentum_factor, prev_decision)
+
+            # Ensure bounds and stability
+            new_prob = np.clip(decision_prob_dim.value, MIN_PROB, MAX_PROB)
+
+            if circuit_breaker.check_value_stability(new_prob):
+                new_prob = np.clip(new_prob, 0.1, 0.9)
+                stability_issues += 1
+
+            decision_probability[agent, t] = new_prob
+            decision_probability_dim[agent][t] = DimensionalValue(new_prob, Dimension.PROBABILITY)
+
+        else:
+            # Original non-dimensional calculations
+            # Knowledge growth with logistic cap and safety measures
+            growth_factor = 1 - np.exp(-gamma * np.clip(K[agent, t - 1] - T_crit, -20, 20))
+            knowledge_increment = A * np.clip(growth_factor, 0, 1) * current_dt
+
+            # Check for potential instability in knowledge growth
+            if circuit_breaker.check_value_stability(knowledge_increment):
+                knowledge_increment = np.clip(knowledge_increment, 0, 1.0)  # Limit growth to prevent jumps
+                stability_issues += 1
+
+            # Apply increment with bounds
+            K[agent, t] = np.clip(K[agent, t - 1] + knowledge_increment, MIN_KNOWLEDGE, MAX_KNOWLEDGE)
+
+            # Suppression decay with floor limit and safety check
+            decay_factor = safe_exp(-lambda_s * current_dt)
+            S[agent, t] = max(S[agent, t - 1] * decay_factor, suppression_floor)
+
+            # Check for potential instability
+            if circuit_breaker.check_value_stability(S[agent, t]):
+                S[agent, t] = np.clip(S[agent, t], suppression_floor, MAX_SUPPRESSION)
+                stability_issues += 1
+
+            # Apply external shocks at specific times with bounds
+            if t in shock_times:
+                shock_idx = shock_times.index(t)
+                shock_value = np.clip(shock_magnitudes[shock_idx], 0, MAX_SUPPRESSION - S[agent, t])
+                S[agent, t] += shock_value
+
+            # Decision probability calculation with safety for exponential
+            raw_decision_input = np.clip(0.5 * K[agent, t] - 0.3 * S[agent, t], -10, 10)
+            raw_decision = 1 / (1 + safe_exp(-raw_decision_input))
+
+            # Apply momentum with bounds
+            momentum_term = np.clip(momentum_factor * decision_probability[agent, t - 1], 0, 1)
+            non_momentum_term = np.clip((1 - momentum_factor) * raw_decision, 0, 1)
+            decision_probability[agent, t] = momentum_term + non_momentum_term
+
+            # Ensure stability in probabilities with explicit bounds
+            decision_probability[agent, t] = np.clip(decision_probability[agent, t], MIN_PROB, MAX_PROB)
+
+            # Check for potential instability
+            if circuit_breaker.check_value_stability(decision_probability[agent, t]):
+                decision_probability[agent, t] = np.clip(decision_probability[agent, t], 0.1, 0.9)
+                stability_issues += 1
 
     # Report progress
     if t % 50 == 0:
@@ -146,6 +279,32 @@ for t in range(1, timesteps):
             f"Step {t}/{timesteps} completed. Current timestep: {current_dt:.4f}. Stability issues: {stability_issues}")
 
 print(f"Simulation completed with {stability_issues} stability issues detected.")
+
+# Dimensional consistency check if enabled
+if use_dimensional_analysis:
+    try:
+        # Define the dimensional functions to check
+        dimensional_equations = {
+            'knowledge_growth_with_dimensions': knowledge_growth_with_dimensions,
+            'suppression_decay_with_dimensions': suppression_decay_with_dimensions,
+            'decision_probability_with_dimensions': decision_probability_with_dimensions
+        }
+
+        # Check dimensional consistency
+        consistency_results = check_dimensional_consistency(dimensional_equations)
+        print("\nDimensional Consistency Check Results:")
+        for name, result in consistency_results.items():
+            print(f"{name}: {result['status']}")
+
+        # Save results to file
+        consistency_df = pd.DataFrame([
+            {"Function": name, "Status": result["status"], "Notes": result.get("message", "")}
+            for name, result in consistency_results.items()
+        ])
+        consistency_df.to_csv(data_dir / "multi_agent_dimensional_consistency.csv", index=False)
+        print(f"Dimensional consistency results saved to: {data_dir / 'multi_agent_dimensional_consistency.csv'}")
+    except Exception as e:
+        print(f"Error during dimensional consistency check: {e}")
 
 # Replace any NaN or inf values that might have slipped through
 K = np.nan_to_num(K, nan=0.0, posinf=MAX_KNOWLEDGE, neginf=0.0)
@@ -216,6 +375,11 @@ if enable_adaptive_timestep:
     plt.grid(True)
     plt.ylim(0, MAX_DT)
 
+# Add annotation about dimensional analysis if used
+if use_dimensional_analysis:
+    plt.figtext(0.5, 0.01, "Using dimensional analysis", ha="center", fontsize=10,
+                bbox={"facecolor": "lightgray", "alpha": 0.5, "pad": 5})
+
 # Save the plot
 plt.tight_layout()
 plt.savefig(plots_dir / "multi_agent_simulation_results.png")
@@ -244,7 +408,8 @@ stability_metrics = {
     'Min_Knowledge': np.min(K),
     'Max_Suppression': np.max(S),
     'Min_Suppression': np.min(S),
-    'Final_Timestep': adaptive_timestep if enable_adaptive_timestep else dt
+    'Final_Timestep': adaptive_timestep if enable_adaptive_timestep else dt,
+    'Used_Dimensional_Analysis': use_dimensional_analysis
 }
 
 stability_df = pd.DataFrame([stability_metrics])

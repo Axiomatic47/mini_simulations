@@ -28,6 +28,17 @@ from config.multi_civilization_extensions import (
     process_all_civilization_interactions
 )
 
+# Import dimensional consistency tools
+from utils.dimensional_consistency import (
+    Dimension, DimensionalValue,
+    intelligence_growth_with_dimensions,
+    wisdom_field_with_dimensions,
+    truth_adoption_with_dimensions,
+    suppression_feedback_with_dimensions,
+    resistance_resurgence_with_dimensions,
+    check_dimensional_consistency
+)
+
 # Import circuit breaker for numerical stability
 from utils.circuit_breaker import CircuitBreaker
 
@@ -44,6 +55,9 @@ print(f"Base directory: {BASE_DIR}")
 print(f"Plots directory: {plots_dir}")
 print(f"Data directory: {data_dir}")
 print(f"Animation directory: {animation_dir}")
+
+# Enable or disable dimensional analysis
+use_dimensional_analysis = True
 
 # Numerical stability parameters
 MAX_KNOWLEDGE = 100.0
@@ -138,6 +152,58 @@ truth_array = np.clip(1.0 + 1.0 * np.random.rand(initial_num_civilizations), MIN
 influence_array = np.clip(civilizations["influence"].copy(), MIN_VALUE, MAX_INFLUENCE)
 resources_array = np.clip(civilizations["resources"].copy(), MIN_VALUE, MAX_RESOURCES)
 
+# If using dimensional analysis, set up dimensional arrays
+if use_dimensional_analysis:
+    print("Using dimensional analysis for multi-civilization simulation")
+
+    # Create dimensional values for initial state
+    knowledge_dim_array = [DimensionalValue(k, Dimension.KNOWLEDGE) for k in knowledge_array]
+    suppression_dim_array = [DimensionalValue(s, Dimension.SUPPRESSION) for s in suppression_array]
+    intelligence_dim_array = [DimensionalValue(i, Dimension.INTELLIGENCE) for i in intelligence_array]
+    truth_dim_array = [DimensionalValue(t, Dimension.TRUTH) for t in truth_array]
+    influence_dim_array = [DimensionalValue(inf, Dimension.INFLUENCE) for inf in influence_array]
+    resources_dim_array = [DimensionalValue(r, Dimension.RESOURCES) for r in resources_array]
+
+    # Create dimensional constant
+    R = DimensionalValue(2.0, Dimension.RESISTANCE)  # Resistance constant
+
+
+    # Define dimensional functions for multi-civilization context
+
+    @check_dimensional_consistency
+    def multi_civ_intelligence_growth(K_dim, W_dim, R_dim, S_dim, N_factor):
+        """Dimensional intelligence growth for multi-civilization context."""
+        if K_dim.dimension != Dimension.KNOWLEDGE:
+            raise ValueError(f"Expected KNOWLEDGE dimension, got {K_dim.dimension}")
+        if W_dim.dimension != Dimension.WISDOM:
+            raise ValueError(f"Expected WISDOM dimension, got {W_dim.dimension}")
+        if R_dim.dimension != Dimension.RESISTANCE:
+            raise ValueError(f"Expected RESISTANCE dimension, got {R_dim.dimension}")
+        if S_dim.dimension != Dimension.SUPPRESSION:
+            raise ValueError(f"Expected SUPPRESSION dimension, got {S_dim.dimension}")
+
+        # Perform calculation with dimension tracking
+        growth_term = (K_dim.value * W_dim.value) / (1.0 + K_dim.value / 100.0)
+        result = growth_term - R_dim.value - S_dim.value + N_factor
+
+        return DimensionalValue(result, Dimension.INTELLIGENCE)
+
+
+    @check_dimensional_consistency
+    def multi_civ_decision_probability(K_dim, S_dim):
+        """Calculate decision probability with dimensional values."""
+        if K_dim.dimension != Dimension.KNOWLEDGE:
+            raise ValueError(f"Expected KNOWLEDGE dimension, got {K_dim.dimension}")
+        if S_dim.dimension != Dimension.SUPPRESSION:
+            raise ValueError(f"Expected SUPPRESSION dimension, got {S_dim.dimension}")
+
+        # Calculate the raw probability
+        raw_input = 0.5 * K_dim.value - 0.3 * S_dim.value
+        raw_input = np.clip(raw_input, -10, 10)
+        probability = 1 / (1 + safe_exp(-raw_input))
+
+        return DimensionalValue(probability, Dimension.PROBABILITY)
+
 # Arrays to store data for all timesteps
 # These are lists since the number of civilizations can change
 time_history = []
@@ -155,6 +221,15 @@ age_history = []
 beyond_horizon_history = []
 stability_history = []  # Track stability issues over time
 timestep_history = []  # Track adaptive timestep changes
+
+# Additional arrays for dimensional values if using dimensional analysis
+if use_dimensional_analysis:
+    knowledge_dim_history = []
+    suppression_dim_history = []
+    intelligence_dim_history = []
+    truth_dim_history = []
+    influence_dim_history = []
+    resources_dim_history = []
 
 print("Starting simulation...")
 
@@ -180,6 +255,16 @@ for t in range(timesteps):
         beyond_horizon_history.append([])
         stability_history.append(stability_issues)
         timestep_history.append(adaptive_timestep)
+
+        # Store empty dimensional arrays if using dimensional analysis
+        if use_dimensional_analysis:
+            knowledge_dim_history.append([])
+            suppression_dim_history.append([])
+            intelligence_dim_history.append([])
+            truth_dim_history.append([])
+            influence_dim_history.append([])
+            resources_dim_history.append([])
+
         continue
 
     # Calculate adaptive timestep if enabled and civilization count changes slowly
@@ -233,19 +318,37 @@ for t in range(timesteps):
             lifecycle_intensities[i] = np.clip(intensity, 0.1, 2.0)  # Bound intensity
             lifecycle_phases[i] = phase
 
-            # Calculate wisdom field with bounds
-            W = wisdom_field(
-                1.0,
-                0.1,
-                np.clip(suppression_array[i], MIN_VALUE, MAX_SUPPRESSION),
-                2.0,
-                np.clip(knowledge_array[i], MIN_VALUE, MAX_KNOWLEDGE)
-            )
+            if use_dimensional_analysis:
+                # Get dimensional values
+                K_dim = knowledge_dim_array[i]
+                S_dim = suppression_dim_array[i]
+                T_dim = truth_dim_array[i]
 
-            # Update knowledge with civilization's innovation rate
-            # Bound innovation rates
-            innovation_rate = np.clip(civilizations["innovation_rates"][i], 0.01, 10.0)
-            knowledge_base_growth = np.clip(knowledge_array[i] * 0.05 * innovation_rate, -5.0, 5.0)
+                # Calculate wisdom with dimensional analysis
+                W_dim = wisdom_field_with_dimensions(
+                    1.0, 0.1, S_dim, R, K_dim)
+
+                # Update knowledge with civilization's innovation rate
+                # Bound innovation rates
+                innovation_rate = np.clip(civilizations["innovation_rates"][i], 0.01, 10.0)
+
+                # We don't have a dimensional version of knowledge growth yet,
+                # so use the regular version with raw values
+                knowledge_base_growth = np.clip(knowledge_array[i] * 0.05 * innovation_rate, -5.0, 5.0)
+            else:
+                # Calculate wisdom field with bounds (original version)
+                W = wisdom_field(
+                    1.0,
+                    0.1,
+                    np.clip(suppression_array[i], MIN_VALUE, MAX_SUPPRESSION),
+                    2.0,
+                    np.clip(knowledge_array[i], MIN_VALUE, MAX_KNOWLEDGE)
+                )
+
+                # Update knowledge with civilization's innovation rate
+                # Bound innovation rates
+                innovation_rate = np.clip(civilizations["innovation_rates"][i], 0.01, 10.0)
+                knowledge_base_growth = np.clip(knowledge_array[i] * 0.05 * innovation_rate, -5.0, 5.0)
 
             # Add inflation effect for rapidly growing civilizations with safety
             inflation_multiplier = 1.0
@@ -273,73 +376,129 @@ for t in range(timesteps):
                 knowledge_increment = np.clip(knowledge_increment, -2.0, 2.0)
                 stability_issues += 1
 
+            # Update knowledge
             knowledge_array[i] = np.clip(
                 knowledge_array[i] + knowledge_increment,
                 MIN_VALUE,
                 MAX_KNOWLEDGE
             )
 
+            # Update dimensional knowledge if using dimensional analysis
+            if use_dimensional_analysis:
+                knowledge_dim_array[i] = DimensionalValue(knowledge_array[i], Dimension.KNOWLEDGE)
+
             # Update suppression based on internal dynamics with bounds
-            # Civilizations with high suppression resistance experience less suppression
-            suppression_resistance = np.clip(civilizations["suppression_resistance"][i], 0.1, 10.0)
-            suppression_change = suppression_feedback(
-                0.1,
-                np.clip(suppression_array[i], MIN_VALUE, MAX_SUPPRESSION),
-                0.05 * suppression_resistance,
-                np.clip(knowledge_array[i], MIN_VALUE, MAX_KNOWLEDGE)
-            )
+            if use_dimensional_analysis:
+                # Use dimensional version for suppression feedback
+                suppression_resistance = np.clip(civilizations["suppression_resistance"][i], 0.1, 10.0)
+
+                suppression_change_dim = suppression_feedback_with_dimensions(
+                    0.1,
+                    S_dim,
+                    0.05 * suppression_resistance,
+                    knowledge_dim_array[i]  # Use updated knowledge
+                )
+                suppression_change = suppression_change_dim.value
+            else:
+                # Civilizations with high suppression resistance experience less suppression
+                suppression_resistance = np.clip(civilizations["suppression_resistance"][i], 0.1, 10.0)
+                suppression_change = suppression_feedback(
+                    0.1,
+                    np.clip(suppression_array[i], MIN_VALUE, MAX_SUPPRESSION),
+                    0.05 * suppression_resistance,
+                    np.clip(knowledge_array[i], MIN_VALUE, MAX_KNOWLEDGE)
+                )
 
             # Check for stability
             if circuit_breaker.check_value_stability(suppression_change):
                 suppression_change = np.clip(suppression_change, -2.0, 2.0)
                 stability_issues += 1
 
+            # Update suppression
             suppression_array[i] = np.clip(
                 suppression_array[i] + suppression_change * current_dt,
                 MIN_VALUE,
                 MAX_SUPPRESSION
             )
 
+            # Update dimensional suppression if using dimensional analysis
+            if use_dimensional_analysis:
+                suppression_dim_array[i] = DimensionalValue(suppression_array[i], Dimension.SUPPRESSION)
+
             # Ensure minimum suppression
             suppression_array[i] = max(0.5, suppression_array[i])
+            if use_dimensional_analysis:
+                suppression_dim_array[i] = DimensionalValue(suppression_array[i], Dimension.SUPPRESSION)
 
             # Update intelligence with bounds
-            intelligence_change = intelligence_growth(
-                np.clip(knowledge_array[i], MIN_VALUE, MAX_KNOWLEDGE),
-                W,
-                2.0,
-                np.clip(suppression_array[i], MIN_VALUE, MAX_SUPPRESSION),
-                1.5
-            )
+            if use_dimensional_analysis:
+                # Use dimensional version
+                intelligence_change_dim = multi_civ_intelligence_growth(
+                    knowledge_dim_array[i],  # Updated knowledge
+                    W_dim,
+                    R,
+                    suppression_dim_array[i],  # Updated suppression
+                    1.5  # Network effect
+                )
+                intelligence_change = intelligence_change_dim.value
+            else:
+                # Use original version
+                intelligence_change = intelligence_growth(
+                    np.clip(knowledge_array[i], MIN_VALUE, MAX_KNOWLEDGE),
+                    W,
+                    2.0,
+                    np.clip(suppression_array[i], MIN_VALUE, MAX_SUPPRESSION),
+                    1.5
+                )
 
             # Check for stability
             if circuit_breaker.check_value_stability(intelligence_change):
                 intelligence_change = np.clip(intelligence_change, -2.0, 2.0)
                 stability_issues += 1
 
+            # Update intelligence
             intelligence_array[i] = np.clip(
                 intelligence_array[i] + intelligence_change * lifecycle_intensities[i] * current_dt,
                 MIN_VALUE,
                 MAX_INTELLIGENCE
             )
 
+            # Update dimensional intelligence if using dimensional analysis
+            if use_dimensional_analysis:
+                intelligence_dim_array[i] = DimensionalValue(intelligence_array[i], Dimension.INTELLIGENCE)
+
             # Update truth adoption with bounds
-            truth_change = truth_adoption(
-                np.clip(truth_array[i], MIN_VALUE, MAX_TRUTH),
-                0.5,
-                40.0
-            )
+            if use_dimensional_analysis:
+                # Use dimensional version
+                truth_change_dim = truth_adoption_with_dimensions(
+                    T_dim,
+                    0.5,
+                    40.0
+                )
+                truth_change = truth_change_dim.value
+            else:
+                # Use original version
+                truth_change = truth_adoption(
+                    np.clip(truth_array[i], MIN_VALUE, MAX_TRUTH),
+                    0.5,
+                    40.0
+                )
 
             # Check for stability
             if circuit_breaker.check_value_stability(truth_change):
                 truth_change = np.clip(truth_change, -2.0, 2.0)
                 stability_issues += 1
 
+            # Update truth
             truth_array[i] = np.clip(
                 truth_array[i] + truth_change * current_dt,
                 MIN_VALUE,
                 MAX_TRUTH
             )
+
+            # Update dimensional truth if using dimensional analysis
+            if use_dimensional_analysis:
+                truth_dim_array[i] = DimensionalValue(truth_array[i], Dimension.TRUTH)
 
         except Exception as e:
             print(f"Warning: Error processing internal dynamics for civilization {i}: {e}")
@@ -388,6 +547,16 @@ for t in range(timesteps):
         civilizations["positions"] = np.clip(civilizations["positions"], MIN_POSITION, MAX_POSITION)
         civilizations["sizes"] = np.clip(civilizations["sizes"], MIN_CIVILIZATION_SIZE, MAX_CIVILIZATION_SIZE)
 
+        # Update dimensional arrays if using dimensional analysis
+        if use_dimensional_analysis:
+            # Create new dimensional arrays since the number of civilizations may have changed
+            knowledge_dim_array = [DimensionalValue(k, Dimension.KNOWLEDGE) for k in knowledge_array]
+            suppression_dim_array = [DimensionalValue(s, Dimension.SUPPRESSION) for s in suppression_array]
+            intelligence_dim_array = [DimensionalValue(i, Dimension.INTELLIGENCE) for i in intelligence_array]
+            truth_dim_array = [DimensionalValue(t, Dimension.TRUTH) for t in truth_array]
+            influence_dim_array = [DimensionalValue(inf, Dimension.INFLUENCE) for inf in influence_array]
+            resources_dim_array = [DimensionalValue(r, Dimension.RESOURCES) for r in resources_array]
+
     except Exception as e:
         print(f"Warning: Error in civilization interactions at timestep {t}: {e}")
         # If interaction processing fails, keep the civilizations unchanged
@@ -408,6 +577,15 @@ for t in range(timesteps):
     truth_history.append(truth_array.copy() if len(truth_array) > 0 else np.array([]))
     influence_history.append(influence_array.copy() if len(influence_array) > 0 else np.array([]))
     resources_history.append(resources_array.copy() if len(resources_array) > 0 else np.array([]))
+
+    # Store dimensional arrays if using dimensional analysis
+    if use_dimensional_analysis:
+        knowledge_dim_history.append(knowledge_dim_array.copy() if len(knowledge_dim_array) > 0 else [])
+        suppression_dim_history.append(suppression_dim_array.copy() if len(suppression_dim_array) > 0 else [])
+        intelligence_dim_history.append(intelligence_dim_array.copy() if len(intelligence_dim_array) > 0 else [])
+        truth_dim_history.append(truth_dim_array.copy() if len(truth_dim_array) > 0 else [])
+        influence_dim_history.append(influence_dim_array.copy() if len(influence_dim_array) > 0 else [])
+        resources_dim_history.append(resources_dim_array.copy() if len(resources_dim_array) > 0 else [])
 
     # Ensure position and size arrays exist before copying
     if hasattr(civilizations, "positions") and len(civilizations["positions"]) > 0:
@@ -434,6 +612,35 @@ print("Simulation completed.")
 print(f"Final number of civilizations: {len(knowledge_array)}")
 print(f"Total number of events: {len(event_log)}")
 print(f"Total stability issues: {stability_issues}")
+
+# Dimensional consistency check if enabled
+if use_dimensional_analysis:
+    try:
+        # Define the dimensional functions to check
+        dimensional_equations = {
+            'multi_civ_intelligence_growth': multi_civ_intelligence_growth,
+            'multi_civ_decision_probability': multi_civ_decision_probability,
+            'wisdom_field_with_dimensions': wisdom_field_with_dimensions,
+            'truth_adoption_with_dimensions': truth_adoption_with_dimensions,
+            'suppression_feedback_with_dimensions': suppression_feedback_with_dimensions
+        }
+
+        # Check dimensional consistency
+        consistency_results = check_dimensional_consistency(dimensional_equations)
+        print("\nDimensional Consistency Check Results:")
+        for name, result in consistency_results.items():
+            print(f"{name}: {result['status']}")
+
+        # Save results to file
+        consistency_df = pd.DataFrame([
+            {"Function": name, "Status": result["status"], "Notes": result.get("message", "")}
+            for name, result in consistency_results.items()
+        ])
+        consistency_df.to_csv(data_dir / "multi_civilization_dimensional_consistency.csv", index=False)
+        print(
+            f"Dimensional consistency results saved to: {data_dir / 'multi_civilization_dimensional_consistency.csv'}")
+    except Exception as e:
+        print(f"Error during dimensional consistency check: {e}")
 
 print("Preparing visualization...")
 
@@ -596,6 +803,11 @@ ax7_twin.set_ylabel('Timestep Size (dt)', color='blue')
 ax7_twin.tick_params(axis='y', labelcolor='blue')
 ax7_twin.set_ylim(0, max(timestep_history) * 1.2)
 
+# Add annotation about dimensional analysis if used
+if use_dimensional_analysis:
+    plt.figtext(0.5, 0.01, "Using dimensional analysis", ha="center", fontsize=10,
+                bbox={"facecolor": "lightgray", "alpha": 0.5, "pad": 5})
+
 plt.tight_layout()
 stats_plot_file = plots_dir / "multi_civilization_statistics.png"
 plt.savefig(str(stats_plot_file))
@@ -683,6 +895,11 @@ ax_legend.legend(handles=legend_elements, loc='center', fontsize=12)
 ax_legend.text(0.5, 0.1, 'Civilization Attributes', horizontalalignment='center',
                fontsize=14, fontweight='bold', transform=ax_legend.transAxes)
 
+# Add annotation about dimensional analysis if used
+if use_dimensional_analysis:
+    ax_legend.text(0.5, 0.05, "Using dimensional analysis", ha="center", fontsize=10,
+                   transform=ax_legend.transAxes, bbox={"facecolor": "lightgray", "alpha": 0.5, "pad": 5})
+
 plt.tight_layout()
 positions_plot_file = plots_dir / "multi_civilization_positions.png"
 plt.savefig(str(positions_plot_file))
@@ -733,7 +950,8 @@ stability_metrics = {
     'Total_Mergers': event_counts.get('merger', 0),
     'Total_Collapses': event_counts.get('collapse', 0),
     'Total_Spawns': event_counts.get('spawn', 0),
-    'Total_New_Civilizations': event_counts.get('new_civilization', 0)
+    'Total_New_Civilizations': event_counts.get('new_civilization', 0),
+    'Used_Dimensional_Analysis': use_dimensional_analysis
 }
 
 stability_df = pd.DataFrame([stability_metrics])

@@ -4,6 +4,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 from utils.circuit_breaker import CircuitBreaker  # Import circuit breaker utility
+from utils.dimensional_consistency import (
+    Dimension, DimensionalValue,
+    check_dimensional_consistency
+)  # Import dimensional consistency utilities
 
 # Add parent directory to path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -29,6 +33,9 @@ MAX_TRUTH = 100.0
 MAX_SUPPRESSION = 100.0
 MIN_VALUE = 0.0
 
+# Enable or disable dimensional analysis
+use_dimensional_analysis = True
+
 # Define time range (e.g., years from 1000 AD to 2025 AD)
 years = np.linspace(1000, 2025, 1025)
 
@@ -47,19 +54,107 @@ def safe_exp(x):
     return np.clip(np.exp(x), 0.0, 1e10)
 
 
-# Define historical trends based on known suppression and knowledge revolutions
-# Use bounds and safe functions to ensure numerical stability
-intelligence_growth = np.clip(50 * safe_sin(0.01 * (years - 1000)) - 20 * safe_exp(-0.002 * (years - 1000)),
-                              MIN_VALUE, MAX_INTELLIGENCE)
+# Define historical pattern functions with dimensional consistency
+def historical_intelligence_growth(years):
+    """Calculate intelligence growth with dimensional analysis."""
+    raw_values = 50 * safe_sin(0.01 * (years - 1000)) - 20 * safe_exp(-0.002 * (years - 1000))
+    clipped_values = np.clip(raw_values, MIN_VALUE, MAX_INTELLIGENCE)
 
-truth_adoption = np.clip(40 * (1 - safe_exp(-0.005 * (years - 1000))),
-                         MIN_VALUE, MAX_TRUTH)
+    if use_dimensional_analysis:
+        # Convert to dimensional values
+        return DimensionalValue(clipped_values, Dimension.INTELLIGENCE)
+    else:
+        return clipped_values
 
-suppression_feedback = np.clip(safe_exp(-0.005 * (years - 1000)) + 0.1 * safe_sin(0.02 * (years - 1000)),
-                               MIN_VALUE, MAX_SUPPRESSION)
 
-civilization_oscillation = np.clip(0.05 * safe_exp(-0.002 * (years - 1000)) * safe_sin(0.01 * (years - 1000)),
-                                   -1.0, 1.0)
+def historical_truth_adoption(years):
+    """Calculate truth adoption with dimensional analysis."""
+    raw_values = 40 * (1 - safe_exp(-0.005 * (years - 1000)))
+    clipped_values = np.clip(raw_values, MIN_VALUE, MAX_TRUTH)
+
+    if use_dimensional_analysis:
+        # Convert to dimensional values
+        return DimensionalValue(clipped_values, Dimension.TRUTH)
+    else:
+        return clipped_values
+
+
+def historical_suppression_feedback(years):
+    """Calculate suppression feedback with dimensional analysis."""
+    raw_values = safe_exp(-0.005 * (years - 1000)) + 0.1 * safe_sin(0.02 * (years - 1000))
+    clipped_values = np.clip(raw_values, MIN_VALUE, MAX_SUPPRESSION)
+
+    if use_dimensional_analysis:
+        # Convert to dimensional values
+        return DimensionalValue(clipped_values, Dimension.SUPPRESSION)
+    else:
+        return clipped_values
+
+
+def historical_civilization_oscillation(years):
+    """Calculate civilization oscillation with dimensional analysis."""
+    raw_values = 0.05 * safe_exp(-0.002 * (years - 1000)) * safe_sin(0.01 * (years - 1000))
+    clipped_values = np.clip(raw_values, -1.0, 1.0)
+
+    if use_dimensional_analysis:
+        # This is dimensionless (no specific physical dimension)
+        return DimensionalValue(clipped_values, Dimension.DIMENSIONLESS)
+    else:
+        return clipped_values
+
+
+# Calculate historical patterns
+if use_dimensional_analysis:
+    # Use dimensional versions
+    intelligence_growth_dim = historical_intelligence_growth(years)
+    truth_adoption_dim = historical_truth_adoption(years)
+    suppression_feedback_dim = historical_suppression_feedback(years)
+    civilization_oscillation_dim = historical_civilization_oscillation(years)
+
+    # Extract raw values for plotting and saving
+    intelligence_growth = intelligence_growth_dim.value
+    truth_adoption = truth_adoption_dim.value
+    suppression_feedback = suppression_feedback_dim.value
+    civilization_oscillation = civilization_oscillation_dim.value
+
+    print("Using dimensional analysis for historical simulation")
+
+    # Verify dimensional consistency
+    dimensional_equations = {
+        'historical_intelligence_growth': historical_intelligence_growth,
+        'historical_truth_adoption': historical_truth_adoption,
+        'historical_suppression_feedback': historical_suppression_feedback,
+        'historical_civilization_oscillation': historical_civilization_oscillation
+    }
+
+    try:
+        consistency_results = check_dimensional_consistency(dimensional_equations)
+        print("\nDimensional Consistency Check Results:")
+        for name, result in consistency_results.items():
+            print(f"{name}: {result['status']}")
+
+        # Save consistency results
+        consistency_df = pd.DataFrame([
+            {"Function": name, "Status": result["status"], "Notes": result.get("message", "")}
+            for name, result in consistency_results.items()
+        ])
+        consistency_df.to_csv(data_dir / "historical_dimensional_consistency.csv", index=False)
+        print(f"Dimensional consistency results saved to: {data_dir / 'historical_dimensional_consistency.csv'}")
+    except Exception as e:
+        print(f"Error during dimensional consistency check: {e}")
+else:
+    # Use standard versions
+    intelligence_growth = np.clip(50 * safe_sin(0.01 * (years - 1000)) - 20 * safe_exp(-0.002 * (years - 1000)),
+                                  MIN_VALUE, MAX_INTELLIGENCE)
+
+    truth_adoption = np.clip(40 * (1 - safe_exp(-0.005 * (years - 1000))),
+                             MIN_VALUE, MAX_TRUTH)
+
+    suppression_feedback = np.clip(safe_exp(-0.005 * (years - 1000)) + 0.1 * safe_sin(0.02 * (years - 1000)),
+                                   MIN_VALUE, MAX_SUPPRESSION)
+
+    civilization_oscillation = np.clip(0.05 * safe_exp(-0.002 * (years - 1000)) * safe_sin(0.01 * (years - 1000)),
+                                       -1.0, 1.0)
 
 # Check for any instabilities in the generated data
 for array, name in [(intelligence_growth, "Intelligence Growth"),
@@ -96,7 +191,8 @@ stability_metrics = {
     'Max_Suppression': np.max(suppression_feedback),
     'Min_Suppression': np.min(suppression_feedback),
     'Max_Oscillation': np.max(np.abs(civilization_oscillation)),
-    'Stability_Violations': circuit_breaker.trigger_count
+    'Stability_Violations': circuit_breaker.trigger_count,
+    'Used_Dimensional_Analysis': use_dimensional_analysis
 }
 
 stability_df = pd.DataFrame([stability_metrics])
@@ -142,6 +238,11 @@ axs[1, 1].set_ylabel('Oscillation State')
 axs[1, 1].legend()
 axs[1, 1].grid(True)
 axs[1, 1].set_ylim(-1, 1)  # Set consistent y-limits for oscillation
+
+# Add annotation about dimensional analysis if used
+if use_dimensional_analysis:
+    plt.figtext(0.5, 0.01, "Using dimensional analysis", ha="center", fontsize=10,
+                bbox={"facecolor": "lightgray", "alpha": 0.5, "pad": 5})
 
 # Adjust layout and save figure
 plt.tight_layout()
