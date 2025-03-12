@@ -748,6 +748,33 @@ class ParameterSensitivityAnalyzer:
                     interaction_strength = self._calculate_pair_interaction(p1, p2)
                     self.interaction_effects.append((p1, p2, interaction_strength))
 
+    def calculate_tornado_plot_data(self, metric):
+        """
+        Calculate data for tornado plot for a specific metric.
+
+        Parameters:
+            metric: The metric to calculate tornado plot data for
+
+        Returns:
+            DataFrame with tornado plot data
+        """
+        if not hasattr(self, 'sensitivity_results') or self.sensitivity_results is None:
+            return pd.DataFrame()
+
+        data = []
+        for param, param_data in self.sensitivity_results.items():
+            if metric in param_data:
+                values = param_data[metric]
+                min_change = self.base_result[metric] - min(values)
+                max_change = max(values) - self.base_result[metric]
+                data.append({
+                    'parameter': param,
+                    'min_change': min_change,
+                    'max_change': max_change
+                })
+
+        return pd.DataFrame(data)
+
     def _calculate_pair_interaction(self, p1, p2):
         """Calculate interaction strength between two parameters."""
         # Simple method: calculate correlation between parameters in their effect on metrics

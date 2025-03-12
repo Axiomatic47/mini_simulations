@@ -1,0 +1,2 @@
+stability_issues,circuit_breaker_enabled,adaptive_timestep_enabled,final_timestep,min_timestep_used,max_timestep_used,last_numerical_error,circuit_breaker_triggers,last_trigger_reason,max_gradient,mean_gradient
+237,True,True,4.960973670106345,0.9505999999999999,4.960973670106345,,237,"Value 104.0783567317741 outside allowed range [0.0, 100.0]",295.67388536526596,3.1219421593179173

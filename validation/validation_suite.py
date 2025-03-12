@@ -33,6 +33,22 @@ logging.basicConfig(
 # Create the global logger
 logger = logging.getLogger("validation_suite")
 
+sys.path.insert(0, str(Path(__file__).parent.parent))  # Add root project directory
+sys.path.insert(0, str(Path(__file__).parent / "reports"))  # Add reports directory
+
+# Try to import the modules directly to verify paths are correct
+try:
+    import config.historical_validation
+    logger.info("Successfully imported historical_validation module")
+except ImportError as e:
+    logger.warning(f"Could not import historical_validation: {e}")
+
+try:
+    import validation.reports.automated_reports
+    logger.info("Successfully imported automated_reports module")
+except ImportError as e:
+    logger.warning(f"Could not import automated_reports: {e}")
+
 
 class ValidationSuite:
     def __init__(self, output_dir=None):
@@ -137,21 +153,18 @@ class ValidationSuite:
                 self.logger.warning("Circuit breaker not available")
                 self.circuit_breaker = None
 
-            # Load historical validator (OPTIONAL)
             try:
-                from validation.historical_integration import HistoricalValidator
-                self.historical_validator = HistoricalValidator
-                self.components['historical_validator'] = self.historical_validator
+                from config.historical_validation import HistoricalValidation
+                self.historical_validator = HistoricalValidation
                 self.logger.info("Loaded historical validator")
             except ImportError:
                 self.logger.warning("Historical validator not available")
                 self.historical_validator = None
 
-            # Load validation reporter (OPTIONAL)
             try:
-                from validation.validation_reporter import ValidationReporter
+                sys.path.append(str(Path(__file__).parent / "reports"))
+                from automated_reports import ValidationReporter
                 self.reporter = ValidationReporter(str(self.output_dir))
-                self.components['reporter'] = self.reporter
                 self.logger.info("Loaded validation reporter")
             except ImportError:
                 self.logger.warning("Validation reporter not available")
@@ -197,7 +210,7 @@ class ValidationSuite:
 
             # Load quantum & EM extensions
             try:
-                import quantum_em_extensions
+                from config import quantum_em_extensions
                 loaded["quantum_em_extensions"] = quantum_em_extensions
                 logger.info("Loaded quantum EM extensions")
             except ImportError:
@@ -205,7 +218,7 @@ class ValidationSuite:
 
             # Load parameters
             try:
-                import parameters
+                from config import parameters
                 loaded["parameters"] = parameters
                 logger.info("Loaded parameters")
             except ImportError:
@@ -795,6 +808,8 @@ class ValidationSuite:
             traceback.print_exc()
             return None
 
+    # In the run_historical_validation method, update the import and method calls:
+
     def run_historical_validation(self, simulation_func=None, parameter_ranges=None):
         """
         Run historical validation.
@@ -811,15 +826,15 @@ class ValidationSuite:
         try:
             # Import historical validator
             try:
-                from validation.historical_integration import integrate_historical_validation, create_dummy_simulation_function
+                from config.historical_validation import HistoricalValidation
             except ImportError:
-                self.logger.error("Failed to import historical integration functions")
+                self.logger.error("Failed to import historical validation functions")
                 return None
 
             # Use dummy function if none provided
             if simulation_func is None or not callable(simulation_func):
                 self.logger.warning("No simulation function provided, using dummy function")
-                simulation_func = create_dummy_simulation_function()
+                simulation_func = self.create_dummy_simulation()
 
             # Create parameter ranges if not provided
             if parameter_ranges is None:
@@ -847,23 +862,28 @@ class ValidationSuite:
                     validation_components['edge_case_checker'] = self.edge_case_checker
 
             # Create validator
-            validator = integrate_historical_validation(
-                simulation_func, validation_components, parameter_ranges
+            validator = HistoricalValidation(
+                enable_circuit_breaker=True,
+                enable_adaptive_timestep=True
             )
 
             # Find best parameters with error handling
             self.logger.info("Finding best parameters for historical fit")
             try:
-                best_params = validator.find_best_parameters(max_evals=20)
+                best_params = validator.optimize_parameters(
+                    params_to_optimize=['knowledge_growth_rate', 'truth_adoption_rate', 'alpha_wisdom'],
+                    max_iterations=20
+                )
             except Exception as e:
                 self.logger.error(f"Error finding best parameters: {e}")
                 # Create backup parameters
-                best_params = {param: (min_val + max_val)/2 for param, (min_val, max_val) in parameter_ranges.items()}
+                best_params = {param: (min_val + max_val) / 2 for param, (min_val, max_val) in parameter_ranges.items()}
 
             # Generate comparison visualizations with error handling
             self.logger.info("Generating historical comparison visualizations")
             try:
-                errors = validator.compare_to_historical_data()
+                validator.visualize_comparison(save_path=str(self.output_dir / "historical" / "comparison.png"))
+                errors = {'overall': {'rmse': validator.calculate_error()}}
             except Exception as e:
                 self.logger.error(f"Error generating comparisons: {e}")
                 errors = {'overall': {'rmse': float('inf')}}
@@ -871,7 +891,8 @@ class ValidationSuite:
             # Generate report with error handling
             try:
                 self.logger.info("Generating historical validation report")
-                report_path = validator.generate_historical_validation_report()
+                validator.save_results(output_dir=str(self.output_dir / "historical"))
+                report_path = self.output_dir / "historical" / "simulation_results.csv"
             except Exception as e:
                 self.logger.error(f"Error generating report: {e}")
                 report_path = self.output_dir / "historical_report_error.txt"
