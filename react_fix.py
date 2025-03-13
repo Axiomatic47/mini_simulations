@@ -1,4 +1,14 @@
-<!DOCTYPE html>
+import os
+import shutil
+from pathlib import Path
+
+# Ensure directory structure
+BASE_DIR = Path(__file__).resolve().parent
+DASHBOARD_DIR = BASE_DIR / 'outputs' / 'dashboard'
+DASHBOARD_DIR.mkdir(parents=True, exist_ok=True)
+
+# Create the fixed index.html
+INDEX_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -52,3 +62,38 @@
     <script type="text/babel" src="/dashboard.js"></script>
 </body>
 </html>
+"""
+
+# Write the index.html file
+with open(DASHBOARD_DIR / 'index.html', 'w') as f:
+    f.write(INDEX_HTML)
+print(f"✅ Fixed index.html written to {DASHBOARD_DIR / 'index.html'}")
+
+# Fix Flask backend imports
+FLASK_BACKEND = BASE_DIR / 'multi_civilization_dashboard.py'
+if FLASK_BACKEND.exists():
+    with open(FLASK_BACKEND, 'r') as f:
+        content = f.read()
+
+    # Check if 'request' is imported from Flask
+    if 'from flask import' in content and 'request' not in content:
+        # Add request to imports
+        content = content.replace(
+            'from flask import Flask, send_from_directory, jsonify',
+            'from flask import Flask, send_from_directory, jsonify, request'
+        )
+
+        # Backup original file
+        shutil.copy(FLASK_BACKEND, FLASK_BACKEND.with_suffix('.py.bak'))
+
+        # Write updated content
+        with open(FLASK_BACKEND, 'w') as f:
+            f.write(content)
+        print(f"✅ Added missing 'request' import to Flask backend")
+    else:
+        print("ℹ️ Flask backend imports look good")
+else:
+    print("⚠️ Could not find Flask backend file")
+
+print("\nReact dashboard setup complete! Start the server with:")
+print("python multi_civilization_dashboard.py --debug")

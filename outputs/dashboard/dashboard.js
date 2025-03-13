@@ -1,11 +1,19 @@
+/**
+ * Multi-Civilization Simulation Dashboard (React Implementation)
+ *
+ * This is the primary dashboard visualization for the multi-civilization simulation.
+ * Uses React and Recharts for rendering.
+ */
+
+// Use React's hooks directly (they're already defined in the global React object)
 const { useState, useEffect } = React;
 
-// Get Recharts components from the global window.Recharts
+// Get Recharts components from the global Recharts object
 const {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   BarChart, Bar, ScatterChart, Scatter, ZAxis, Cell, PieChart, Pie,
   AreaChart, Area, ComposedChart
-} = window.Recharts;
+} = Recharts;  // Direct reference to global Recharts object
 
 const MultiCivilizationDashboard = () => {
   // State variables
