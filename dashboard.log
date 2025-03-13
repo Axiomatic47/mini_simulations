@@ -843,3 +843,692 @@
 2025-03-13 13:21:08,339 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:21:08] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
 2025-03-13 13:21:08,423 - dashboard - ERROR - Error generating civilization comparison: name 'request' is not defined
 2025-03-13 13:21:08,423 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:21:08] "[35m[1mGET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1[0m" 500 -
+2025-03-13 13:41:36,548 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:41:36,549 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:41:36,549 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:41:36,551 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:41:36,551 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:41:36,551 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:41:36,554 - dashboard - INFO - Starting dashboard server on http://127.0.0.1:5000
+2025-03-13 13:41:36,554 - dashboard - INFO - Stats file exists: True
+2025-03-13 13:41:36,554 - dashboard - INFO - Events file exists: True
+2025-03-13 13:41:36,554 - dashboard - INFO - Stability file exists: True
+2025-03-13 13:41:36,593 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-03-13 13:41:36,593 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-03-13 13:41:36,593 - werkzeug - INFO -  * Restarting with stat
+2025-03-13 13:41:36,990 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:41:36,990 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:41:36,990 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:41:36,993 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:41:36,993 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:41:36,993 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:41:36,995 - dashboard - INFO - Starting dashboard server on http://127.0.0.1:5000
+2025-03-13 13:41:36,996 - dashboard - INFO - Stats file exists: True
+2025-03-13 13:41:36,996 - dashboard - INFO - Events file exists: True
+2025-03-13 13:41:36,996 - dashboard - INFO - Stability file exists: True
+2025-03-13 13:41:37,015 - werkzeug - WARNING -  * Debugger is active!
+2025-03-13 13:41:37,044 - werkzeug - INFO -  * Debugger PIN: 407-155-325
+2025-03-13 13:41:40,400 - dashboard - INFO - Serving dashboard HTML
+2025-03-13 13:41:40,415 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:41:40] "[36mGET / HTTP/1.1[0m" 304 -
+2025-03-13 13:41:40,667 - dashboard - INFO - Serving dashboard.js
+2025-03-13 13:41:40,669 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:41:40] "[36mGET /dashboard.js HTTP/1.1[0m" 304 -
+2025-03-13 13:41:41,001 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:41:41] "GET /api/meta/available_metrics HTTP/1.1" 200 -
+2025-03-13 13:41:41,005 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:41:41,005 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:41:41,005 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:41:41,006 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:41:41,008 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:41:41,010 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:41:41,016 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:41:41,023 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:41:41] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=150&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:41:41,023 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:41:41,024 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:41:41] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=149&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:41:41,027 - dashboard - INFO - API request for event data
+2025-03-13 13:41:41,027 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:41:41,027 - dashboard - INFO - API request for event data
+2025-03-13 13:41:41,027 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:41:41,028 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:41:41,029 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:41:41,030 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:41:41,031 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:41:41,031 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:41:41] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=150 HTTP/1.1" 200 -
+2025-03-13 13:41:41,031 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:41:41] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=149 HTTP/1.1" 200 -
+2025-03-13 13:41:41,033 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:41:41,033 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:41:41,034 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:41:41,034 - dashboard - INFO - Returning stability data
+2025-03-13 13:41:41,034 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:41:41] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:41:41,035 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:41:41,035 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:41:41,037 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:41:41,037 - dashboard - INFO - Returning stability data
+2025-03-13 13:41:41,038 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:41:41] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:41:41,043 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:41:41] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:41:41,044 - dashboard - ERROR - Error generating civilization comparison: name 'request' is not defined
+2025-03-13 13:41:41,044 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:41:41] "[35m[1mGET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1[0m" 500 -
+2025-03-13 13:41:41,048 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:41:41] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:41:41,139 - dashboard - ERROR - Error generating civilization comparison: name 'request' is not defined
+2025-03-13 13:41:41,139 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:41:41] "[35m[1mGET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1[0m" 500 -
+2025-03-13 13:44:42,146 - werkzeug - INFO -  * Detected change in '/Users/joseph/Git/mini_simulations/multi_civilization_dashboard.py', reloading
+2025-03-13 13:44:42,274 - werkzeug - INFO -  * Restarting with stat
+2025-03-13 13:44:42,997 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:44:42,997 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:44:42,997 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:44:43,000 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:44:43,000 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:44:43,000 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:44:43,003 - dashboard - INFO - Starting dashboard server on http://127.0.0.1:5000
+2025-03-13 13:44:43,003 - dashboard - INFO - Stats file exists: True
+2025-03-13 13:44:43,003 - dashboard - INFO - Events file exists: True
+2025-03-13 13:44:43,003 - dashboard - INFO - Stability file exists: True
+2025-03-13 13:44:43,039 - werkzeug - WARNING -  * Debugger is active!
+2025-03-13 13:44:43,070 - werkzeug - INFO -  * Debugger PIN: 407-155-325
+2025-03-13 13:44:46,520 - dashboard - INFO - Serving dashboard HTML
+2025-03-13 13:44:46,537 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:44:46] "[36mGET / HTTP/1.1[0m" 304 -
+2025-03-13 13:44:46,811 - dashboard - INFO - Serving dashboard.js
+2025-03-13 13:44:46,814 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:44:46] "[36mGET /dashboard.js HTTP/1.1[0m" 304 -
+2025-03-13 13:44:47,121 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:44:47] "GET /api/meta/available_metrics HTTP/1.1" 200 -
+2025-03-13 13:44:47,125 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:44:47,126 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:44:47,126 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:44:47,127 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:44:47,135 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:44:47,135 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:44:47,150 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:44:47,151 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:44:47,151 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:44:47] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=149&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:44:47,151 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:44:47] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=150&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:44:47,155 - dashboard - INFO - API request for event data
+2025-03-13 13:44:47,155 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:44:47,155 - dashboard - INFO - API request for event data
+2025-03-13 13:44:47,155 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:44:47,156 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:44:47,157 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:44:47,158 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:44:47] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=149 HTTP/1.1" 200 -
+2025-03-13 13:44:47,158 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:44:47,159 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:44:47,160 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:44:47] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=150 HTTP/1.1" 200 -
+2025-03-13 13:44:47,160 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:44:47,160 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:44:47,162 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:44:47,162 - dashboard - INFO - Returning stability data
+2025-03-13 13:44:47,162 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:44:47] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:44:47,163 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:44:47,163 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:44:47,164 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:44:47,165 - dashboard - INFO - Returning stability data
+2025-03-13 13:44:47,165 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:44:47] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:44:47,169 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:44:47] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:44:47,175 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:44:47] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:44:47,183 - dashboard - ERROR - Error generating civilization comparison: Object of type int64 is not JSON serializable
+2025-03-13 13:44:47,183 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:44:47] "[35m[1mGET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1[0m" 500 -
+2025-03-13 13:44:47,270 - dashboard - ERROR - Error generating civilization comparison: Object of type int64 is not JSON serializable
+2025-03-13 13:44:47,270 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:44:47] "[35m[1mGET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1[0m" 500 -
+2025-03-13 13:45:28,182 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:45:28,183 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:45:28,183 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:45:28,186 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:45:28,186 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:45:28,186 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:45:28,189 - dashboard - INFO - Starting dashboard server on http://127.0.0.1:5000
+2025-03-13 13:45:28,189 - dashboard - INFO - Stats file exists: True
+2025-03-13 13:45:28,189 - dashboard - INFO - Events file exists: True
+2025-03-13 13:45:28,189 - dashboard - INFO - Stability file exists: True
+2025-03-13 13:45:28,219 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-03-13 13:45:28,219 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-03-13 13:45:28,219 - werkzeug - INFO -  * Restarting with stat
+2025-03-13 13:45:28,585 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:45:28,585 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:45:28,586 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:45:28,588 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:45:28,588 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:45:28,588 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:45:28,591 - dashboard - INFO - Starting dashboard server on http://127.0.0.1:5000
+2025-03-13 13:45:28,591 - dashboard - INFO - Stats file exists: True
+2025-03-13 13:45:28,591 - dashboard - INFO - Events file exists: True
+2025-03-13 13:45:28,591 - dashboard - INFO - Stability file exists: True
+2025-03-13 13:45:28,610 - werkzeug - WARNING -  * Debugger is active!
+2025-03-13 13:45:28,630 - werkzeug - INFO -  * Debugger PIN: 407-155-325
+2025-03-13 13:45:29,342 - dashboard - INFO - Serving dashboard HTML
+2025-03-13 13:45:29,353 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:29] "[36mGET / HTTP/1.1[0m" 304 -
+2025-03-13 13:45:29,551 - dashboard - INFO - Serving dashboard.js
+2025-03-13 13:45:29,553 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:29] "[36mGET /dashboard.js HTTP/1.1[0m" 304 -
+2025-03-13 13:45:29,766 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:29] "GET /api/meta/available_metrics HTTP/1.1" 200 -
+2025-03-13 13:45:29,768 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:45:29,769 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:45:29,769 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:45:29,769 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:45:29,771 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:45:29,779 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:45:29,780 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:45:29,780 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:29] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=150&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:45:29,785 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:45:29,786 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:29] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=149&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:45:29,788 - dashboard - INFO - API request for event data
+2025-03-13 13:45:29,789 - dashboard - INFO - API request for event data
+2025-03-13 13:45:29,789 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:45:29,789 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:45:29,790 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:45:29,791 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:45:29,791 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:45:29,792 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:45:29,792 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:29] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=150 HTTP/1.1" 200 -
+2025-03-13 13:45:29,792 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:29] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=149 HTTP/1.1" 200 -
+2025-03-13 13:45:29,794 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:45:29,794 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:45:29,795 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:45:29,795 - dashboard - INFO - Returning stability data
+2025-03-13 13:45:29,795 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:29] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:45:29,796 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:45:29,796 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:45:29,798 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:45:29,798 - dashboard - INFO - Returning stability data
+2025-03-13 13:45:29,798 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:29] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:45:29,802 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:29] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:45:29,853 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:29] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:45:29,861 - dashboard - ERROR - Error generating civilization comparison: Object of type int64 is not JSON serializable
+2025-03-13 13:45:29,861 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:29] "[35m[1mGET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1[0m" 500 -
+2025-03-13 13:45:29,900 - dashboard - ERROR - Error generating civilization comparison: Object of type int64 is not JSON serializable
+2025-03-13 13:45:29,900 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:29] "[35m[1mGET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1[0m" 500 -
+2025-03-13 13:45:30,895 - dashboard - INFO - Serving dashboard HTML
+2025-03-13 13:45:30,897 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:30] "[36mGET / HTTP/1.1[0m" 304 -
+2025-03-13 13:45:31,000 - dashboard - INFO - Serving dashboard.js
+2025-03-13 13:45:31,002 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:31] "[36mGET /dashboard.js HTTP/1.1[0m" 304 -
+2025-03-13 13:45:31,253 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:31] "GET /api/meta/available_metrics HTTP/1.1" 200 -
+2025-03-13 13:45:31,256 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:45:31,256 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:45:31,257 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:45:31,257 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:45:31,263 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:45:31,280 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:45:31,281 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:31] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=150&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:45:31,283 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:45:31,284 - dashboard - INFO - API request for event data
+2025-03-13 13:45:31,290 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:45:31,290 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:45:31,290 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:31] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=149&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:45:31,292 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:45:31,293 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:45:31,293 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:31] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=150 HTTP/1.1" 200 -
+2025-03-13 13:45:31,293 - dashboard - INFO - API request for event data
+2025-03-13 13:45:31,293 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:45:31,295 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:45:31,295 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:45:31,296 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:45:31,296 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:45:31,296 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:31] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=149 HTTP/1.1" 200 -
+2025-03-13 13:45:31,297 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:45:31,298 - dashboard - INFO - Returning stability data
+2025-03-13 13:45:31,298 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:31] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:45:31,299 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:45:31,299 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:45:31,300 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:45:31,300 - dashboard - INFO - Returning stability data
+2025-03-13 13:45:31,300 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:31] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:45:31,304 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:31] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:45:31,310 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:31] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:45:31,314 - dashboard - ERROR - Error generating civilization comparison: Object of type int64 is not JSON serializable
+2025-03-13 13:45:31,315 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:31] "[35m[1mGET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1[0m" 500 -
+2025-03-13 13:45:31,390 - dashboard - ERROR - Error generating civilization comparison: Object of type int64 is not JSON serializable
+2025-03-13 13:45:31,391 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:31] "[35m[1mGET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1[0m" 500 -
+2025-03-13 13:45:32,461 - dashboard - INFO - Serving dashboard HTML
+2025-03-13 13:45:32,462 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:32] "[36mGET / HTTP/1.1[0m" 304 -
+2025-03-13 13:45:32,635 - dashboard - INFO - Serving dashboard.js
+2025-03-13 13:45:32,637 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:32] "[36mGET /dashboard.js HTTP/1.1[0m" 304 -
+2025-03-13 13:45:32,849 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:32] "GET /api/meta/available_metrics HTTP/1.1" 200 -
+2025-03-13 13:45:32,855 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:45:32,856 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:45:32,856 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:45:32,856 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:45:32,864 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:45:32,865 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:45:32,870 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:45:32,876 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:45:32,876 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:32] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=149&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:45:32,876 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:32] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=150&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:45:32,879 - dashboard - INFO - API request for event data
+2025-03-13 13:45:32,880 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:45:32,880 - dashboard - INFO - API request for event data
+2025-03-13 13:45:32,880 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:45:32,882 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:45:32,883 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:45:32,884 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:45:32,885 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:45:32,885 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:32] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=150 HTTP/1.1" 200 -
+2025-03-13 13:45:32,885 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:32] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=149 HTTP/1.1" 200 -
+2025-03-13 13:45:32,887 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:45:32,887 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:45:32,888 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:45:32,888 - dashboard - INFO - Returning stability data
+2025-03-13 13:45:32,889 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:32] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:45:32,889 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:45:32,890 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:45:32,892 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:45:32,892 - dashboard - INFO - Returning stability data
+2025-03-13 13:45:32,892 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:32] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:45:32,896 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:32] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:45:32,904 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:32] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:45:32,908 - dashboard - ERROR - Error generating civilization comparison: Object of type int64 is not JSON serializable
+2025-03-13 13:45:32,908 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:32] "[35m[1mGET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1[0m" 500 -
+2025-03-13 13:45:32,975 - dashboard - ERROR - Error generating civilization comparison: Object of type int64 is not JSON serializable
+2025-03-13 13:45:32,975 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:45:32] "[35m[1mGET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1[0m" 500 -
+2025-03-13 13:47:45,319 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:47:45,320 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:47:45,320 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:47:45,323 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:47:45,323 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:47:45,323 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:47:45,325 - dashboard - INFO - Starting dashboard server on http://127.0.0.1:5000
+2025-03-13 13:47:45,326 - dashboard - INFO - Stats file exists: True
+2025-03-13 13:47:45,326 - dashboard - INFO - Events file exists: True
+2025-03-13 13:47:45,326 - dashboard - INFO - Stability file exists: True
+2025-03-13 13:47:45,356 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-03-13 13:47:45,356 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-03-13 13:47:45,357 - werkzeug - INFO -  * Restarting with stat
+2025-03-13 13:47:45,718 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:47:45,718 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:47:45,718 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:47:45,721 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:47:45,721 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:47:45,721 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:47:45,723 - dashboard - INFO - Starting dashboard server on http://127.0.0.1:5000
+2025-03-13 13:47:45,723 - dashboard - INFO - Stats file exists: True
+2025-03-13 13:47:45,723 - dashboard - INFO - Events file exists: True
+2025-03-13 13:47:45,723 - dashboard - INFO - Stability file exists: True
+2025-03-13 13:47:45,741 - werkzeug - WARNING -  * Debugger is active!
+2025-03-13 13:47:45,761 - werkzeug - INFO -  * Debugger PIN: 407-155-325
+2025-03-13 13:47:51,151 - dashboard - INFO - Serving dashboard HTML
+2025-03-13 13:47:51,162 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:51] "[36mGET / HTTP/1.1[0m" 304 -
+2025-03-13 13:47:51,389 - dashboard - INFO - Serving dashboard.js
+2025-03-13 13:47:51,390 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:51] "[36mGET /dashboard.js HTTP/1.1[0m" 304 -
+2025-03-13 13:47:51,754 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:51] "GET /api/meta/available_metrics HTTP/1.1" 200 -
+2025-03-13 13:47:51,757 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:47:51,758 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:47:51,758 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:47:51,758 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:47:51,761 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:47:51,762 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:47:51,777 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:47:51,777 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:47:51,777 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:51] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=150&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:47:51,778 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:51] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=149&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:47:51,781 - dashboard - INFO - API request for event data
+2025-03-13 13:47:51,782 - dashboard - INFO - API request for event data
+2025-03-13 13:47:51,782 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:47:51,782 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:47:51,786 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:47:51,788 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:47:51,790 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:47:51,791 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:47:51,791 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:51] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=149 HTTP/1.1" 200 -
+2025-03-13 13:47:51,791 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:51] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=150 HTTP/1.1" 200 -
+2025-03-13 13:47:51,794 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:47:51,794 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:47:51,795 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:47:51,796 - dashboard - INFO - Returning stability data
+2025-03-13 13:47:51,796 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:51] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:47:51,797 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:47:51,797 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:47:51,799 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:47:51,799 - dashboard - INFO - Returning stability data
+2025-03-13 13:47:51,799 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:51] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:47:51,805 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:51] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:47:51,811 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:51] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:47:51,820 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:51] "GET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1" 200 -
+2025-03-13 13:47:51,907 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:51] "GET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1" 200 -
+2025-03-13 13:47:52,737 - dashboard - INFO - Serving dashboard HTML
+2025-03-13 13:47:52,739 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:52] "[36mGET / HTTP/1.1[0m" 304 -
+2025-03-13 13:47:52,942 - dashboard - INFO - Serving dashboard.js
+2025-03-13 13:47:52,943 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:52] "[36mGET /dashboard.js HTTP/1.1[0m" 304 -
+2025-03-13 13:47:53,261 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:53] "GET /api/meta/available_metrics HTTP/1.1" 200 -
+2025-03-13 13:47:53,265 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:47:53,267 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:47:53,267 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:47:53,267 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:47:53,273 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:47:53,285 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:47:53,286 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:47:53,295 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:53] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=150&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:47:53,295 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:47:53,296 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:53] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=149&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:47:53,298 - dashboard - INFO - API request for event data
+2025-03-13 13:47:53,298 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:47:53,299 - dashboard - INFO - API request for event data
+2025-03-13 13:47:53,299 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:47:53,301 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:47:53,301 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:47:53,302 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:47:53,303 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:47:53,303 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:53] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=150 HTTP/1.1" 200 -
+2025-03-13 13:47:53,303 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:53] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=149 HTTP/1.1" 200 -
+2025-03-13 13:47:53,305 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:47:53,305 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:47:53,306 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:47:53,306 - dashboard - INFO - Returning stability data
+2025-03-13 13:47:53,306 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:53] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:47:53,307 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:47:53,307 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:47:53,308 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:47:53,309 - dashboard - INFO - Returning stability data
+2025-03-13 13:47:53,309 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:53] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:47:53,312 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:53] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:47:53,317 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:53] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:47:53,323 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:53] "GET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1" 200 -
+2025-03-13 13:47:53,407 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:47:53] "GET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1" 200 -
+2025-03-13 13:48:04,189 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:48:04,190 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:48:04,198 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:48:04,215 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:48:04,216 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:48:04] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=149&metrics=knowledge_mean,suppression_mean,knowledge_min HTTP/1.1" 200 -
+2025-03-13 13:48:04,221 - dashboard - INFO - API request for event data
+2025-03-13 13:48:04,221 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:48:04,225 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:48:04,227 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:48:04,227 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:48:04] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=149 HTTP/1.1" 200 -
+2025-03-13 13:48:04,231 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:48:04,231 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:48:04,233 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:48:04,234 - dashboard - INFO - Returning stability data
+2025-03-13 13:48:04,234 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:48:04] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:48:04,242 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:48:04] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:48:04,253 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:48:04] "GET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1" 200 -
+2025-03-13 13:48:58,030 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:48:58,031 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:48:58,042 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:48:58,056 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:48:58,057 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:48:58] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=149&metrics=knowledge_mean,suppression_mean,knowledge_min,intelligence_min HTTP/1.1" 200 -
+2025-03-13 13:48:58,061 - dashboard - INFO - API request for event data
+2025-03-13 13:48:58,061 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:48:58,062 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:48:58,063 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:48:58,064 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:48:58] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=149 HTTP/1.1" 200 -
+2025-03-13 13:48:58,066 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:48:58,066 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:48:58,067 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:48:58,069 - dashboard - INFO - Returning stability data
+2025-03-13 13:48:58,069 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:48:58] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:48:58,076 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:48:58] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:48:58,083 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:48:58] "GET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1" 200 -
+2025-03-13 13:48:58,828 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:48:58,829 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:48:58,833 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:48:58,847 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:48:58,848 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:48:58] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=149&metrics=knowledge_mean,suppression_mean,knowledge_min,intelligence_min,suppression_min HTTP/1.1" 200 -
+2025-03-13 13:48:58,852 - dashboard - INFO - API request for event data
+2025-03-13 13:48:58,852 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:48:58,855 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:48:58,857 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:48:58,858 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:48:58] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=149 HTTP/1.1" 200 -
+2025-03-13 13:48:58,860 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:48:58,860 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:48:58,864 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:48:58,864 - dashboard - INFO - Returning stability data
+2025-03-13 13:48:58,865 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:48:58] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:48:58,871 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:48:58] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:48:58,878 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:48:58] "GET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1" 200 -
+2025-03-13 13:51:18,688 - werkzeug - INFO -  * Detected change in '/Users/joseph/Git/mini_simulations/multi_civilization_dashboard.py', reloading
+2025-03-13 13:51:18,789 - werkzeug - INFO -  * Restarting with stat
+2025-03-13 13:51:19,245 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:51:19,245 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:51:19,245 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:51:19,248 - dashboard - INFO - Starting dashboard server on http://127.0.0.1:5000
+2025-03-13 13:51:19,248 - dashboard - INFO - Stats file exists: True
+2025-03-13 13:51:19,248 - dashboard - INFO - Events file exists: True
+2025-03-13 13:51:19,248 - dashboard - INFO - Stability file exists: True
+2025-03-13 13:51:19,279 - werkzeug - WARNING -  * Debugger is active!
+2025-03-13 13:51:19,302 - werkzeug - INFO -  * Debugger PIN: 407-155-325
+2025-03-13 13:51:22,630 - dashboard - INFO - Serving dashboard HTML
+2025-03-13 13:51:22,648 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:22] "[36mGET / HTTP/1.1[0m" 304 -
+2025-03-13 13:51:22,969 - dashboard - INFO - Serving dashboard.js
+2025-03-13 13:51:22,971 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:22] "[36mGET /dashboard.js HTTP/1.1[0m" 304 -
+2025-03-13 13:51:23,271 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:23] "GET /api/meta/available_metrics HTTP/1.1" 200 -
+2025-03-13 13:51:23,275 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:51:23,275 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:51:23,276 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:51:23,276 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:51:23,286 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:51:23,287 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:51:23,304 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:51:23,304 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:51:23,304 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:23] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=149&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:51:23,305 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:23] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=150&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:51:23,308 - dashboard - INFO - API request for event data
+2025-03-13 13:51:23,308 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:51:23,308 - dashboard - INFO - API request for event data
+2025-03-13 13:51:23,309 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:51:23,310 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:51:23,312 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:51:23,312 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:51:23,312 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:23] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=149 HTTP/1.1" 200 -
+2025-03-13 13:51:23,313 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:51:23,313 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:23] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=150 HTTP/1.1" 200 -
+2025-03-13 13:51:23,314 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:51:23,314 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:51:23,316 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:51:23,316 - dashboard - INFO - Returning stability data
+2025-03-13 13:51:23,316 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:23] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:51:23,317 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:51:23,317 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:51:23,318 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:51:23,319 - dashboard - INFO - Returning stability data
+2025-03-13 13:51:23,319 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:23] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:51:23,323 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:23] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:51:23,325 - dashboard - ERROR - Error generating civilization comparison: name 'request' is not defined
+2025-03-13 13:51:23,325 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:23] "[35m[1mGET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1[0m" 500 -
+2025-03-13 13:51:23,329 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:23] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:51:23,422 - dashboard - ERROR - Error generating civilization comparison: name 'request' is not defined
+2025-03-13 13:51:23,423 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:23] "[35m[1mGET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1[0m" 500 -
+2025-03-13 13:51:41,299 - werkzeug - INFO -  * Detected change in '/Users/joseph/Git/mini_simulations/multi_civilization_dashboard.py', reloading
+2025-03-13 13:51:41,386 - werkzeug - INFO -  * Restarting with stat
+2025-03-13 13:51:42,043 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:51:42,044 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:51:42,044 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:51:42,047 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:51:42,047 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:51:42,047 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:51:42,052 - dashboard - INFO - Starting dashboard server on http://127.0.0.1:5000
+2025-03-13 13:51:42,052 - dashboard - INFO - Stats file exists: True
+2025-03-13 13:51:42,052 - dashboard - INFO - Events file exists: True
+2025-03-13 13:51:42,052 - dashboard - INFO - Stability file exists: True
+2025-03-13 13:51:42,087 - werkzeug - WARNING -  * Debugger is active!
+2025-03-13 13:51:42,127 - werkzeug - INFO -  * Debugger PIN: 407-155-325
+2025-03-13 13:51:43,436 - dashboard - INFO - Serving dashboard HTML
+2025-03-13 13:51:43,447 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:43] "[36mGET / HTTP/1.1[0m" 304 -
+2025-03-13 13:51:43,671 - dashboard - INFO - Serving dashboard.js
+2025-03-13 13:51:43,673 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:43] "[36mGET /dashboard.js HTTP/1.1[0m" 304 -
+2025-03-13 13:51:44,064 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:44] "GET /api/meta/available_metrics HTTP/1.1" 200 -
+2025-03-13 13:51:44,068 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:51:44,068 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:51:44,070 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:51:44,070 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:51:44,075 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:51:44,076 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:51:44,089 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:51:44,090 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:51:44,090 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:44] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=150&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:51:44,090 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:44] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=149&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:51:44,094 - dashboard - INFO - API request for event data
+2025-03-13 13:51:44,094 - dashboard - INFO - API request for event data
+2025-03-13 13:51:44,094 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:51:44,095 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:51:44,098 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:51:44,100 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:51:44,101 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:51:44,101 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:44] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=150 HTTP/1.1" 200 -
+2025-03-13 13:51:44,102 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:51:44,102 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:44] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=149 HTTP/1.1" 200 -
+2025-03-13 13:51:44,104 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:51:44,104 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:51:44,106 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:51:44,106 - dashboard - INFO - Returning stability data
+2025-03-13 13:51:44,106 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:44] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:51:44,108 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:51:44,108 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:51:44,109 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:51:44,109 - dashboard - INFO - Returning stability data
+2025-03-13 13:51:44,109 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:44] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:51:44,114 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:44] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:51:44,129 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:44] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:51:44,139 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:44] "GET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1" 200 -
+2025-03-13 13:51:44,224 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:51:44] "GET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1" 200 -
+2025-03-13 13:52:41,839 - werkzeug - INFO -  * Detected change in '/Users/joseph/Git/mini_simulations/multi_civilization_dashboard.py', reloading
+2025-03-13 13:52:41,943 - werkzeug - INFO -  * Restarting with stat
+2025-03-13 13:52:42,407 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:52:42,407 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:52:42,407 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:52:42,409 - dashboard - INFO - Starting dashboard server on http://127.0.0.1:5000
+2025-03-13 13:52:42,409 - dashboard - INFO - Stats file exists: True
+2025-03-13 13:52:42,409 - dashboard - INFO - Events file exists: True
+2025-03-13 13:52:42,409 - dashboard - INFO - Stability file exists: True
+2025-03-13 13:52:42,434 - werkzeug - WARNING -  * Debugger is active!
+2025-03-13 13:52:42,455 - werkzeug - INFO -  * Debugger PIN: 407-155-325
+2025-03-13 13:52:45,288 - dashboard - INFO - Serving dashboard HTML (React implementation)
+2025-03-13 13:52:45,297 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:52:45] "[36mGET / HTTP/1.1[0m" 304 -
+2025-03-13 13:52:45,519 - dashboard - INFO - Serving React dashboard.js
+2025-03-13 13:52:45,520 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:52:45] "[36mGET /dashboard.js HTTP/1.1[0m" 304 -
+2025-03-13 13:52:45,835 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:52:45] "[33mGET /api/meta/available_metrics HTTP/1.1[0m" 404 -
+2025-03-13 13:52:59,215 - werkzeug - INFO -  * Detected change in '/Users/joseph/Git/mini_simulations/multi_civilization_dashboard.py', reloading
+2025-03-13 13:52:59,299 - werkzeug - INFO -  * Restarting with stat
+2025-03-13 13:52:59,816 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:52:59,816 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:52:59,817 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:52:59,820 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:52:59,820 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:52:59,820 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:52:59,823 - dashboard - INFO - Starting dashboard server on http://127.0.0.1:5000
+2025-03-13 13:52:59,823 - dashboard - INFO - Stats file exists: True
+2025-03-13 13:52:59,823 - dashboard - INFO - Events file exists: True
+2025-03-13 13:52:59,823 - dashboard - INFO - Stability file exists: True
+2025-03-13 13:52:59,851 - werkzeug - WARNING -  * Debugger is active!
+2025-03-13 13:52:59,876 - werkzeug - INFO -  * Debugger PIN: 407-155-325
+2025-03-13 13:53:00,038 - dashboard - INFO - Serving dashboard HTML
+2025-03-13 13:53:00,047 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:53:00] "[36mGET / HTTP/1.1[0m" 304 -
+2025-03-13 13:53:00,267 - dashboard - INFO - Serving dashboard.js
+2025-03-13 13:53:00,269 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:53:00] "[36mGET /dashboard.js HTTP/1.1[0m" 304 -
+2025-03-13 13:53:00,642 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:53:00] "GET /api/meta/available_metrics HTTP/1.1" 200 -
+2025-03-13 13:53:00,646 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:53:00,646 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:53:00,647 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:53:00,647 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:53:00,652 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:53:00,656 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:53:00,663 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:53:00,668 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:53:00,668 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:53:00] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=150&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:53:00,669 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:53:00] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=149&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:53:00,673 - dashboard - INFO - API request for event data
+2025-03-13 13:53:00,673 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:53:00,673 - dashboard - INFO - API request for event data
+2025-03-13 13:53:00,673 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:53:00,675 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:53:00,675 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:53:00,676 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:53:00,677 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:53:00,677 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:53:00] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=149 HTTP/1.1" 200 -
+2025-03-13 13:53:00,677 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:53:00] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=150 HTTP/1.1" 200 -
+2025-03-13 13:53:00,679 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:53:00,679 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:53:00,681 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:53:00,681 - dashboard - INFO - Returning stability data
+2025-03-13 13:53:00,681 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:53:00] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:53:00,682 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:53:00,682 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:53:00,684 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:53:00,684 - dashboard - INFO - Returning stability data
+2025-03-13 13:53:00,684 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:53:00] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:53:00,688 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:53:00] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:53:00,702 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:53:00] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:53:00,707 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:53:00] "GET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1" 200 -
+2025-03-13 13:53:00,789 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:53:00] "GET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1" 200 -
+2025-03-13 13:57:24,207 - werkzeug - INFO -  * Detected change in '/Users/joseph/Git/mini_simulations/multi_civilization_dashboard.py', reloading
+2025-03-13 13:57:24,303 - werkzeug - INFO -  * Restarting with stat
+2025-03-13 13:57:25,087 - dashboard - INFO - Base directory: /Users/joseph/Git/mini_simulations
+2025-03-13 13:57:25,087 - dashboard - INFO - Data directory: /Users/joseph/Git/mini_simulations/outputs/data
+2025-03-13 13:57:25,087 - dashboard - INFO - Dashboard directory: /Users/joseph/Git/mini_simulations/outputs/dashboard
+2025-03-13 13:57:25,090 - dashboard - INFO - Starting dashboard server on http://127.0.0.1:5000
+2025-03-13 13:57:25,090 - dashboard - INFO - Stats file exists: True
+2025-03-13 13:57:25,090 - dashboard - INFO - Events file exists: True
+2025-03-13 13:57:25,091 - dashboard - INFO - Stability file exists: True
+2025-03-13 13:57:25,126 - werkzeug - WARNING -  * Debugger is active!
+2025-03-13 13:57:25,160 - werkzeug - INFO -  * Debugger PIN: 407-155-325
+2025-03-13 13:57:27,382 - dashboard - INFO - Serving dashboard HTML
+2025-03-13 13:57:27,396 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:27] "[36mGET / HTTP/1.1[0m" 304 -
+2025-03-13 13:57:27,633 - dashboard - INFO - Serving dashboard.js
+2025-03-13 13:57:27,634 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:27] "[36mGET /dashboard.js HTTP/1.1[0m" 304 -
+2025-03-13 13:57:27,983 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:27] "GET /api/meta/available_metrics HTTP/1.1" 200 -
+2025-03-13 13:57:27,987 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:57:27,987 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:57:27,988 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:57:27,988 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:57:27,993 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:57:27,995 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:57:28,002 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:57:28,010 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:28] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=150&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:57:28,010 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:57:28,010 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:28] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=149&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:57:28,013 - dashboard - INFO - API request for event data
+2025-03-13 13:57:28,014 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:57:28,014 - dashboard - INFO - API request for event data
+2025-03-13 13:57:28,014 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:57:28,016 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:57:28,017 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:57:28,018 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:57:28,018 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:57:28,019 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:28] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=150 HTTP/1.1" 200 -
+2025-03-13 13:57:28,019 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:28] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=149 HTTP/1.1" 200 -
+2025-03-13 13:57:28,021 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:57:28,021 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:57:28,022 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:57:28,023 - dashboard - INFO - Returning stability data
+2025-03-13 13:57:28,023 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:28] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:57:28,024 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:57:28,024 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:57:28,025 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:57:28,026 - dashboard - INFO - Returning stability data
+2025-03-13 13:57:28,026 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:28] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:57:28,030 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:28] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:57:28,046 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:28] "GET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1" 200 -
+2025-03-13 13:57:28,050 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:28] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:57:28,137 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:28] "GET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1" 200 -
+2025-03-13 13:57:29,059 - dashboard - INFO - Serving dashboard HTML
+2025-03-13 13:57:29,060 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:29] "[36mGET / HTTP/1.1[0m" 304 -
+2025-03-13 13:57:29,199 - dashboard - INFO - Serving dashboard.js
+2025-03-13 13:57:29,200 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:29] "[36mGET /dashboard.js HTTP/1.1[0m" 304 -
+2025-03-13 13:57:29,520 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:29] "GET /api/meta/available_metrics HTTP/1.1" 200 -
+2025-03-13 13:57:29,524 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:57:29,525 - dashboard - INFO - API request for simulation statistics
+2025-03-13 13:57:29,525 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:57:29,526 - dashboard - INFO - Reading simulation data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_statistics.csv
+2025-03-13 13:57:29,537 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:57:29,537 - dashboard - INFO - Successfully read statistics data: 150 rows
+2025-03-13 13:57:29,555 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:57:29,555 - dashboard - INFO - Returning simulation data: 150 records
+2025-03-13 13:57:29,555 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:29] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=150&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:57:29,556 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:29] "GET /api/data/multi_civilization_statistics.csv?time_start=0&time_end=149&metrics=knowledge_mean,suppression_mean HTTP/1.1" 200 -
+2025-03-13 13:57:29,559 - dashboard - INFO - API request for event data
+2025-03-13 13:57:29,559 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:57:29,559 - dashboard - INFO - API request for event data
+2025-03-13 13:57:29,560 - dashboard - INFO - Reading event data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_events.csv
+2025-03-13 13:57:29,561 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:57:29,562 - dashboard - INFO - Successfully read events data: 22 rows
+2025-03-13 13:57:29,563 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:57:29,563 - dashboard - INFO - Returning event data: 22 records
+2025-03-13 13:57:29,564 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:29] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=149 HTTP/1.1" 200 -
+2025-03-13 13:57:29,564 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:29] "GET /api/data/multi_civilization_events.csv?time_start=0&time_end=150 HTTP/1.1" 200 -
+2025-03-13 13:57:29,565 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:57:29,565 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:57:29,567 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:57:29,567 - dashboard - INFO - Returning stability data
+2025-03-13 13:57:29,567 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:29] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:57:29,568 - dashboard - INFO - API request for stability metrics
+2025-03-13 13:57:29,568 - dashboard - INFO - Reading stability data from: /Users/joseph/Git/mini_simulations/outputs/data/multi_civilization_stability.csv
+2025-03-13 13:57:29,571 - dashboard - INFO - Successfully read stability data
+2025-03-13 13:57:29,571 - dashboard - INFO - Returning stability data
+2025-03-13 13:57:29,571 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:29] "GET /api/data/multi_civilization_stability.csv HTTP/1.1" 200 -
+2025-03-13 13:57:29,575 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:29] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:57:29,584 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:29] "GET /api/analysis/knowledge_suppression_correlation HTTP/1.1" 200 -
+2025-03-13 13:57:29,588 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:29] "GET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1" 200 -
+2025-03-13 13:57:29,670 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2025 13:57:29] "GET /api/data/civilization_comparison?time=74&metric=knowledge&count=3 HTTP/1.1" 200 -
