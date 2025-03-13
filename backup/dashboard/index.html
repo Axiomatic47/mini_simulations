@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multi-Civilization Simulation Dashboard</title>
-    <!-- Bootstrap CSS (very reliable CDN) -->
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
@@ -235,58 +235,7 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Helper script to handle NaN values in JSON -->
-    <script>
-    // Add safe JSON parsing function to handle NaN values
-    function safeParseJSON(text) {
-        // Replace NaN with null before parsing
-        let processedText = text;
-
-        // Replace "NaN" with null, maintaining valid JSON syntax
-        processedText = processedText.replace(/"([^"]+)":\s*NaN/g, '"$1": null');
-
-        // Replace any standalone NaN values
-        processedText = processedText.replace(/:\s*NaN\s*([,}])/g, ': null$1');
-
-        try {
-            return JSON.parse(processedText);
-        } catch (e) {
-            console.error('JSON parse error even after NaN handling:', e);
-            console.error('Processed text (first 500 chars):', processedText.substring(0, 500));
-            throw e;
-        }
-    }
-
-    // Override fetch to handle NaN values
-    const originalFetch = window.fetch;
-    window.fetch = function() {
-        return originalFetch.apply(this, arguments)
-            .then(response => {
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    return response.text().then(text => {
-                        try {
-                            const json = safeParseJSON(text);
-                            return {
-                                ok: response.ok,
-                                status: response.status,
-                                statusText: response.statusText,
-                                headers: response.headers,
-                                json: () => Promise.resolve(json),
-                                text: () => Promise.resolve(text)
-                            };
-                        } catch (e) {
-                            console.error('Error handling NaN values:', e);
-                            throw e;
-                        }
-                    });
-                }
-                return response;
-            });
-    };
-    </script>
-
-    <!-- ChartJS Dashboard JavaScript -->
-    <script src="/chart-dashboard.js"></script>
+    <!-- Dashboard JavaScript -->
+    <script src="/dashboard.js"></script>
 </body>
 </html>

@@ -1,0 +1,421 @@
+import sys
+import logging
+import numpy as np
+import pandas as pd
+from pathlib import Path
+import argparse
+from flask import Flask, send_from_directory, jsonify
+from flask_cors import CORS
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('dashboard.log')
+    ]
+)
+logger = logging.getLogger('dashboard')
+
+# Create argument parser
+parser = argparse.ArgumentParser(description='Launch interactive dashboard for multi-civilization simulations')
+parser.add_argument('--host', type=str, default='127.0.0.1', help='Host to run the dashboard server on')
+parser.add_argument('--port', type=int, default=5000, help='Port to run the dashboard server on')
+parser.add_argument('--data-dir', type=str, default=None, help='Directory containing simulation data')
+parser.add_argument('--auto-run', action='store_true', help='Automatically run a simulation if no data is found')
+args = parser.parse_args()
+
+# Ensure output directories exist
+BASE_DIR = Path(__file__).resolve().parent
+data_dir = Path(args.data_dir) if args.data_dir else BASE_DIR / 'outputs' / 'data'
+dashboard_dir = BASE_DIR / 'outputs' / 'dashboard'
+data_dir.mkdir(parents=True, exist_ok=True)
+dashboard_dir.mkdir(parents=True, exist_ok=True)
+
+logger.info(f"Base directory: {BASE_DIR}")
+logger.info(f"Data directory: {data_dir}")
+logger.info(f"Dashboard directory: {dashboard_dir}")
+
+# Create Flask app for the dashboard API
+app = Flask(__name__, static_folder=str(dashboard_dir))
+CORS(app)  # Allow cross-origin requests
+
+
+# Data preparation functions
+def prepare_simulation_data():
+    """
+    Prepare simulation data for the dashboard.
+    """
+    try:
+        # Try to read data from statistics CSV
+        stats_file = data_dir / "multi_civilization_statistics.csv"
+
+        logger.info(f"Reading simulation data from: {stats_file}")
+
+        if not stats_file.exists():
+            logger.warning(f"Statistics file not found: {stats_file}")
+            if args.auto_run:
+                logger.info("Auto-run enabled, running a new simulation...")
+                run_new_simulation()
+                # Check again after running
+                if not stats_file.exists():
+                    logger.error("Failed to create statistics file even after auto-run")
+                    return []
+            else:
+                logger.info("Creating placeholder data...")
+                create_placeholder_data()
+                # Check again after creating placeholder data
+                if not stats_file.exists():
+                    logger.error("Failed to create statistics file with placeholder data")
+                    return []
+
+        # Read the statistics CSV
+        df = pd.read_csv(stats_file)
+        logger.info(f"Successfully read statistics data: {len(df)} rows")
+
+        # Replace NaN with None (which becomes null in JSON)
+        json_data = df.replace({np.nan: None}).to_dict(orient='records')
+        return json_data
+
+    except Exception as e:
+        logger.error(f"Error preparing simulation data: {e}", exc_info=True)
+        return []
+
+
+def prepare_event_data():
+    """
+    Prepare event data for the dashboard.
+    """
+    try:
+        # Try to read data from events CSV
+        events_file = data_dir / "multi_civilization_events.csv"
+
+        logger.info(f"Reading event data from: {events_file}")
+
+        if not events_file.exists():
+            logger.warning(f"Events file not found: {events_file}")
+            # If events file is missing but we've already created placeholder data for statistics,
+            # we might need to create it for events too
+            if (data_dir / "multi_civilization_statistics.csv").exists():
+                logger.info("Creating placeholder event data...")
+                create_placeholder_data()
+
+            # Check again after potential creation
+            if not events_file.exists():
+                logger.error("Events file still not found after placeholder creation attempt")
+                return []
+
+        # Read the events CSV
+        df = pd.read_csv(events_file)
+        logger.info(f"Successfully read events data: {len(df)} rows")
+
+        # Replace NaN with None (which becomes null in JSON)
+        json_data = df.replace({np.nan: None}).to_dict(orient='records')
+        return json_data
+
+    except Exception as e:
+        logger.error(f"Error preparing event data: {e}", exc_info=True)
+        return []
+
+
+def prepare_stability_data():
+    """
+    Prepare stability metrics for the dashboard.
+    """
+    try:
+        # Try to read data from stability CSV
+        stability_file = data_dir / "multi_civilization_stability.csv"
+
+        logger.info(f"Reading stability data from: {stability_file}")
+
+        if not stability_file.exists():
+            logger.warning(f"Stability file not found: {stability_file}")
+            # If stability file is missing but we've already created other placeholder data,
+            # create it as well
+            if (data_dir / "multi_civilization_statistics.csv").exists():
+                logger.info("Creating placeholder stability data...")
+                create_placeholder_data()
+
+            # Check again after potential creation
+            if not stability_file.exists():
+                logger.error("Stability file still not found after placeholder creation attempt")
+                return {}
+
+        # Read the stability CSV
+        df = pd.read_csv(stability_file)
+        logger.info(f"Successfully read stability data")
+
+        # Replace NaN with None (which becomes null in JSON)
+        if len(df) > 0:
+            json_data = df.iloc[0].replace({np.nan: None}).to_dict()
+            return json_data
+        else:
+            logger.warning("Stability file is empty")
+            return {}
+
+    except Exception as e:
+        logger.error(f"Error preparing stability data: {e}", exc_info=True)
+        return {}
+
+
+def run_new_simulation():
+    """
+    Run a new multi-civilization simulation if no data is found.
+    """
+    try:
+        logger.info("Running a new multi-civilization simulation...")
+        # This would import and run the simulation script
+        try:
+            from simulations.multi_civilization_simulation import run_simulation
+            run_simulation(output_dir=data_dir)
+            logger.info("Simulation completed.")
+        except ImportError as e:
+            logger.error(f"Failed to import simulation module: {e}")
+            raise
+    except Exception as e:
+        logger.error(f"Error running simulation: {e}", exc_info=True)
+        logger.info("Creating placeholder data instead...")
+        create_placeholder_data()
+
+
+def create_placeholder_data():
+    """
+    Create placeholder data for testing the dashboard when no simulation data is available.
+    """
+    logger.info("Creating placeholder data...")
+    try:
+        # Create mock simulation statistics
+        timesteps = 150
+        simulation_data = []
+
+        for t in range(timesteps):
+            # Add some random fluctuations to make it look realistic
+            civilization_count = max(1, round(5 + 2 * np.sin(t / 20) + np.random.rand() * 2))
+            knowledge_mean = min(50, 1 + t * 0.3 + np.random.rand() * 3)
+            suppression_mean = max(0.5, 7 - t * 0.04 + np.random.rand() * 2)
+            intelligence_mean = min(50, 0.5 + t * 0.25 + np.random.rand() * 2)
+            truth_mean = min(40, 0.1 + t * 0.2 + np.random.rand())
+            resources_total = civilization_count * (50 + t * 0.5 + np.random.rand() * 10)
+            stability_issues = round(t * 0.05 + np.random.rand() * 3)
+
+            simulation_data.append({
+                'Time': t,
+                'Civilization_Count': civilization_count,
+                'knowledge_mean': knowledge_mean,
+                'knowledge_max': knowledge_mean + 5 + np.random.rand() * 10,
+                'knowledge_min': max(0, knowledge_mean - 5 - np.random.rand() * 5),
+                'suppression_mean': suppression_mean,
+                'suppression_max': suppression_mean + 3 + np.random.rand() * 5,
+                'suppression_min': max(0.1, suppression_mean - 3 - np.random.rand() * 2),
+                'intelligence_mean': intelligence_mean,
+                'truth_mean': truth_mean,
+                'resources_total': resources_total,
+                'Stability_Issues': stability_issues,
+                'Timestep': 0.2 + 0.8 * min(1, 1 - (stability_issues / 20))
+            })
+
+        # Save to CSV
+        stats_file = data_dir / "multi_civilization_statistics.csv"
+        pd.DataFrame(simulation_data).to_csv(stats_file, index=False)
+        logger.info(f"Created placeholder statistics data at {stats_file}")
+
+        # Create mock event data
+        event_types = ['collision', 'merger', 'collapse', 'spawn', 'new_civilization']
+        event_data = []
+
+        for i in range(50):
+            event_type = event_types[np.random.randint(0, len(event_types))]
+            time = np.random.randint(0, timesteps)
+
+            event_data.append({
+                'id': i,
+                'type': event_type,
+                'time': time,
+                'civ_id1': np.random.randint(0, 10),
+                'civ_id2': np.random.randint(0, 10),
+                'position_x': np.random.rand() * 10,
+                'position_y': np.random.rand() * 10,
+                'description': f"{event_type} event at time {time}"
+            })
+
+        # Save to CSV
+        events_file = data_dir / "multi_civilization_events.csv"
+        pd.DataFrame(event_data).to_csv(events_file, index=False)
+        logger.info(f"Created placeholder events data at {events_file}")
+
+        # Create mock stability data
+        stability_data = {
+            'Total_Stability_Issues': 87,
+            'Circuit_Breaker_Triggers': 52,
+            'Max_Knowledge': 48.7,
+            'Max_Suppression': 15.3,
+            'Max_Intelligence': 42.1,
+            'Max_Truth': 37.9,
+            'Total_Collisions': 12,
+            'Total_Mergers': 8,
+            'Total_Collapses': 6,
+            'Total_Spawns': 15,
+            'Total_New_Civilizations': 9,
+            'Used_Dimensional_Analysis': True
+        }
+
+        # Save to CSV
+        stability_file = data_dir / "multi_civilization_stability.csv"
+        pd.DataFrame([stability_data]).to_csv(stability_file, index=False)
+        logger.info(f"Created placeholder stability data at {stability_file}")
+
+        logger.info("Placeholder data created successfully.")
+
+    except Exception as e:
+        logger.error(f"Error creating placeholder data: {e}", exc_info=True)
+        raise
+
+
+def create_index_html():
+    """Create or update the index.html file for the dashboard."""
+    try:
+        index_file = dashboard_dir / 'index.html'
+        if not index_file.exists():
+            logger.info("Creating index.html file")
+            html_content = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Civilization Simulation Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.5.0/umd/Recharts.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f2f5;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script>
+        // Make sure Recharts is globally available
+        window.Recharts = Recharts;
+    </script>
+    <script type="text/babel" src="dashboard-component.js"></script>
+</body>
+</html>
+"""
+            with open(index_file, 'w') as f:
+                f.write(html_content)
+            logger.info(f"Created index.html at {index_file}")
+        else:
+            logger.info(f"index.html already exists at {index_file}")
+    except Exception as e:
+        logger.error(f"Error creating index.html: {e}", exc_info=True)
+
+
+# Define API routes
+@app.route('/')
+def serve_dashboard():
+    """Serve the dashboard HTML page."""
+    try:
+        logger.info("Serving dashboard HTML")
+        return send_from_directory(dashboard_dir, 'index.html')
+    except Exception as e:
+        logger.error(f"Error serving dashboard HTML: {e}", exc_info=True)
+        return f"Error serving dashboard: {str(e)}", 500
+
+
+@app.route('/dashboard-component.js')
+def serve_dashboard_component_js():
+    """Serve the dashboard-component.js file."""
+    try:
+        logger.info("Serving dashboard-component.js")
+        return send_from_directory(dashboard_dir, 'dashboard-component.js')
+    except Exception as e:
+        logger.error(f"Error serving dashboard-component.js: {e}", exc_info=True)
+        return f"Error serving dashboard-component.js: {str(e)}", 500
+
+
+@app.route('/api/data/multi_civilization_statistics.csv')
+def get_simulation_data():
+    """API endpoint for simulation statistics data."""
+    try:
+        logger.info("API request for simulation statistics")
+        data = prepare_simulation_data()
+        if not data:
+            logger.warning("No simulation data available")
+            return jsonify([])
+
+        response = jsonify(data)
+        logger.info(f"Returning simulation data: {len(data)} records")
+        return response
+    except Exception as e:
+        logger.error(f"Error in simulation data API: {e}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/data/multi_civilization_events.csv')
+def get_event_data():
+    """API endpoint for event data."""
+    try:
+        logger.info("API request for event data")
+        data = prepare_event_data()
+        if not data:
+            logger.warning("No event data available")
+            return jsonify([])
+
+        response = jsonify(data)
+        logger.info(f"Returning event data: {len(data)} records")
+        return response
+    except Exception as e:
+        logger.error(f"Error in event data API: {e}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/data/multi_civilization_stability.csv')
+def get_stability_data():
+    """API endpoint for stability metrics."""
+    try:
+        logger.info("API request for stability metrics")
+        data = prepare_stability_data()
+        if not data:
+            logger.warning("No stability data available")
+            return jsonify({})
+
+        response = jsonify(data)
+        logger.info("Returning stability data")
+        return response
+    except Exception as e:
+        logger.error(f"Error in stability data API: {e}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
+if __name__ == '__main__':
+    logger.info(f"Starting dashboard server on http://{args.host}:{args.port}")
+
+    # Check if data files exist
+    stats_file = data_dir / "multi_civilization_statistics.csv"
+    events_file = data_dir / "multi_civilization_events.csv"
+    stability_file = data_dir / "multi_civilization_stability.csv"
+
+    if not (stats_file.exists() and events_file.exists() and stability_file.exists()):
+        logger.warning("One or more data files not found.")
+        if args.auto_run:
+            logger.info("Auto-run enabled, running a new simulation...")
+            run_new_simulation()
+        else:
+            logger.info("Creating placeholder data...")
+            create_placeholder_data()
+
+    # Make sure the index.html file exists
+    create_index_html()
+
+    # Debug info
+    logger.info(f"Stats file exists: {stats_file.exists()}")
+    logger.info(f"Events file exists: {events_file.exists()}")
+    logger.info(f"Stability file exists: {stability_file.exists()}")
+
+    # Start the server
+    app.run(host=args.host, port=args.port, debug=True)
