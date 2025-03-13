@@ -1,3 +1,7 @@
+"""
+Multi-Civilization Simulation Dashboard Server
+Provides API endpoints and serves the dashboard frontend
+"""
 import sys
 import logging
 import numpy as np
@@ -5,7 +9,6 @@ import pandas as pd
 from pathlib import Path
 import argparse
 from flask import Flask, send_from_directory, jsonify
-from flask_cors import CORS
 
 # Configure logging
 logging.basicConfig(
@@ -39,7 +42,6 @@ logger.info(f"Dashboard directory: {dashboard_dir}")
 
 # Create Flask app for the dashboard API
 app = Flask(__name__, static_folder=str(dashboard_dir))
-CORS(app)  # Allow cross-origin requests
 
 
 # Data preparation functions
@@ -272,49 +274,6 @@ def create_placeholder_data():
         raise
 
 
-def create_index_html():
-    """Create or update the index.html file for the dashboard."""
-    try:
-        index_file = dashboard_dir / 'index.html'
-        if not index_file.exists():
-            logger.info("Creating index.html file")
-            html_content = """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Civilization Simulation Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/recharts@2.5.0/umd/Recharts.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f0f2f5;
-        }
-    </style>
-</head>
-<body>
-    <div id="root"></div>
-    <script>
-        // Make sure Recharts is globally available
-        window.Recharts = Recharts;
-    </script>
-    <script type="text/babel" src="dashboard-component.js"></script>
-</body>
-</html>
-"""
-            with open(index_file, 'w') as f:
-                f.write(html_content)
-            logger.info(f"Created index.html at {index_file}")
-        else:
-            logger.info(f"index.html already exists at {index_file}")
-    except Exception as e:
-        logger.error(f"Error creating index.html: {e}", exc_info=True)
-
-
 # Define API routes
 @app.route('/')
 def serve_dashboard():
@@ -327,15 +286,27 @@ def serve_dashboard():
         return f"Error serving dashboard: {str(e)}", 500
 
 
+@app.route('/dashboard.js')
+def serve_dashboard_js():
+    """Serve the dashboard JavaScript file."""
+    try:
+        logger.info("Serving dashboard.js")
+        return send_from_directory(dashboard_dir, 'dashboard.js')
+    except Exception as e:
+        logger.error(f"Error serving dashboard.js: {e}", exc_info=True)
+        return f"Error serving dashboard.js: {str(e)}", 500
+
+
+# Legacy support - serve dashboard-component.js if requested
 @app.route('/dashboard-component.js')
 def serve_dashboard_component_js():
-    """Serve the dashboard-component.js file."""
+    """Forward requests for the old file name to the new standardized file."""
     try:
-        logger.info("Serving dashboard-component.js")
-        return send_from_directory(dashboard_dir, 'dashboard-component.js')
+        logger.info("Redirecting dashboard-component.js request to dashboard.js")
+        return send_from_directory(dashboard_dir, 'dashboard.js')
     except Exception as e:
-        logger.error(f"Error serving dashboard-component.js: {e}", exc_info=True)
-        return f"Error serving dashboard-component.js: {str(e)}", 500
+        logger.error(f"Error serving dashboard.js via legacy route: {e}", exc_info=True)
+        return f"Error serving dashboard: {str(e)}", 500
 
 
 @app.route('/api/data/multi_civilization_statistics.csv')
@@ -408,9 +379,6 @@ if __name__ == '__main__':
         else:
             logger.info("Creating placeholder data...")
             create_placeholder_data()
-
-    # Make sure the index.html file exists
-    create_index_html()
 
     # Debug info
     logger.info(f"Stats file exists: {stats_file.exists()}")

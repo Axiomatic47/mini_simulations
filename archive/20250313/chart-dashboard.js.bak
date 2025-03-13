@@ -31,22 +31,14 @@ document.addEventListener('DOMContentLoaded', function() {
 // Initialize the dashboard
 async function initializeDashboard() {
     try {
-        // Fetch data with improved error handling
+        // Fetch data
+        console.log("Fetching simulation data...");
         const statsPromise = fetch('/api/data/multi_civilization_statistics.csv')
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`Failed to fetch statistics: ${response.status}`);
                 }
-                return response.text().then(text => {
-                    try {
-                        console.log("Statistics response text (first 100 chars):", text.substring(0, 100));
-                        return JSON.parse(text);
-                    } catch (e) {
-                        console.error('Error parsing statistics JSON:', e);
-                        console.error('Response preview:', text.substring(0, 200));
-                        throw new Error(`Failed to parse statistics JSON: ${e.message}`);
-                    }
-                });
+                return response.json();
             });
 
         const eventsPromise = fetch('/api/data/multi_civilization_events.csv')
@@ -54,16 +46,7 @@ async function initializeDashboard() {
                 if (!response.ok) {
                     throw new Error(`Failed to fetch events: ${response.status}`);
                 }
-                return response.text().then(text => {
-                    try {
-                        console.log("Events response text (first 100 chars):", text.substring(0, 100));
-                        return JSON.parse(text);
-                    } catch (e) {
-                        console.error('Error parsing events JSON:', e);
-                        console.error('Response preview:', text.substring(0, 200));
-                        throw new Error(`Failed to parse events JSON: ${e.message}`);
-                    }
-                });
+                return response.json();
             });
 
         const stabilityPromise = fetch('/api/data/multi_civilization_stability.csv')
@@ -71,16 +54,7 @@ async function initializeDashboard() {
                 if (!response.ok) {
                     throw new Error(`Failed to fetch stability data: ${response.status}`);
                 }
-                return response.text().then(text => {
-                    try {
-                        console.log("Stability response text (first 100 chars):", text.substring(0, 100));
-                        return JSON.parse(text);
-                    } catch (e) {
-                        console.error('Error parsing stability JSON:', e);
-                        console.error('Response preview:', text.substring(0, 200));
-                        throw new Error(`Failed to parse stability JSON: ${e.message}`);
-                    }
-                });
+                return response.json();
             });
 
         // Wait for all data to be fetched
@@ -126,12 +100,12 @@ async function initializeDashboard() {
             updateCurrentTimeStep();
         } else {
             console.error("No simulation data available to initialize charts");
-            document.body.innerHTML = '<div class="alert alert-danger m-5">Error: No simulation data available. Please check the server logs.</div>';
+            alert("Error: No simulation data available. Please check the server logs.");
         }
 
     } catch (error) {
         console.error('Error initializing dashboard:', error);
-        document.body.innerHTML = `<div class="alert alert-danger m-5">Failed to load dashboard data: ${error.message}</div>`;
+        alert(`Failed to load dashboard data: ${error.message}`);
     }
 }
 
@@ -202,7 +176,7 @@ function initializeCharts() {
         charts.civilization = createLineChart(
             'civilization-chart',
             simulationData.map(d => d.Time),
-            [{
+            [{ 
                 label: 'Civilization Count',
                 data: simulationData.map(d => d.Civilization_Count),
                 borderColor: 'rgba(75, 192, 192, 1)',
@@ -244,7 +218,7 @@ function initializeCharts() {
                     data: {
                         labels: eventTypes,
                         datasets: [{
-                            data: eventTypes.map(type => eventCounts[type]),
+                            data: Object.values(eventCounts),
                             backgroundColor: eventTypes.map(type => eventColorMap[type] || 'rgba(0, 0, 0, 0.1)')
                         }]
                     },
@@ -517,7 +491,7 @@ function updateCharts() {
 
         if (charts.eventDistribution) {
             charts.eventDistribution.data.labels = eventTypes;
-            charts.eventDistribution.data.datasets[0].data = eventTypes.map(type => eventCounts[type]);
+            charts.eventDistribution.data.datasets[0].data = Object.values(eventCounts);
             charts.eventDistribution.data.datasets[0].backgroundColor = eventTypes.map(type => eventColorMap[type] || 'rgba(0, 0, 0, 0.1)');
             charts.eventDistribution.update();
         }

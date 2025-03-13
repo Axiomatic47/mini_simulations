@@ -4,6 +4,8 @@ let eventData = [];
 let stabilityData = {};
 let selectedTimeStep = 0;
 let charts = {};
+let timeRange = { start: 0, end: 150 };
+let downSampleFactor = 1;
 
 // Colors for visualization
 const colorMap = {
@@ -26,57 +28,201 @@ const eventColorMap = {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Dashboard initializing...');
     initializeDashboard();
+
+    // Add filter controls to the page
+    addFilterControls();
 });
+
+// Helper function to build API URLs with query parameters
+function buildApiUrl(endpoint, params = {}) {
+    const url = new URL(endpoint, window.location.origin);
+    Object.keys(params).forEach(key => {
+        if (params[key] !== null && params[key] !== undefined) {
+            url.searchParams.append(key, params[key]);
+        }
+    });
+    return url.toString();
+}
+
+// Add filter controls to the page
+function addFilterControls() {
+    const timeSliderContainer = document.querySelector('.card-body');
+    if (!timeSliderContainer) return;
+
+    // Create filter controls
+    const filterControls = document.createElement('div');
+    filterControls.className = 'mt-4 border-top pt-3';
+    filterControls.innerHTML = `
+        <h6 class="mb-3">Data Filters</h6>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Time Range</label>
+                <div class="d-flex align-items-center">
+                    <input type="number" class="form-control form-control-sm me-2" id="time-start"
+                        value="${timeRange.start}" min="0" style="width: 80px;">
+                    <span class="me-2">to</span>
+                    <input type="number" class="form-control form-control-sm me-2" id="time-end"
+                        value="${timeRange.end}" min="1" style="width: 80px;">
+                    <button class="btn btn-sm btn-outline-secondary" id="apply-time-range">Apply</button>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Data Sampling</label>
+                <select class="form-select form-select-sm" id="downsampling" style="width: auto;">
+                    <option value="1">No sampling</option>
+                    <option value="2">Every 2nd point</option>
+                    <option value="5">Every 5th point</option>
+                    <option value="10">Every 10th point</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-sm btn-primary" id="export-csv">Export Data</button>
+                    <div class="form-text text-muted">
+                        <span id="data-points-count"></span> data points loaded
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    timeSliderContainer.appendChild(filterControls);
+
+    // Add event listeners
+    document.getElementById('apply-time-range').addEventListener('click', function() {
+        const start = parseInt(document.getElementById('time-start').value);
+        const end = parseInt(document.getElementById('time-end').value);
+
+        if (start >= 0 && end > start) {
+            timeRange = { start, end };
+            loadDashboardData();
+        } else {
+            alert('Please enter a valid time range (start must be less than end)');
+        }
+    });
+
+    document.getElementById('downsampling').addEventListener('change', function() {
+        downSampleFactor = parseInt(this.value);
+        loadDashboardData();
+    });
+
+    document.getElementById('export-csv').addEventListener('click', function() {
+        window.location.href = buildApiUrl('/api/export/csv', { dataset: 'statistics' });
+    });
+}
 
 // Initialize the dashboard
 async function initializeDashboard() {
     try {
-        // Fetch data
-        console.log("Fetching simulation data...");
-        const statsPromise = fetch('/api/data/multi_civilization_statistics.csv')
+        // Load initial metadata to get time range
+        console.log("Fetching available metrics...");
+        const metadataResponse = await fetch('/api/meta/available_metrics')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch metrics metadata: ${response.status}`);
+                }
+                return response.json();
+            })
+            .catch(error => {
+                console.error("Error fetching metrics:", error);
+                return null;
+            });
+
+        if (metadataResponse && metadataResponse.time_range) {
+            timeRange = {
+                start: metadataResponse.time_range.min,
+                end: metadataResponse.time_range.max
+            };
+
+            // Update time slider
+            const timeSlider = document.getElementById('time-slider');
+            if (timeSlider) {
+                timeSlider.min = timeRange.start;
+                timeSlider.max = timeRange.end;
+                timeSlider.value = Math.floor((timeRange.start + timeRange.end) / 2);
+                selectedTimeStep = Math.floor((timeRange.start + timeRange.end) / 2);
+            }
+
+            // Update input fields
+            if (document.getElementById('time-start')) {
+                document.getElementById('time-start').value = timeRange.start;
+            }
+            if (document.getElementById('time-end')) {
+                document.getElementById('time-end').value = timeRange.end;
+            }
+        }
+
+        // Load the data with the established time range
+        await loadDashboardData();
+
+    } catch (error) {
+        console.error('Error initializing dashboard:', error);
+        alert(`Failed to load dashboard data: ${error.message}`);
+    }
+}
+
+// Load dashboard data with current filters
+async function loadDashboardData() {
+    try {
+        // Fetch data with filters
+        console.log("Fetching simulation data with filters...");
+
+        // Prepare API parameters
+        const statsParams = {
+            time_start: timeRange.start,
+            time_end: timeRange.end,
+            down_sample: downSampleFactor > 1 ? downSampleFactor : null
+        };
+
+        // Fetch filtered statistics data
+        const statsUrl = buildApiUrl('/api/data/multi_civilization_statistics.csv', statsParams);
+        const statsResponse = await fetch(statsUrl)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`Failed to fetch statistics: ${response.status}`);
                 }
                 return response.json();
+            })
+            .catch(error => {
+                console.error("Error in statistics fetch:", error);
+                return [];
             });
 
-        const eventsPromise = fetch('/api/data/multi_civilization_events.csv')
+        // Fetch filtered events data
+        const eventsUrl = buildApiUrl('/api/data/multi_civilization_events.csv', {
+            time_start: timeRange.start,
+            time_end: timeRange.end
+        });
+        const eventsResponse = await fetch(eventsUrl)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`Failed to fetch events: ${response.status}`);
                 }
                 return response.json();
+            })
+            .catch(error => {
+                console.error("Error in events fetch:", error);
+                return [];
             });
 
-        const stabilityPromise = fetch('/api/data/multi_civilization_stability.csv')
+        // Fetch stability data
+        const stabilityResponse = await fetch('/api/data/multi_civilization_stability.csv')
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`Failed to fetch stability data: ${response.status}`);
                 }
                 return response.json();
+            })
+            .catch(error => {
+                console.error("Error in stability fetch:", error);
+                return {};
             });
 
-        // Wait for all data to be fetched
-        console.log("Waiting for all data promises to resolve...");
-        const results = await Promise.all([
-            statsPromise.catch(error => {
-                console.error("Error in statistics promise:", error);
-                return [];
-            }),
-            eventsPromise.catch(error => {
-                console.error("Error in events promise:", error);
-                return [];
-            }),
-            stabilityPromise.catch(error => {
-                console.error("Error in stability promise:", error);
-                return {};
-            })
-        ]);
-
-        simulationData = results[0];
-        eventData = results[1];
-        stabilityData = results[2];
+        simulationData = statsResponse;
+        eventData = eventsResponse;
+        stabilityData = stabilityResponse;
 
         console.log('Data loaded:', {
             simulationCount: simulationData.length,
@@ -84,12 +230,22 @@ async function initializeDashboard() {
             stabilityData: Object.keys(stabilityData).length > 0 ? "loaded" : "empty"
         });
 
+        // Update data points count display
+        if (document.getElementById('data-points-count')) {
+            document.getElementById('data-points-count').textContent = simulationData.length;
+        }
+
         // Set up the time slider
         const timeSlider = document.getElementById('time-slider');
         if (!timeSlider) {
             console.error("Time slider element not found!");
         } else {
-            timeSlider.max = simulationData.length - 1;
+            timeSlider.min = timeRange.start;
+            timeSlider.max = timeRange.end;
+            if (selectedTimeStep < timeRange.start || selectedTimeStep > timeRange.end) {
+                selectedTimeStep = Math.floor((timeRange.start + timeRange.end) / 2);
+                timeSlider.value = selectedTimeStep;
+            }
             timeSlider.addEventListener('input', handleTimeSliderChange);
         }
 
@@ -102,9 +258,8 @@ async function initializeDashboard() {
             console.error("No simulation data available to initialize charts");
             alert("Error: No simulation data available. Please check the server logs.");
         }
-
     } catch (error) {
-        console.error('Error initializing dashboard:', error);
+        console.error('Error loading dashboard data:', error);
         alert(`Failed to load dashboard data: ${error.message}`);
     }
 }
@@ -140,7 +295,20 @@ function updateCurrentTimeStep() {
 // Get current state at the selected time
 function getCurrentState() {
     if (!simulationData || simulationData.length === 0) return null;
-    return simulationData[Math.min(selectedTimeStep, simulationData.length - 1)];
+
+    // Find the closest time point
+    let closestState = simulationData[0];
+    let closestDiff = Math.abs(simulationData[0].Time - selectedTimeStep);
+
+    for (let i = 1; i < simulationData.length; i++) {
+        const diff = Math.abs(simulationData[i].Time - selectedTimeStep);
+        if (diff < closestDiff) {
+            closestDiff = diff;
+            closestState = simulationData[i];
+        }
+    }
+
+    return closestState;
 }
 
 // Get events up to current time
@@ -172,11 +340,17 @@ function initializeCharts() {
             return;
         }
 
+        // Clear any existing charts to avoid duplicates
+        Object.values(charts).forEach(chart => {
+            if (chart) chart.destroy();
+        });
+        charts = {};
+
         // Overview tab charts
         charts.civilization = createLineChart(
             'civilization-chart',
             simulationData.map(d => d.Time),
-            [{ 
+            [{
                 label: 'Civilization Count',
                 data: simulationData.map(d => d.Civilization_Count),
                 borderColor: 'rgba(75, 192, 192, 1)',
@@ -206,29 +380,25 @@ function initializeCharts() {
         // Event distribution pie chart
         const eventCounts = getEventTypeCounts();
         const eventTypes = Object.keys(eventCounts);
+        const eventData = eventTypes.map(type => eventCounts[type]);
 
-        const eventDistributionElement = document.getElementById('event-distribution-chart');
-        if (!eventDistributionElement) {
-            console.error("Event distribution chart element not found!");
-        } else {
-            charts.eventDistribution = new Chart(
-                eventDistributionElement,
-                {
-                    type: 'pie',
-                    data: {
-                        labels: eventTypes,
-                        datasets: [{
-                            data: Object.values(eventCounts),
-                            backgroundColor: eventTypes.map(type => eventColorMap[type] || 'rgba(0, 0, 0, 0.1)')
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false
-                    }
+        charts.eventDistribution = new Chart(
+            document.getElementById('event-distribution-chart'),
+            {
+                type: 'pie',
+                data: {
+                    labels: eventTypes,
+                    datasets: [{
+                        data: eventData,
+                        backgroundColor: eventTypes.map(type => eventColorMap[type] || 'rgba(0, 0, 0, 0.1)')
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
                 }
-            );
-        }
+            }
+        );
 
         // Intelligence & Truth chart
         charts.intelligenceTruth = createLineChart(
@@ -309,34 +479,29 @@ function initializeCharts() {
         const eventTypeLabels = Object.keys(eventColorMap);
         const eventTypeData = eventTypeLabels.map(type => eventCounts[type] || 0);
 
-        const eventTypesElement = document.getElementById('event-types-chart');
-        if (!eventTypesElement) {
-            console.error("Event types chart element not found!");
-        } else {
-            charts.eventTypes = new Chart(
-                eventTypesElement,
-                {
-                    type: 'bar',
-                    data: {
-                        labels: eventTypeLabels,
-                        datasets: [{
-                            label: 'Count',
-                            data: eventTypeData,
-                            backgroundColor: eventTypeLabels.map(type => eventColorMap[type])
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
+        charts.eventTypes = new Chart(
+            document.getElementById('event-types-chart'),
+            {
+                type: 'bar',
+                data: {
+                    labels: eventTypeLabels,
+                    datasets: [{
+                        label: 'Count',
+                        data: eventTypeData,
+                        backgroundColor: eventTypeLabels.map(type => eventColorMap[type])
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
                         }
                     }
                 }
-            );
-        }
+            }
+        );
 
         // Populate recent events table
         updateEventsTable();
@@ -364,34 +529,29 @@ function initializeCharts() {
                 stabilityData.Total_Collapses || 0
             ];
 
-            const stabilityMetricsElement = document.getElementById('stability-metrics-chart');
-            if (!stabilityMetricsElement) {
-                console.error("Stability metrics chart element not found!");
-            } else {
-                charts.stabilityMetrics = new Chart(
-                    stabilityMetricsElement,
-                    {
-                        type: 'bar',
-                        data: {
-                            labels: metricsLabels,
-                            datasets: [{
-                                label: 'Count',
-                                data: metricsValues,
-                                backgroundColor: 'rgba(136, 132, 216, 0.7)'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                y: {
-                                    beginAtZero: true
-                                }
+            charts.stabilityMetrics = new Chart(
+                document.getElementById('stability-metrics-chart'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels: metricsLabels,
+                        datasets: [{
+                            label: 'Count',
+                            data: metricsValues,
+                            backgroundColor: 'rgba(136, 132, 216, 0.7)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
                             }
                         }
                     }
-                );
-            }
+                }
+            );
         }
 
         console.log("Charts initialized successfully.");
@@ -466,7 +626,7 @@ function updateEventsTable() {
             row.innerHTML = `
                 <td>${event.time}</td>
                 <td><span class="badge bg-secondary">${event.type}</span></td>
-                <td>${event.description}</td>
+                <td>${event.description || `${event.type} event at time ${event.time}`}</td>
             `;
             tableBody.appendChild(row);
         });
@@ -488,16 +648,36 @@ function updateCharts() {
         // Update events distribution pie chart
         const eventCounts = getEventTypeCounts();
         const eventTypes = Object.keys(eventCounts);
+        const eventData = eventTypes.map(type => eventCounts[type]);
 
         if (charts.eventDistribution) {
             charts.eventDistribution.data.labels = eventTypes;
-            charts.eventDistribution.data.datasets[0].data = Object.values(eventCounts);
-            charts.eventDistribution.data.datasets[0].backgroundColor = eventTypes.map(type => eventColorMap[type] || 'rgba(0, 0, 0, 0.1)');
+            charts.eventDistribution.data.datasets[0].data = eventData;
+            charts.eventDistribution.data.datasets[0].backgroundColor =
+                eventTypes.map(type => eventColorMap[type] || 'rgba(0, 0, 0, 0.1)');
             charts.eventDistribution.update();
         }
 
         // Update events table
         updateEventsTable();
+
+        // Add vertical line at current time step to all line charts
+        const timeAnnotation = {
+            type: 'line',
+            mode: 'vertical',
+            scaleID: 'x',
+            value: selectedTimeStep,
+            borderColor: 'rgba(255, 0, 0, 0.7)',
+            borderWidth: 2,
+            label: {
+                content: 'Current',
+                enabled: true,
+                position: 'top'
+            }
+        };
+
+        // This would need a plugin to work, which we're not implementing here
+        // Charts would need to be recreated with proper annotations
     } catch (error) {
         console.error("Error updating charts:", error);
     }
