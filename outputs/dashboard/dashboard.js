@@ -15,6 +15,149 @@ const {
   AreaChart, Area, ComposedChart
 } = Recharts;  // Direct reference to global Recharts object
 
+/**
+ * Error Boundary Component
+ * Catches JavaScript errors anywhere in child component tree
+ */
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null,
+      errorInfo: null,
+      retryCount: 0
+    };
+  }
+
+  static getDerivedStateFromError(error) {
+    // Update state so the next render will show the fallback UI
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    // Log the error to console
+    console.error("Error caught by ErrorBoundary:", error, errorInfo);
+    this.setState({
+      error: error,
+      errorInfo: errorInfo
+    });
+  }
+
+  handleRetry = () => {
+    this.setState(prevState => ({
+      hasError: false,
+      retryCount: prevState.retryCount + 1
+    }));
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="bg-white p-6 rounded shadow text-center">
+          <h3 className="text-lg font-semibold mb-4">Something went wrong</h3>
+          <p className="text-gray-600 mb-4">We encountered an error while loading this component.</p>
+          <details className="mb-4 text-left">
+            <summary className="cursor-pointer text-blue-600">Error Details</summary>
+            <pre className="mt-2 p-3 bg-gray-100 rounded text-red-600 text-sm overflow-auto">
+              {this.state.error && this.state.error.toString()}
+            </pre>
+          </details>
+          <button
+            onClick={this.handleRetry}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      );
+    }
+
+    // Normally, just render children
+    return this.props.children;
+  }
+}
+
+/**
+ * API Utility Object
+ * Handles all API requests with error handling
+ */
+const api = {
+  /**
+   * Generic fetch wrapper with error handling
+   */
+  async fetchWithErrorHandling(url, options = {}) {
+    try {
+      const response = await fetch(url, options);
+
+      if (!response.ok) {
+        // Try to parse error message if available
+        let errorMessage;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || `Error: ${response.status} ${response.statusText}`;
+        } catch (e) {
+          errorMessage = `Error: ${response.status} ${response.statusText}`;
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error; // Re-throw to let components handle it
+    }
+  },
+
+  /**
+   * Helper to build URLs with query parameters
+   */
+  buildApiUrl(endpoint, params = {}) {
+    const url = new URL(endpoint, window.location.origin);
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined) {
+        url.searchParams.append(key, params[key]);
+      }
+    });
+    return url.toString();
+  },
+
+  /**
+   * Specific API methods
+   */
+  async getMetrics() {
+    return this.fetchWithErrorHandling('/api/meta/available_metrics');
+  },
+
+  async getSimulationData(params = {}) {
+    const url = this.buildApiUrl('/api/data/multi_civilization_statistics.csv', params);
+    return this.fetchWithErrorHandling(url);
+  },
+
+  async getEventData(params = {}) {
+    const url = this.buildApiUrl('/api/data/multi_civilization_events.csv', params);
+    return this.fetchWithErrorHandling(url);
+  },
+
+  async getStabilityData() {
+    return this.fetchWithErrorHandling('/api/data/multi_civilization_stability.csv');
+  },
+
+  async getCorrelationData() {
+    return this.fetchWithErrorHandling('/api/analysis/knowledge_suppression_correlation');
+  },
+
+  async getCivilizationComparison(params = {}) {
+    const url = this.buildApiUrl('/api/data/civilization_comparison', params);
+    return this.fetchWithErrorHandling(url);
+  },
+
+  async exportData(dataset) {
+    window.location.href = this.buildApiUrl('/api/export/csv', { dataset });
+  }
+};
+
 const MultiCivilizationDashboard = () => {
   // State variables
   const [simulationData, setSimulationData] = useState(null);
@@ -32,6 +175,7 @@ const MultiCivilizationDashboard = () => {
   const [downSampleFactor, setDownSampleFactor] = useState(1); // Default no downsampling
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [dataRefreshKey, setDataRefreshKey] = useState(0); // Used to force data refresh
 
   // Color configurations
   const colorMap = {
@@ -52,26 +196,12 @@ const MultiCivilizationDashboard = () => {
     'new_civilization': '#2196f3'
   };
 
-  // Helper function to construct API URLs with query parameters
-  const buildApiUrl = (endpoint, params = {}) => {
-    const url = new URL(endpoint, window.location.origin);
-    Object.keys(params).forEach(key => {
-      if (params[key] !== null && params[key] !== undefined) {
-        url.searchParams.append(key, params[key]);
-      }
-    });
-    return url.toString();
-  };
-
   // Load available metrics to understand what data is available
   useEffect(() => {
     const loadMetadata = async () => {
       try {
-        const response = await fetch('/api/meta/available_metrics');
-        if (!response.ok) {
-          throw new Error(`Failed to fetch metrics metadata: ${response.status}`);
-        }
-        const data = await response.json();
+        setLoading(true);
+        const data = await api.getMetrics();
         setAvailableMetrics(data);
 
         // Update time range based on available data
@@ -83,18 +213,23 @@ const MultiCivilizationDashboard = () => {
           // Set selected time step to the middle by default
           setSelectedTimeStep(Math.floor((data.time_range.min + data.time_range.max) / 2));
         }
+        setError(null);
       } catch (err) {
         console.error('Error loading metrics metadata:', err);
         setError(`Failed to load metrics information: ${err.message}`);
+      } finally {
+        setLoading(false);
       }
     };
 
     loadMetadata();
-  }, []);
+  }, [dataRefreshKey]);
 
   // Load simulation data
   useEffect(() => {
     const loadData = async () => {
+      if (!availableMetrics) return;
+
       try {
         setLoading(true);
         console.log("Fetching simulation data...");
@@ -107,53 +242,44 @@ const MultiCivilizationDashboard = () => {
           down_sample: downSampleFactor > 1 ? downSampleFactor : null
         };
 
-        // Fetch data from API endpoints with parameters
-        const statsUrl = buildApiUrl('/api/data/multi_civilization_statistics.csv', statsParams);
-        const statsResponse = await fetch(statsUrl);
-        if (!statsResponse.ok) {
-          throw new Error(`Failed to fetch statistics data: ${statsResponse.status}`);
-        }
-        const statsData = await statsResponse.json();
+        // Fetch data in parallel for better performance
+        const [statsData, eventsData, stabilityData, correlationData] = await Promise.all([
+          // Get statistics data
+          api.getSimulationData(statsParams),
+
+          // Get events data
+          api.getEventData({
+            time_start: timeRange.start,
+            time_end: timeRange.end
+          }),
+
+          // Get stability data
+          api.getStabilityData(),
+
+          // Get correlation data
+          api.getCorrelationData().catch(err => {
+            console.warn("Correlation data not available:", err);
+            return null;
+          })
+        ]);
+
+        // Log received data
         console.log("Received stats data:", statsData ? statsData.length : 0, "records");
-
-        // Fetch events data with filtering
-        const eventsParams = {
-          time_start: timeRange.start,
-          time_end: timeRange.end
-        };
-        const eventsUrl = buildApiUrl('/api/data/multi_civilization_events.csv', eventsParams);
-        const eventsResponse = await fetch(eventsUrl);
-        if (!eventsResponse.ok) {
-          throw new Error(`Failed to fetch events data: ${eventsResponse.status}`);
-        }
-        const eventsData = await eventsResponse.json();
         console.log("Received events data:", eventsData ? eventsData.length : 0, "records");
-
-        // Fetch stability data
-        const stabilityResponse = await fetch('/api/data/multi_civilization_stability.csv');
-        if (!stabilityResponse.ok) {
-          throw new Error(`Failed to fetch stability data: ${stabilityResponse.status}`);
-        }
-        const stabilityData = await stabilityResponse.json();
         console.log("Received stability data");
-
-        // Fetch correlation analysis data
-        const correlationResponse = await fetch('/api/analysis/knowledge_suppression_correlation');
-        if (!correlationResponse.ok) {
-          console.warn(`Note: Correlation data not available: ${correlationResponse.status}`);
-        } else {
-          const correlationData = await correlationResponse.json();
-          setCorrelationData(correlationData);
-        }
 
         // Update state with fetched data
         setSimulationData(statsData);
         setEventData(eventsData);
         setStabilityData(stabilityData);
-        setLoading(false);
+        if (correlationData) {
+          setCorrelationData(correlationData);
+        }
+        setError(null);
       } catch (err) {
         console.error('Error loading simulation data:', err);
         setError(`Failed to load simulation data: ${err.message}`);
+      } finally {
         setLoading(false);
       }
     };
@@ -161,7 +287,7 @@ const MultiCivilizationDashboard = () => {
     if (availableMetrics) {
       loadData();
     }
-  }, [timeRange, selectedMetrics, downSampleFactor, availableMetrics]);
+  }, [timeRange, selectedMetrics, downSampleFactor, availableMetrics, dataRefreshKey]);
 
   // Load civilization comparison data when changing time step
   useEffect(() => {
@@ -170,28 +296,27 @@ const MultiCivilizationDashboard = () => {
 
       try {
         // Fetch civilization comparison data
-        const comparisonParams = {
+        const comparisonData = await api.getCivilizationComparison({
           time: selectedTimeStep,
           metric: 'knowledge',
           count: 3
-        };
-        const comparisonUrl = buildApiUrl('/api/data/civilization_comparison', comparisonParams);
-        const comparisonResponse = await fetch(comparisonUrl);
+        });
 
-        if (!comparisonResponse.ok) {
-          console.warn(`Note: Comparison data not available: ${comparisonResponse.status}`);
-          return;
-        }
-
-        const comparisonData = await comparisonResponse.json();
         setComparisonData(comparisonData);
       } catch (err) {
-        console.error('Error loading comparison data:', err);
+        console.warn('Civilization comparison data not available:', err);
+        // We don't set the error state here as this is not critical
+        // Just leave the comparison data as null
       }
     };
 
     loadComparisonData();
   }, [selectedTimeStep, simulationData]);
+
+  // Function to retry data loading
+  const handleRetryDataLoad = () => {
+    setDataRefreshKey(prev => prev + 1); // This will trigger useEffect to run again
+  };
 
   // Time slider handler
   const handleTimeSliderChange = (event) => {
@@ -223,7 +348,7 @@ const MultiCivilizationDashboard = () => {
   const handleExportData = async (dataset) => {
     setIsExporting(true);
     try {
-      window.location.href = buildApiUrl('/api/export/csv', { dataset });
+      await api.exportData(dataset);
       // setTimeout to give the browser time to start the download
       setTimeout(() => setIsExporting(false), 1000);
     } catch (err) {
@@ -1150,6 +1275,7 @@ const MultiCivilizationDashboard = () => {
     );
   };
 
+  // Main rendering logic with loading and error states
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -1160,8 +1286,14 @@ const MultiCivilizationDashboard = () => {
 
   if (error) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-xl text-red-600">{error}</div>
+      <div className="flex flex-col justify-center items-center h-screen bg-gray-50 p-6">
+        <div className="text-xl text-red-600 mb-4">{error}</div>
+        <button
+          onClick={handleRetryDataLoad}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Retry Loading Data
+        </button>
       </div>
     );
   }
@@ -1173,18 +1305,37 @@ const MultiCivilizationDashboard = () => {
       {/* Navigation buttons */}
       {renderNavButtons()}
 
-      {/* Controls panel */}
-      {renderControls()}
+      {/* Wrap key components with ErrorBoundary */}
+      <ErrorBoundary>
+        {/* Controls panel */}
+        {renderControls()}
+      </ErrorBoundary>
 
-      {/* Time slider */}
-      {renderTimeSlider()}
+      <ErrorBoundary>
+        {/* Time slider */}
+        {renderTimeSlider()}
+      </ErrorBoundary>
 
-      {/* View specific content */}
-      {view === 'overview' && renderOverview()}
-      {view === 'civilizations' && renderCivilizations()}
-      {view === 'events' && renderEvents()}
-      {view === 'stability' && renderStability()}
-      {view === 'analysis' && renderAnalysis()}
+      {/* View specific content - each wrapped in ErrorBoundary */}
+      <ErrorBoundary>
+        {view === 'overview' && renderOverview()}
+      </ErrorBoundary>
+
+      <ErrorBoundary>
+        {view === 'civilizations' && renderCivilizations()}
+      </ErrorBoundary>
+
+      <ErrorBoundary>
+        {view === 'events' && renderEvents()}
+      </ErrorBoundary>
+
+      <ErrorBoundary>
+        {view === 'stability' && renderStability()}
+      </ErrorBoundary>
+
+      <ErrorBoundary>
+        {view === 'analysis' && renderAnalysis()}
+      </ErrorBoundary>
 
       <div className="mt-6 text-sm text-gray-600">
         {stabilityData?.Used_Dimensional_Analysis && (
@@ -1197,4 +1348,9 @@ const MultiCivilizationDashboard = () => {
   );
 };
 
-ReactDOM.render(<MultiCivilizationDashboard />, document.getElementById('root'));
+ReactDOM.render(
+  <ErrorBoundary>
+    <MultiCivilizationDashboard />
+  </ErrorBoundary>,
+  document.getElementById('root')
+);

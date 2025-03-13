@@ -275,6 +275,38 @@ def create_placeholder_data():
         raise
 
 
+def convert_numpy_types(obj):
+    """
+    Convert NumPy types to Python native types recursively.
+    Works with dictionaries, lists, and scalar values.
+
+    This helper ensures all JSON responses are properly serializable.
+    """
+    if isinstance(obj, dict):
+        return {k: convert_numpy_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_numpy_types(item) for item in obj]
+    elif isinstance(obj, (np.integer, np.int64, np.int32, np.int16, np.int8)):
+        return int(obj)
+    elif isinstance(obj, (np.floating, np.float64, np.float32, np.float16)):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return convert_numpy_types(obj.tolist())
+    elif isinstance(obj, np.bool_):
+        return bool(obj)
+    else:
+        return obj
+
+
+# Update your error handling to ensure consistent error format:
+
+def json_response(data, status=200):
+    """Create a Flask JSON response with proper error format."""
+    if status >= 400 and isinstance(data, dict) and 'error' not in data:
+        data = {'error': 'An error occurred'} if not data else data
+    converted_data = convert_numpy_types(data)
+    return jsonify(converted_data), status
+
 def interpret_correlation(correlation):
     """Provide a simple interpretation of the correlation value."""
     if correlation > 0.8:
@@ -338,14 +370,13 @@ def get_simulation_data():
         data = prepare_simulation_data()
         if not data:
             logger.warning("No simulation data available")
-            return jsonify([])
+            return json_response([])
 
-        response = jsonify(data)
         logger.info(f"Returning simulation data: {len(data)} records")
-        return response
+        return json_response(data)
     except Exception as e:
         logger.error(f"Error in simulation data API: {e}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
+        return json_response({"error": str(e)}, 500)
 
 
 @app.route('/api/data/multi_civilization_events.csv')
@@ -356,14 +387,13 @@ def get_event_data():
         data = prepare_event_data()
         if not data:
             logger.warning("No event data available")
-            return jsonify([])
+            return json_response([])
 
-        response = jsonify(data)
         logger.info(f"Returning event data: {len(data)} records")
-        return response
+        return json_response(data)
     except Exception as e:
         logger.error(f"Error in event data API: {e}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
+        return json_response({"error": str(e)}, 500)
 
 
 @app.route('/api/data/multi_civilization_stability.csv')
@@ -374,15 +404,26 @@ def get_stability_data():
         data = prepare_stability_data()
         if not data:
             logger.warning("No stability data available")
-            return jsonify({})
+            return json_response({})
 
-        response = jsonify(data)
         logger.info("Returning stability data")
-        return response
+        return json_response(data)
     except Exception as e:
         logger.error(f"Error in stability data API: {e}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
+        return json_response({"error": str(e)}, 500)
 
+# In your multi_civilization_dashboard.py, add a simple test endpoint:
+@app.route('/api/test/numpy-conversion')
+def test_numpy_conversion():
+    """Test endpoint for NumPy type conversion."""
+    import numpy as np
+    test_data = {
+        'int64': np.int64(42),
+        'float64': np.float64(3.14),
+        'array': np.array([1, 2, 3]),
+        'nested': {'array': np.array([4, 5, 6])}
+    }
+    return json_response(test_data)
 
 @app.route('/api/analysis/knowledge_suppression_correlation')
 def get_knowledge_suppression_correlation():
@@ -413,10 +454,10 @@ def get_knowledge_suppression_correlation():
             'interpretation': interpret_correlation(correlation)
         }
 
-        return jsonify(result)
+        return json_response(result)
     except Exception as e:
         logger.error(f"Error calculating correlation: {e}")
-        return jsonify({"error": str(e)}), 500
+        return json_response({"error": str(e)}, 500)
 
 
 @app.route('/api/data/civilization_comparison')
@@ -493,10 +534,10 @@ def get_civilization_comparison():
             }
         }
 
-        return jsonify(result)
+        return json_response(result)
     except Exception as e:
         logger.error(f"Error generating civilization comparison: {e}")
-        return jsonify({"error": str(e)}), 500
+        return json_response({"error": str(e)}, 500)
 
 
 @app.route('/api/meta/available_metrics')
@@ -511,7 +552,7 @@ def get_available_metrics():
         # Read statistics file to get column names
         stats_path = data_dir / "multi_civilization_statistics.csv"
         if not stats_path.exists():
-            return jsonify({"error": "Statistics file not found"}), 404
+            return json_response({"error": "Statistics file not found"}, 404)
 
         stats_df = pd.read_csv(stats_path)
 
@@ -551,10 +592,10 @@ def get_available_metrics():
             "last_updated": datetime.now().isoformat()
         }
 
-        return jsonify(result)
+        return json_response(result)
     except Exception as e:
         logger.error(f"Error getting available metrics: {e}")
-        return jsonify({"error": str(e)}), 500
+        return json_response({"error": str(e)}, 500)
 
 
 @app.route('/api/export/csv')
@@ -579,12 +620,12 @@ def export_csv():
             filename = "multi_civilization_stability.csv"
             content_filename = "simulation_stability.csv"
         else:
-            return jsonify({"error": "Invalid dataset specified"}), 400
+            return json_response({"error": "Invalid dataset specified"}, 400)
 
         # Read the file
         file_path = data_dir / filename
         if not file_path.exists():
-            return jsonify({"error": f"File not found: {filename}"}), 404
+            return json_response({"error": f"File not found: {filename}"}, 404)
 
         # Read the file content
         with open(file_path, 'r') as file:
@@ -597,7 +638,7 @@ def export_csv():
         return response
     except Exception as e:
         logger.error(f"Error exporting CSV: {e}")
-        return jsonify({"error": str(e)}), 500
+        return json_response({"error": str(e)}, 500)
 
 
 if __name__ == '__main__':
