@@ -21,7 +21,7 @@ parser.add_argument('--auto-run', action='store_true', help='Automatically run a
 args = parser.parse_args()
 
 # Ensure output directories exist
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
 data_dir = Path(args.data_dir) if args.data_dir else BASE_DIR / 'outputs' / 'data'
 dashboard_dir = BASE_DIR / 'outputs' / 'dashboard'
 dashboard_dir.mkdir(parents=True, exist_ok=True)

@@ -1,4 +1,3 @@
-import sys
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -14,7 +13,7 @@ parser.add_argument('--data-dir', type=str, default=None, help='Directory contai
 parser.add_argument('--auto-run', action='store_true', help='Automatically run a simulation if no data is found')
 args = parser.parse_args()
 
-# Ensure output directories exist - adjusted to use correct paths
+# Ensure output directories exist
 BASE_DIR = Path(__file__).resolve().parent
 data_dir = Path(args.data_dir) if args.data_dir else BASE_DIR / 'outputs' / 'data'
 dashboard_dir = BASE_DIR / 'outputs' / 'dashboard'
@@ -247,7 +246,6 @@ def get_stability_data():
     return jsonify(data)
 
 
-# Now the script just serves the existing files without trying to create new ones
 if __name__ == '__main__':
     print(f"Data directory: {data_dir}")
     print(f"Dashboard directory: {dashboard_dir}")
