@@ -1,6 +1,7 @@
+# utils/dimensional_consistency.py
+
 import numpy as np
 from enum import Enum
-
 
 class Dimension(Enum):
     """Enumeration of possible dimensions in the simulation."""
@@ -129,39 +130,79 @@ def validate_equation_dimensions(func):
 
 
 def check_dimensional_consistency(equations_dict_or_func):
-    """Check dimensional consistency across equations."""
+    """
+    Check dimensional consistency across equations.
+    Can be used as a decorator on a single function or called with a dictionary of functions.
+    """
+    # Initialize results dictionary
+    results = {}
+
     # If a single function is passed, convert to dict
     if callable(equations_dict_or_func):
-        equations_dict = {equations_dict_or_func.__name__: equations_dict_or_func}
+        func = equations_dict_or_func
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            # Call the original function
+            return func(*args, **kwargs)
+
+        equations_dict = {func.__name__: func}
+
+        # Perform the dimensional check
+        for name, equation in equations_dict.items():
+            try:
+                # This is simplified - in practice, you'd need to generate
+                # appropriate test inputs for each equation
+                test_inputs = generate_test_inputs(name)
+                output = equation(*test_inputs)
+
+                # Check if output has expected dimension
+                expected_dimension = get_expected_dimension(name)
+                if hasattr(output, 'dimension') and output.dimension != expected_dimension:
+                    results[name] = {
+                        "status": "Inconsistent",
+                        "expected": expected_dimension,
+                        "actual": output.dimension
+                    }
+                else:
+                    results[name] = {"status": "Consistent"}
+
+            except Exception as e:
+                results[name] = {
+                    "status": "Error",
+                    "message": str(e)
+                }
+
+        return wrapper
     else:
         equations_dict = equations_dict_or_func
 
-    # For each equation, check its inputs and outputs
-    for name, equation in equations_dict.items():
-        try:
-            # This is simplified - in practice, you'd need to generate
-            # appropriate test inputs for each equation
-            test_inputs = generate_test_inputs(name)
-            output = equation(*test_inputs)
+        # For each equation, check its inputs and outputs
+        for name, equation in equations_dict.items():
+            try:
+                # This is simplified - in practice, you'd need to generate
+                # appropriate test inputs for each equation
+                test_inputs = generate_test_inputs(name)
+                output = equation(*test_inputs)
 
-            # Check if output has expected dimension
-            expected_dimension = get_expected_dimension(name)
-            if hasattr(output, 'dimension') and output.dimension != expected_dimension:
+                # Check if output has expected dimension
+                expected_dimension = get_expected_dimension(name)
+                if hasattr(output, 'dimension') and output.dimension != expected_dimension:
+                    results[name] = {
+                        "status": "Inconsistent",
+                        "expected": expected_dimension,
+                        "actual": output.dimension
+                    }
+                else:
+                    results[name] = {"status": "Consistent"}
+
+            except Exception as e:
                 results[name] = {
-                    "status": "Inconsistent",
-                    "expected": expected_dimension,
-                    "actual": output.dimension
+                    "status": "Error",
+                    "message": str(e)
                 }
-            else:
-                results[name] = {"status": "Consistent"}
 
-        except Exception as e:
-            results[name] = {
-                "status": "Error",
-                "message": str(e)
-            }
-
-    return results
+        return results
 
 
 def generate_test_inputs(equation_name):

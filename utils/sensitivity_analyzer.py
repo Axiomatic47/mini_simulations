@@ -1,3 +1,5 @@
+# utils/sensitivity_analyzer.py
+
 """
 Parameter sensitivity analysis utilities for the Axiomatic Intelligence Growth Simulation.
 """
