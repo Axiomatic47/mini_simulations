@@ -1,0 +1,94 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Parameter Sensitivity Analysis Report</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1200px; margin: 0 auto; padding: 20px; }
+                h1, h2, h3 { color: #2c3e50; }
+                .section { margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+                .image-container { margin: 20px 0; text-align: center; }
+                img { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; }
+                table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #f2f2f2; }
+                tr:nth-child(even) { background-color: #f9f9f9; }
+                .footer { margin-top: 40px; text-align: center; font-size: 0.8em; color: #777; }
+            </style>
+        </head>
+        <body>
+            <h1>Parameter Sensitivity Analysis Report</h1>
+            <p>Generated on: 2025-03-12 20:14:42</p>
+
+            <div class="section">
+                <h2>Executive Summary</h2>
+                <p>This report analyzes the sensitivity of simulation outputs to changes in input parameters.</p>
+            </div>
+
+            <div class="section">
+                <h2>Parameter Importance</h2>
+                <p>The chart below shows the relative importance of each parameter:</p>
+                <div class="image-container">
+                    <img src="parameter_importance.png" alt="Parameter Importance">
+                </div>
+
+                <h3>Parameter Importance Values</h3>
+                <table>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Importance</th>
+                    </tr>
+        
+                    <tr>
+                        <td>W_0</td>
+                        <td>0.8843</td>
+                    </tr>
+            
+                    <tr>
+                        <td>ALPHA_WISDOM</td>
+                        <td>0.0678</td>
+                    </tr>
+            
+                    <tr>
+                        <td>GAMMA_PHASE</td>
+                        <td>0.0479</td>
+                    </tr>
+            
+                </table>
+            </div>
+
+            <div class="section">
+                <h2>Tornado Plots</h2>
+                <p>These plots show how varying each parameter affects specific metrics:</p>
+        
+                <h3>Impact on final_knowledge</h3>
+                <div class="image-container">
+                    <img src="tornado_final_knowledge.png" alt="Tornado Plot for final_knowledge">
+                </div>
+            
+                <h3>Impact on convergence_time</h3>
+                <div class="image-container">
+                    <img src="tornado_convergence_time.png" alt="Tornado Plot for convergence_time">
+                </div>
+            
+                <h3>Impact on stability_index</h3>
+                <div class="image-container">
+                    <img src="tornado_stability_index.png" alt="Tornado Plot for stability_index">
+                </div>
+            
+            </div>
+
+            <div class="section">
+                <h2>Parameter-Metric Sensitivity Heatmap</h2>
+                <p>This heatmap shows the correlation between parameters and metrics:</p>
+                <div class="image-container">
+                    <img src="sensitivity_heatmap.png" alt="Sensitivity Heatmap">
+                </div>
+            </div>
+        
+            <div class="footer">
+                <p>Generated using ParameterSensitivityAnalyzer</p>
+            </div>
+        </body>
+        </html>
+        

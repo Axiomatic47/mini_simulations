@@ -33,7 +33,7 @@ class ParameterSensitivityAnalyzer:
             random_seed: Random seed for reproducibility
         """
         self.simulation_function = simulation_function
-        self.metrics = metrics
+        self.metrics = metrics if isinstance(metrics, list) else [metrics]
         self.base_parameters = base_parameters
         self.random_seed = random_seed
 
@@ -76,14 +76,21 @@ class ParameterSensitivityAnalyzer:
         for param, (min_val, max_val, num_points) in self.parameter_ranges.items():
             parameter_values[param] = np.linspace(min_val, max_val, num_points)
 
+        # Run baseline simulation first
+        baseline_params = self._fix_parameter_types(self.base_parameters.copy())
+        baseline_params['parameter'] = 'baseline'
+        baseline_params['value'] = 'baseline'
+        baseline_result = self._run_single_simulation(baseline_params)
+
         # Generate parameter sets
         parameter_sets = []
         for param, values in parameter_values.items():
             for value in values:
                 # Create parameter set with base values and one changed parameter
                 params = self.base_parameters.copy()
-                params[param] = value
-                params['changed_parameter'] = param
+                params[param] = float(value)  # Convert to float to avoid numpy type issues
+                params['parameter'] = param
+                params['value'] = float(value)
                 parameter_sets.append(params)
 
         # Run simulations
@@ -91,6 +98,10 @@ class ParameterSensitivityAnalyzer:
             results = self._run_parallel_simulations(parameter_sets)
         else:
             results = self._run_sequential_simulations(parameter_sets)
+
+        # Add baseline result if it exists
+        if baseline_result is not None:
+            results.insert(0, baseline_result)
 
         # Convert to DataFrame
         results_df = pd.DataFrame(results)
@@ -312,71 +323,63 @@ class ParameterSensitivityAnalyzer:
         elif metric not in self.metrics:
             raise ValueError(f"Metric {metric} not in available metrics: {self.metrics}")
 
-        # Calculate baseline value
-        baseline_mask = True
-        for param in self.parameter_ranges:
-            baseline_mask &= (self.results[param] == self.base_parameters[param])
-        baseline_value = self.results.loc[baseline_mask, metric].values[0] if baseline_mask.any() else 0
+        # Get tornado plot data
+        tornado_data = self.calculate_tornado_plot_data(metric)
 
-        # Calculate parameter impacts
-        impacts = {}
-        for param, (min_val, max_val, _) in self.parameter_ranges.items():
-            min_mask = (self.results[param] == min_val) & (self.results['changed_parameter'] == param)
-            max_mask = (self.results[param] == max_val) & (self.results['changed_parameter'] == param)
-
-            if min_mask.any() and max_mask.any():
-                min_value = self.results.loc[min_mask, metric].values[0]
-                max_value = self.results.loc[max_mask, metric].values[0]
-                impacts[param] = (min_value - baseline_value, max_value - baseline_value)
-
-        # Sort by absolute impact
-        sorted_impacts = sorted(
-            impacts.items(),
-            key=lambda x: max(abs(x[1][0]), abs(x[1][1])),
-            reverse=True
-        )
+        if tornado_data.empty:
+            print(f"No data available for tornado plot of {metric}")
+            return None
 
         # Limit to top N if specified
-        if top_n is not None:
-            sorted_impacts = sorted_impacts[:top_n]
+        if top_n is not None and len(tornado_data) > top_n:
+            tornado_data = tornado_data.head(top_n)
 
         # Create plot
         fig, ax = plt.subplots(figsize=figsize)
 
         # Plot parameters
-        param_names = [p[0] for p in sorted_impacts]
+        param_names = tornado_data['parameter'].tolist()
         y_pos = np.arange(len(param_names))
 
-        # Plot bars
-        for i, (param, (min_impact, max_impact)) in enumerate(sorted_impacts):
+        # Plot bars for min and max differences
+        for i, (_, row) in enumerate(tornado_data.iterrows()):
             # Plot decreasing impact in blue
             ax.barh(
                 y_pos[i],
-                min_impact if min_impact < 0 else 0,
+                row['min_diff'],
                 align='center',
                 color='blue',
                 alpha=0.6,
-                height=0.5
+                height=0.5,
+                label='Low Value' if i == 0 else None
             )
 
             # Plot increasing impact in red
             ax.barh(
                 y_pos[i],
-                max_impact if max_impact > 0 else 0,
+                row['max_diff'],
                 align='center',
                 color='red',
                 alpha=0.6,
-                height=0.5
+                height=0.5,
+                label='High Value' if i == 0 else None
             )
 
         # Customize plot
         ax.set_yticks(y_pos)
-        ax.set_yticklabels(param_names)
+        param_labels = [f"{row['parameter']}\n({row['low_value']:.2f} to {row['high_value']:.2f})"
+                       for _, row in tornado_data.iterrows()]
+        ax.set_yticklabels(param_labels)
+
         ax.invert_yaxis()  # Highest values at top
         ax.set_xlabel(f'Change in {metric}')
         ax.set_title(f'Tornado Plot - Impact on {metric}')
         ax.axvline(x=0, color='black', linestyle='-', alpha=0.3)
         ax.grid(True, alpha=0.3)
+
+        # Add legend if we have any data
+        if len(param_names) > 0:
+            ax.legend()
 
         return fig
 
@@ -526,15 +529,18 @@ class ParameterSensitivityAnalyzer:
             # Tornado plot for each metric
             for metric in self.metrics:
                 fig = self.generate_tornado_plot(metric=metric)
-                if output_dir is not None:
+                if fig is not None and output_dir is not None:
                     plt.savefig(os.path.join(output_dir, f"tornado_{metric}.png"), dpi=300)
-                plt.close(fig)
+                plt.close(fig) if fig is not None else None
 
             # Sensitivity heatmap
-            fig = self.generate_sensitivity_heatmap()
-            if output_dir is not None:
-                plt.savefig(os.path.join(output_dir, "sensitivity_heatmap.png"), dpi=300)
-            plt.close(fig)
+            try:
+                fig = self.generate_sensitivity_heatmap()
+                if fig is not None and output_dir is not None:
+                    plt.savefig(os.path.join(output_dir, "sensitivity_heatmap.png"), dpi=300)
+                plt.close(fig) if fig is not None else None
+            except Exception as e:
+                print(f"Could not generate sensitivity heatmap: {e}")
 
             # Parameter importance
             importance = self.calculate_parameter_importance()
@@ -551,9 +557,9 @@ class ParameterSensitivityAnalyzer:
             try:
                 if self.global_results is not None or self.interaction_effects:
                     fig = self.generate_interaction_network()
-                    if output_dir is not None:
+                    if fig is not None and output_dir is not None:
                         plt.savefig(os.path.join(output_dir, "interaction_network.png"), dpi=300)
-                    plt.close(fig)
+                    plt.close(fig) if fig is not None else None
             except Exception as e:
                 print(f"Could not generate interaction network: {e}")
 
@@ -573,6 +579,105 @@ class ParameterSensitivityAnalyzer:
             else:
                 return None
 
+    def calculate_tornado_plot_data(self, metric):
+        """
+        Calculate data for tornado plot for a specific metric.
+
+        Parameters:
+            metric: The metric to calculate tornado plot data for
+
+        Returns:
+            DataFrame with tornado plot data
+        """
+        import pandas as pd
+
+        # Check if we have results
+        if self.results is None or self.results.empty:
+            return pd.DataFrame()
+
+        # Find baseline value for this metric
+        baseline_row = self.results[self.results['parameter'] == 'baseline']
+        if baseline_row.empty or metric not in baseline_row.columns:
+            # If no baseline, use mean value
+            baseline_value = self.results[metric].mean() if metric in self.results.columns else 0
+        else:
+            baseline_value = baseline_row[metric].iloc[0]
+
+        tornado_data = []
+
+        # Process each parameter
+        for param_name in self.parameter_ranges.keys():
+            # Get rows for this parameter
+            param_rows = self.results[self.results['parameter'] == param_name]
+
+            if param_rows.empty or metric not in param_rows.columns:
+                continue
+
+            # Get min and max values and their effects
+            min_val = param_rows['value'].min()
+            max_val = param_rows['value'].max()
+
+            # Find the results for min and max values
+            min_val_row = param_rows[param_rows['value'] == min_val]
+            max_val_row = param_rows[param_rows['value'] == max_val]
+
+            if min_val_row.empty or max_val_row.empty:
+                continue
+
+            min_result = min_val_row[metric].iloc[0]
+            max_result = max_val_row[metric].iloc[0]
+
+            # Calculate differences from baseline
+            min_diff = min_result - baseline_value
+            max_diff = max_result - baseline_value
+
+            # Calculate range (needed for proper sorting)
+            range_val = abs(max_result - min_result)
+
+            tornado_data.append({
+                'parameter': param_name,
+                'min_diff': min_diff,
+                'max_diff': max_diff,
+                'range': range_val,
+                'low_value': min_val,
+                'high_value': max_val
+            })
+
+        # Convert to DataFrame and sort by range
+        tornado_df = pd.DataFrame(tornado_data)
+        if not tornado_df.empty:
+            tornado_df = tornado_df.sort_values('range', ascending=False)
+
+        return tornado_df
+
+    def _fix_parameter_types(self, params):
+        """
+        Convert parameter values to compatible types to prevent type errors.
+
+        Args:
+            params: Dictionary of parameters
+
+        Returns:
+            Dictionary with safely converted parameter types
+        """
+        # Create a copy to avoid modifying the original
+        clean_params = {}
+
+        for key, value in params.items():
+            # Convert NumPy numeric types to Python native types
+            if isinstance(value, (np.int8, np.int16, np.int32, np.int64)):
+                clean_params[key] = int(value)
+            elif isinstance(value, (np.float16, np.float32, np.float64)):
+                clean_params[key] = float(value)
+            # Keep strings as strings but don't mix with numeric operations
+            elif isinstance(value, str):
+                clean_params[key] = value
+            # For other types, keep as is
+            else:
+                clean_params[key] = value
+
+        return clean_params
+
     def _generate_random_samples(self, problem, samples):
         """Generate random samples for parameters."""
         num_vars = problem['num_vars']
@@ -591,13 +696,9 @@ class ParameterSensitivityAnalyzer:
         for params in tqdm(parameter_sets, desc="Running simulations"):
             try:
                 # Run simulation
-                sim_result = self.simulation_function(params)
-
-                # Add parameters to result
-                result = params.copy()
-                result.update(sim_result)
-
-                results.append(result)
+                sim_result = self._run_single_simulation(params)
+                if sim_result is not None:
+                    results.append(sim_result)
             except Exception as e:
                 print(f"Error running simulation with parameters {params}: {e}")
 
@@ -631,11 +732,14 @@ class ParameterSensitivityAnalyzer:
     def _run_single_simulation(self, params):
         """Run a single simulation and handle errors."""
         try:
+            # Fix parameter types before running simulation
+            clean_params = self._fix_parameter_types(params)
+
             # Run simulation
-            sim_result = self.simulation_function(params)
+            sim_result = self.simulation_function(clean_params)
 
             # Add parameters to result
-            result = params.copy()
+            result = clean_params.copy()
             result.update(sim_result)
 
             return result
@@ -662,7 +766,7 @@ class ParameterSensitivityAnalyzer:
                     continue
 
                 # Calculate correlation for this parameter-metric pair
-                mask = self.results['changed_parameter'] == param
+                mask = self.results['parameter'] == param
                 if mask.any():
                     df = self.results.loc[mask, [param, metric]]
                     if len(df) > 1:
@@ -747,33 +851,6 @@ class ParameterSensitivityAnalyzer:
                 if p1 in self.global_results.columns and p2 in self.global_results.columns:
                     interaction_strength = self._calculate_pair_interaction(p1, p2)
                     self.interaction_effects.append((p1, p2, interaction_strength))
-
-    def calculate_tornado_plot_data(self, metric):
-        """
-        Calculate data for tornado plot for a specific metric.
-
-        Parameters:
-            metric: The metric to calculate tornado plot data for
-
-        Returns:
-            DataFrame with tornado plot data
-        """
-        if not hasattr(self, 'sensitivity_results') or self.sensitivity_results is None:
-            return pd.DataFrame()
-
-        data = []
-        for param, param_data in self.sensitivity_results.items():
-            if metric in param_data:
-                values = param_data[metric]
-                min_change = self.base_result[metric] - min(values)
-                max_change = max(values) - self.base_result[metric]
-                data.append({
-                    'parameter': param,
-                    'min_change': min_change,
-                    'max_change': max_change
-                })
-
-        return pd.DataFrame(data)
 
     def _calculate_pair_interaction(self, p1, p2):
         """Calculate interaction strength between two parameters."""

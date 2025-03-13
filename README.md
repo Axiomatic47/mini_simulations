@@ -1,6 +1,6 @@
 # Axiomatic Intelligence Growth Simulation Framework
 
-This project implements a mathematical framework for modeling intelligence growth, truth adoption, and suppression dynamics using parallels to fundamental physics principles. The framework includes comprehensive numerical stability safeguards to ensure reliable simulation results.
+This project implements a mathematical framework for modeling intelligence growth, truth adoption, and suppression dynamics using parallels to fundamental physics principles. The framework includes comprehensive numerical stability safeguards to ensure reliable simulation results and a visualization dashboard to explore the data.
 
 ## Directory Structure
 
@@ -32,7 +32,7 @@ mini_axiomatic_simulation/
 ├── outputs/               # Generated outputs from simulations
 │   ├── data/              # CSV data files
 │   ├── plots/             # Generated plots
-│   └── fixed_functions/   # Auto-fixed function implementations
+│   └── dashboard/         # Dashboard files
 │
 ├── simulations/           # Simulation scripts
 │   ├── comprehensive_simulation.py  # All core dynamics
@@ -52,6 +52,11 @@ mini_axiomatic_simulation/
 │   ├── test_quantum_em_extensions.py  # Quantum extension tests
 │   └── test_cross_level_coupling.py  # Cross-level validation tests
 │
+├── dashboard/             # Multi-civilization dashboard
+│   ├── minimal_dashboard.py  # Main dashboard application
+│   ├── static/            # Static dashboard assets
+│   └── templates/         # HTML templates
+│
 ├── run_tests.py          # Python test runner script
 ├── run_tests.sh          # Bash test runner script
 └── README.md             # This file
@@ -70,9 +75,43 @@ The framework models societal dynamics as analogies to fundamental physics princ
 7. **Astrophysics**: Civilization lifecycle analogies to stellar evolution
 8. **Multi-Civilization Dynamics**: Interactions between civilization groups across conceptual space
 
+## Multi-Civilization Dashboard
+
+The project includes an interactive visualization dashboard for exploring multi-civilization simulation data. This dashboard provides real-time insights into simulation dynamics including knowledge growth, suppression effects, civilization interactions, and event tracking.
+
+### Dashboard Features
+
+- **Interactive Time Navigation**: Explore simulation data across different time steps
+- **Multiple Visualization Views**: Overview, Civilizations, Events, and Stability tabs
+- **Real-time Data Updates**: View simulation statistics as they evolve
+- **Event Tracking**: Monitor important events like mergers, collisions, and collapses
+- **Knowledge & Suppression Analytics**: Visualize how these key metrics interact
+- **Stability Metrics**: Track simulation stability and circuit breaker activations
+
+### Running the Dashboard
+
+To launch the dashboard:
+
+```bash
+# Navigate to the dashboard directory
+cd dashboard
+
+# Run the dashboard application
+python minimal_dashboard.py
+```
+
+Then access the dashboard in your web browser at: http://127.0.0.1:5000
+
+### Dashboard Architecture
+
+The dashboard uses a Flask backend with a modern frontend built on:
+- **Chart.js**: For high-performance data visualization
+- **Bootstrap**: For responsive UI components
+- **REST API**: For data exchange between the simulation and visualization layers
+
 ## Comprehensive Validation Framework
 
-The framework now includes an extensive validation system with five key components:
+The framework includes an extensive validation system with five key components:
 
 1. **Dimensionality Mismatch Handler**: Automatically detects and fixes array dimension inconsistencies
    - Verifies array dimensions match expected shapes
@@ -266,6 +305,17 @@ Numerical stability utility providing:
 - Status reporting (`get_status_report`)
 - Comprehensive result validation (`check_and_fix`)
 
+### Dashboard (dashboard/minimal_dashboard.py)
+
+Interactive visualization dashboard with:
+
+- Flask-based web server for data delivery
+- Chart.js visualizations for real-time data exploration
+- Bootstrap UI for responsive design
+- Multiple visualization perspectives on simulation data
+- Interactive time navigation controls
+- Event tracking and analysis capabilities
+
 ## Using Numerical Stability Features
 
 To incorporate stability features in your simulations:
@@ -402,6 +452,25 @@ To add new physics-based analogies:
 3. Create a simulation script in the `simulations` directory
 4. Import your new models and integrate them with existing dynamics
 5. Add appropriate tests in the `tests` directory
+
+## Extending the Dashboard
+
+To enhance the visualization dashboard:
+
+1. **Add new visualizations**:
+   - Create new chart configurations in the dashboard.js file
+   - Add new HTML elements in the index.html template
+   - Ensure proper data transformation in the Python backend
+
+2. **Implement persistent storage**:
+   - Add database integration for storing simulation results
+   - Create data retrieval endpoints in the Flask application
+   - Enable historical data comparison in the visualization
+
+3. **Deploy to production**:
+   - Set up proper WSGI server (Gunicorn/uWSGI)
+   - Configure for HTTPS using proper certificates
+   - Implement user authentication if needed
 
 ## Credits
 
