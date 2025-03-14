@@ -1,0 +1,5 @@
+Function,Status,Notes
+historical_intelligence_growth,Error,Cannot subtract <class 'int'> from DimensionalValue
+historical_truth_adoption,Error,Cannot subtract <class 'int'> from DimensionalValue
+historical_suppression_feedback,Error,Cannot subtract <class 'int'> from DimensionalValue
+historical_civilization_oscillation,Error,Cannot subtract <class 'int'> from DimensionalValue

@@ -1,14 +1,10 @@
-"""
-Weak Nuclear Physics Domain
+# physics_domains/weak_nuclear/__init__.py
 
-This module contains functions that model suppression feedback and resistance
-resurgence dynamics using principles from weak nuclear forces.
-"""
-
-from .resistance_resurgence import resistance_resurgence
 from .suppression_feedback import suppression_feedback
+from .resistance_resurgence import resistance_resurgence
 
+# Export all functions
 __all__ = [
-    'resistance_resurgence',
     'suppression_feedback',
+    'resistance_resurgence',
 ]

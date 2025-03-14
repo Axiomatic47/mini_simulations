@@ -10,11 +10,12 @@ sys.path.insert(0, str(project_root))
 # Now we can import from utils
 from utils.edge_case_checker import EdgeCaseChecker
 
-# Import from config
-from config.equations import (
-    intelligence_growth, truth_adoption, wisdom_field,
-    resistance_resurgence, suppression_feedback
-)
+# Import directly from physics domains
+from physics_domains.thermodynamics.intelligence_growth import intelligence_growth
+from physics_domains.relativity.truth_adoption import truth_adoption
+from physics_domains.electromagnetism.wisdom_field import wisdom_field
+from physics_domains.weak_nuclear.resistance_resurgence import resistance_resurgence
+from physics_domains.weak_nuclear.suppression_feedback import suppression_feedback
 
 
 def generate_circuit_breaker_version_of_intelligence_growth():

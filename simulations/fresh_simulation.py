@@ -7,12 +7,15 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-# Import from config directory
-from config.equations import (
-    intelligence_growth, free_will_decision, truth_adoption,
-    wisdom_field, resistance_resurgence, suppression_feedback,
-    civilization_oscillation, knowledge_growth_phase_transition
-)
+# Import directly from physics domains
+from physics_domains.thermodynamics.intelligence_growth import intelligence_growth
+from physics_domains.electromagnetism.free_will_decision import free_will_decision
+from physics_domains.relativity.truth_adoption import truth_adoption
+from physics_domains.electromagnetism.wisdom_field import wisdom_field
+from physics_domains.weak_nuclear.resistance_resurgence import resistance_resurgence
+from physics_domains.weak_nuclear.suppression_feedback import suppression_feedback
+from physics_domains.strong_nuclear.civilization_oscillation import civilization_oscillation
+from physics_domains.thermodynamics.knowledge_growth_phase_transition import knowledge_growth_phase_transition
 
 # Import circuit breaker for numerical stability
 from utils.circuit_breaker import CircuitBreaker

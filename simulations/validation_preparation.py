@@ -2,7 +2,6 @@
 import sys
 import os
 from pathlib import Path
-
 # Add the project root to the Python path
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
@@ -14,22 +13,33 @@ from utils.cross_level_validator import CrossLevelValidator
 from utils.edge_case_checker import EdgeCaseChecker
 from utils.dimensional_consistency import check_dimensional_consistency, Dimension, DimensionalValue
 
-# Import equation functions
-from config.equations import (
-    intelligence_growth, truth_adoption, wisdom_field,
-    resistance_resurgence, suppression_feedback
-)
+# Import equation functions from physics domains
+from physics_domains.thermodynamics.intelligence_growth import intelligence_growth
+from physics_domains.relativity.truth_adoption import truth_adoption
+from physics_domains.electromagnetism.wisdom_field import wisdom_field
+from physics_domains.weak_nuclear.resistance_resurgence import resistance_resurgence
+from physics_domains.weak_nuclear.suppression_feedback import suppression_feedback
 
 # Try to import stabilized versions if available
 try:
-    from config.stabilized_equations import (
-        intelligence_growth as intelligence_growth_stabilized,
-        truth_adoption as truth_adoption_stabilized,
-        wisdom_field as wisdom_field_stabilized,
-        resistance_resurgence as resistance_resurgence_stabilized,
-        suppression_feedback as suppression_feedback_stabilized,
-        wisdom_field_enhanced
-    )
+    # Try to import stabilized versions from physics domains first
+    try:
+        from physics_domains.thermodynamics.intelligence_growth_stabilized import intelligence_growth as intelligence_growth_stabilized
+        from physics_domains.relativity.truth_adoption_stabilized import truth_adoption as truth_adoption_stabilized
+        from physics_domains.electromagnetism.wisdom_field_stabilized import wisdom_field as wisdom_field_stabilized
+        from physics_domains.weak_nuclear.resistance_resurgence_stabilized import resistance_resurgence as resistance_resurgence_stabilized
+        from physics_domains.weak_nuclear.suppression_feedback_stabilized import suppression_feedback as suppression_feedback_stabilized
+        from physics_domains.electromagnetism.wisdom_field_enhanced import wisdom_field_enhanced
+    except ImportError:
+        # Fallback to config imports
+        from config.stabilized_equations import (
+            intelligence_growth as intelligence_growth_stabilized,
+            truth_adoption as truth_adoption_stabilized,
+            wisdom_field as wisdom_field_stabilized,
+            resistance_resurgence as resistance_resurgence_stabilized,
+            suppression_feedback as suppression_feedback_stabilized,
+            wisdom_field_enhanced
+        )
 
     stabilized_available = True
     print("Stabilized equations are available for comparison.")
@@ -39,10 +49,17 @@ except ImportError:
 
 # Try to import extensions if available
 try:
-    from config.quantum_em_extensions import (
-        knowledge_field_influence, quantum_entanglement_correlation,
-        quantum_tunneling_probability
-    )
+    # Try to import from physics domains first
+    try:
+        from physics_domains.electromagnetism.knowledge_field_influence import knowledge_field_influence
+        from physics_domains.quantum_mechanics.quantum_entanglement_correlation import quantum_entanglement_correlation
+        from physics_domains.quantum_mechanics.quantum_tunneling_probability import quantum_tunneling_probability
+    except ImportError:
+        # Fallback to config imports
+        from config.quantum_em_extensions import (
+            knowledge_field_influence, quantum_entanglement_correlation,
+            quantum_tunneling_probability
+        )
 except ImportError:
     print("Quantum extensions not found. Some validation will be limited.")
     knowledge_field_influence = lambda *args: 0
@@ -50,9 +67,15 @@ except ImportError:
     quantum_tunneling_probability = lambda *args: 0
 
 try:
-    from config.astrophysics_extensions import (
-        civilization_lifecycle_phase, suppression_event_horizon
-    )
+    # Try to import from physics domains first
+    try:
+        from physics_domains.astrophysics.civilization_lifecycle_phase import civilization_lifecycle_phase
+        from physics_domains.astrophysics.suppression_event_horizon import suppression_event_horizon
+    except ImportError:
+        # Fallback to config imports
+        from config.astrophysics_extensions import (
+            civilization_lifecycle_phase, suppression_event_horizon
+        )
 except ImportError:
     print("Astrophysics extensions not found. Some validation will be limited.")
     civilization_lifecycle_phase = lambda *args: (0, 0)

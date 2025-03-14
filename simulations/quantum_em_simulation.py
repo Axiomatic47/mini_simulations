@@ -11,20 +11,23 @@ import matplotlib.gridspec as gridspec
 # Add parent directory to path to find modules
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-# Import original equations and astrophysics extensions
-from config.equations import (
-    intelligence_growth, truth_adoption, wisdom_field,
-    resistance_resurgence, suppression_feedback,
-    civilization_oscillation, knowledge_growth_phase_transition
-)
+# Import from physics domains - core functions
+from physics_domains.thermodynamics.intelligence_growth import intelligence_growth
+from physics_domains.relativity.truth_adoption import truth_adoption
+from physics_domains.electromagnetism.wisdom_field import wisdom_field
+from physics_domains.weak_nuclear.resistance_resurgence import resistance_resurgence
+from physics_domains.weak_nuclear.suppression_feedback import suppression_feedback
+from physics_domains.strong_nuclear.civilization_oscillation import civilization_oscillation
+from physics_domains.thermodynamics.knowledge_growth_phase_transition import knowledge_growth_phase_transition
 
-# Import astrophysics extensions
-from config.astrophysics_extensions import (
-    civilization_lifecycle_phase, suppression_event_horizon,
-    cosmic_background_knowledge, knowledge_inflation,
-    knowledge_gravitational_lensing, dark_energy_knowledge_acceleration,
-    galactic_structure_model
-)
+# Import from physics domains - astrophysics extensions
+from physics_domains.astrophysics.civilization_lifecycle_phase import civilization_lifecycle_phase
+from physics_domains.astrophysics.suppression_event_horizon import suppression_event_horizon
+from physics_domains.astrophysics.cosmic_background_knowledge import cosmic_background_knowledge
+from physics_domains.astrophysics.knowledge_inflation import knowledge_inflation
+from physics_domains.astrophysics.knowledge_gravitational_lensing import knowledge_gravitational_lensing
+from physics_domains.astrophysics.dark_energy_knowledge_acceleration import dark_energy_knowledge_acceleration
+from physics_domains.astrophysics.galactic_structure_model import galactic_structure_model
 
 # Import circuit breaker for numerical stability
 from utils.circuit_breaker import CircuitBreaker

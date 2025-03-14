@@ -1,5 +1,7 @@
 from utils.sensitivity_analyzer import ParameterSensitivityAnalyzer
-from config.equations import intelligence_growth, truth_adoption, wisdom_field
+from physics_domains.thermodynamics.intelligence_growth import intelligence_growth
+from physics_domains.relativity.truth_adoption import truth_adoption
+from physics_domains.electromagnetism.wisdom_field import wisdom_field
 
 
 # Import other needed functions

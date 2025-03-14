@@ -1,12 +1,8 @@
-"""
-Thermodynamics Physics Domain
-
-This module contains functions that model intelligence growth and energy
-transformations in knowledge systems using thermodynamic principles.
-"""
+# physics_domains/thermodynamics/__init__.py
 
 from .intelligence_growth import intelligence_growth
 
+# Export all functions
 __all__ = [
     'intelligence_growth',
 ]

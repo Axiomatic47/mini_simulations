@@ -12,23 +12,24 @@ import matplotlib.gridspec as gridspec
 # Add parent directory to path to find modules
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-# Import regular extensions
-from config.equations import (
-    intelligence_growth, truth_adoption, wisdom_field,
-    resistance_resurgence, suppression_feedback
-)
+# Import from physics domains - core functions
+from physics_domains.thermodynamics.intelligence_growth import intelligence_growth
+from physics_domains.relativity.truth_adoption import truth_adoption
+from physics_domains.electromagnetism.wisdom_field import wisdom_field
+from physics_domains.weak_nuclear.resistance_resurgence import resistance_resurgence
+from physics_domains.weak_nuclear.suppression_feedback import suppression_feedback
 
-# Import astrophysics extensions
-from config.astrophysics_extensions import (
-    civilization_lifecycle_phase, suppression_event_horizon,
-    cosmic_background_knowledge, knowledge_inflation
-)
+# Import from physics domains - astrophysics extensions
+from physics_domains.astrophysics.civilization_lifecycle_phase import civilization_lifecycle_phase
+from physics_domains.astrophysics.suppression_event_horizon import suppression_event_horizon
+from physics_domains.astrophysics.cosmic_background_knowledge import cosmic_background_knowledge
+from physics_domains.astrophysics.knowledge_inflation import knowledge_inflation
 
-# Import multi-civilization extensions
-from config.multi_civilization_extensions import (
-    initialize_civilizations, calculate_distance_matrix, calculate_interaction_strength,
-    process_all_civilization_interactions
-)
+# Import from physics domains - multi-civilization extensions
+from physics_domains.multi_system.initialize_civilizations import initialize_civilizations
+from physics_domains.multi_system.calculate_distance_matrix import calculate_distance_matrix
+from physics_domains.multi_system.calculate_interaction_strength import calculate_interaction_strength
+from physics_domains.multi_system.process_all_civilization_interactions import process_all_civilization_interactions
 
 # Import dimensional consistency tools
 from utils.dimensional_consistency import (

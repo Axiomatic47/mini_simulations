@@ -1,0 +1,311 @@
+2025-03-13 23:15:17,926 - run_validation - INFO - Required utils modules are available
+2025-03-13 23:15:17,926 - run_validation - INFO - Created validation directories
+2025-03-13 23:15:17,929 - run_validation - INFO - Running module mapping...
+2025-03-13 23:15:17,941 - run_validation - INFO - Discovered 0 equation functions
+2025-03-13 23:15:17,941 - run_validation - ERROR - Module mapping failed. Continuing with validation anyway...
+2025-03-13 23:15:17,941 - run_validation - INFO - Running edge case validation...
+2025-03-13 23:15:17,941 - run_validation - ERROR - Edge case validation failed: cannot import name 'run_edge_case_check' from 'utils.edge_case_checker' (/Users/joseph/Git/mini_simulations/utils/edge_case_checker.py)
+2025-03-13 23:15:17,941 - run_validation - INFO - Running cross-level validation...
+2025-03-13 23:15:17,941 - run_validation - ERROR - Cross-level validation failed: cannot import name 'run_cross_level_validation' from 'utils.cross_level_validator' (/Users/joseph/Git/mini_simulations/utils/cross_level_validator.py)
+2025-03-13 23:15:17,941 - run_validation - INFO - Running historical validation...
+2025-03-13 23:15:17,948 - config.historical_validation - INFO - Generating synthetic historical data
+2025-03-13 23:15:17,951 - config.historical_validation - INFO - HistoricalValidation initialized with data from 1000 to 2020
+2025-03-13 23:15:17,952 - config.historical_validation - INFO - Optimizing parameters with 20 iterations
+2025-03-13 23:15:17,953 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:17,077 - run_validation - INFO - Required utils modules are available
+2025-03-13 23:20:17,077 - run_validation - INFO - Created validation directories
+2025-03-13 23:20:17,081 - run_validation - INFO - Running module mapping...
+2025-03-13 23:20:17,121 - run_validation - INFO - Discovered 38 equation functions
+2025-03-13 23:20:17,121 - run_validation - INFO - Running edge case validation...
+2025-03-13 23:20:17,121 - run_validation - ERROR - Edge case validation failed: cannot import name 'run_edge_case_check' from 'utils.edge_case_checker' (/Users/joseph/Git/mini_simulations/utils/edge_case_checker.py)
+2025-03-13 23:20:17,121 - run_validation - INFO - Running cross-level validation...
+2025-03-13 23:20:17,122 - run_validation - ERROR - Cross-level validation failed: cannot import name 'run_cross_level_validation' from 'utils.cross_level_validator' (/Users/joseph/Git/mini_simulations/utils/cross_level_validator.py)
+2025-03-13 23:20:17,122 - run_validation - INFO - Running historical validation...
+2025-03-13 23:20:17,123 - config.historical_validation - INFO - Generating synthetic historical data
+2025-03-13 23:20:17,127 - config.historical_validation - INFO - HistoricalValidation initialized with data from 1000 to 2020
+2025-03-13 23:20:17,127 - config.historical_validation - INFO - Optimizing parameters with 20 iterations
+2025-03-13 23:20:17,128 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,427 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,437 - config.historical_validation - INFO - Initial parameters: {'knowledge_growth_rate': 0.15, 'truth_adoption_rate': 0.12, 'alpha_wisdom': 0.1, 'circuit_breaker_threshold': 1e-10}, Initial error: 12.432269552270329
+2025-03-13 23:20:24,437 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,437 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,439 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,439 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,441 - config.historical_validation - INFO - Iteration 1: Improved knowledge_growth_rate to 0.175, error: 11.93335427914374
+2025-03-13 23:20:24,441 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,441 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,443 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,443 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,445 - config.historical_validation - INFO - Iteration 1: Improved truth_adoption_rate to 0.135, error: 11.774367127917582
+2025-03-13 23:20:24,445 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,445 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,447 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,447 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,448 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,448 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,450 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,450 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,452 - config.historical_validation - INFO - Iteration 2: Improved knowledge_growth_rate to 0.19999999999999998, error: 11.34819806528116
+2025-03-13 23:20:24,452 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,452 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,454 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,454 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,455 - config.historical_validation - INFO - Iteration 2: Improved truth_adoption_rate to 0.15000000000000002, error: 11.194111372960634
+2025-03-13 23:20:24,456 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,456 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,457 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,457 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,459 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,459 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,461 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,461 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,464 - config.historical_validation - INFO - Iteration 3: Improved knowledge_growth_rate to 0.22499999999999998, error: 10.892374296385448
+2025-03-13 23:20:24,465 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,465 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,466 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,466 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,468 - config.historical_validation - INFO - Iteration 3: Improved truth_adoption_rate to 0.16500000000000004, error: 10.743042284116228
+2025-03-13 23:20:24,468 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,468 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,470 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,470 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,472 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,472 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,474 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,474 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,475 - config.historical_validation - INFO - Iteration 4: Improved knowledge_growth_rate to 0.24999999999999997, error: 10.65611097032026
+2025-03-13 23:20:24,475 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,475 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,477 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,477 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,479 - config.historical_validation - INFO - Iteration 4: Improved truth_adoption_rate to 0.18000000000000005, error: 10.511392029172162
+2025-03-13 23:20:24,479 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,479 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,481 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,481 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,482 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,482 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,484 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,484 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,486 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,486 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,488 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,488 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,490 - config.historical_validation - INFO - Iteration 5: Improved truth_adoption_rate to 0.19500000000000006, error: 10.37114859810325
+2025-03-13 23:20:24,490 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,490 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,492 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,492 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,494 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,494 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,495 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,496 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,497 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,497 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,499 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,499 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,501 - config.historical_validation - INFO - Iteration 6: Improved truth_adoption_rate to 0.2, error: 10.325372137799228
+2025-03-13 23:20:24,501 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,501 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,503 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,503 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,505 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,505 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,506 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,506 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,508 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,508 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,510 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,510 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,512 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,512 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,513 - config.historical_validation - INFO - Iteration 7: No improvement, reducing search space
+2025-03-13 23:20:24,513 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,513 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,515 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,515 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,517 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,517 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,519 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,519 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,520 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,521 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,522 - config.historical_validation - INFO - Iteration 8: No improvement, reducing search space
+2025-03-13 23:20:24,522 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,522 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,524 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,524 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,526 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,526 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,528 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,528 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,529 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,529 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,531 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,531 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,533 - config.historical_validation - INFO - Iteration 9: No improvement, reducing search space
+2025-03-13 23:20:24,533 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,533 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,535 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,535 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,537 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,537 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,538 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,538 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,540 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,540 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,542 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,542 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,543 - config.historical_validation - INFO - Iteration 10: No improvement, reducing search space
+2025-03-13 23:20:24,544 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,544 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,545 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,545 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,547 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,547 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,549 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,549 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,551 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,551 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,552 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,552 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,554 - config.historical_validation - INFO - Iteration 11: No improvement, reducing search space
+2025-03-13 23:20:24,554 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,554 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,556 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,556 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,558 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,558 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,559 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,559 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,561 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,561 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,563 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,563 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,564 - config.historical_validation - INFO - Iteration 12: No improvement, reducing search space
+2025-03-13 23:20:24,565 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,565 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,566 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,567 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,568 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,568 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,570 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,570 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,572 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,572 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,574 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,574 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,575 - config.historical_validation - INFO - Iteration 13: No improvement, reducing search space
+2025-03-13 23:20:24,575 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,575 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,577 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,577 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,579 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,579 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,581 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,581 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,582 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,582 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,584 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,584 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,586 - config.historical_validation - INFO - Iteration 14: No improvement, reducing search space
+2025-03-13 23:20:24,586 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,586 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,588 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,588 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,589 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,589 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,591 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,591 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,593 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,593 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,595 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,595 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,596 - config.historical_validation - INFO - Iteration 15: No improvement, reducing search space
+2025-03-13 23:20:24,596 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,596 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,598 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,598 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,600 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,600 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,602 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,602 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,603 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,603 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,605 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,605 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,607 - config.historical_validation - INFO - Iteration 16: No improvement, reducing search space
+2025-03-13 23:20:24,607 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,607 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,609 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,609 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,611 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,611 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,612 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,612 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,614 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,614 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,616 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,616 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,617 - config.historical_validation - INFO - Iteration 17: No improvement, reducing search space
+2025-03-13 23:20:24,618 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,618 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,619 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,619 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,621 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,621 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,623 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,623 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,624 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,624 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,626 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,626 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,628 - config.historical_validation - INFO - Iteration 18: No improvement, reducing search space
+2025-03-13 23:20:24,628 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,628 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,630 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,630 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,631 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,631 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,633 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,633 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,635 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,635 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,637 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,637 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,639 - config.historical_validation - INFO - Iteration 19: No improvement, reducing search space
+2025-03-13 23:20:24,639 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,639 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,641 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,641 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,643 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,643 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,645 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,645 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,647 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,647 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,649 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,649 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,651 - config.historical_validation - INFO - Iteration 20: No improvement, reducing search space
+2025-03-13 23:20:24,651 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative
+2025-03-13 23:20:24,651 - config.historical_validation - WARNING - No simulation module found, using dummy simulation
+2025-03-13 23:20:24,651 - config.historical_validation - INFO - Optimization complete. Best parameters: {'knowledge_growth_rate': 0.24999999999999997, 'truth_adoption_rate': 0.2, 'alpha_wisdom': 0.1, 'circuit_breaker_threshold': 1e-10}, Error: 10.325372137799228
+2025-03-13 23:20:24,658 - config.historical_validation - INFO - Results saved to validation/reports/historical
+2025-03-13 23:20:25,249 - config.historical_validation - INFO - Visualization saved to validation/reports/historical/comparison.png
+2025-03-13 23:20:25,251 - run_validation - INFO - Historical validation completed with error: 10.33
+2025-03-13 23:20:25,251 - run_validation - INFO - Running dimensional consistency validation...
+2025-03-13 23:20:25,251 - run_validation - ERROR - Dimensional consistency validation failed: cannot import name 'run_dimensional_validation' from 'utils.dimensional_consistency' (/Users/joseph/Git/mini_simulations/utils/dimensional_consistency.py)
+2025-03-13 23:20:25,251 - run_validation - ERROR - Validation failed
+2025-03-13 23:43:03,873 - run_validation - INFO - Required utils modules are available
+2025-03-13 23:43:03,873 - run_validation - INFO - Created validation directories
+2025-03-13 23:43:03,874 - run_validation - INFO - Running module mapping...
+2025-03-13 23:43:03,935 - run_validation - INFO - Discovered 38 equation functions
+2025-03-13 23:43:03,935 - run_validation - INFO - Running edge case validation...
+2025-03-13 23:43:03,935 - run_validation - ERROR - Edge case validation failed: cannot import name 'run_edge_case_check' from 'utils.edge_case_checker' (/Users/joseph/Git/mini_simulations/utils/edge_case_checker.py)
+2025-03-13 23:43:03,935 - run_validation - INFO - Running cross-level validation...
+2025-03-13 23:43:03,935 - run_validation - ERROR - Cross-level validation failed: cannot import name 'run_cross_level_validation' from 'utils.cross_level_validator' (/Users/joseph/Git/mini_simulations/utils/cross_level_validator.py)
+2025-03-13 23:43:03,935 - run_validation - INFO - Running historical validation...
+2025-03-13 23:43:03,937 - config.historical_validation - INFO - Generating synthetic historical data
+2025-03-13 23:43:03,942 - config.historical_validation - INFO - HistoricalValidation initialized with data from 1000 to 2020
+2025-03-13 23:43:03,942 - config.historical_validation - INFO - Optimizing parameters with 20 iterations
+2025-03-13 23:43:03,949 - config.historical_validation - WARNING - Cannot import comprehensive_simulation, trying alternative

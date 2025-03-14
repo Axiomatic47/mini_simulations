@@ -1,584 +1,243 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
-Unified Validation Integration Runner
-This script runs the complete equation validation and optimization process,
-integrating all validation components into a single workflow.
+Main validation entry point for Axiomatic Intelligence Growth Simulation.
+
+This script coordinates the execution of various validation components
+and provides a unified interface for running validation.
 """
 
 import os
 import sys
 import argparse
 import logging
-from datetime import datetime
 from pathlib import Path
-import importlib
-
-# Add project root to path to ensure imports work
-project_root = str(Path(__file__).resolve().parent)
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
 
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("validation/logs/unified_validation.log"),
+        logging.FileHandler("validation.log"),
         logging.StreamHandler()
     ]
 )
-logger = logging.getLogger("IntegrationRunner")
+logger = logging.getLogger("run_validation")
 
 
-def parse_arguments():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="Run unified equation validation and optimization.")
-
-    parser.add_argument(
-        "--output-dir",
-        default="validation/reports/unified",
-        help="Directory for output files (default: validation/reports/unified)"
-    )
-
-    parser.add_argument(
-        "--modules",
-        nargs="+",
-        default=["equations", "astrophysics_extensions", "quantum_em_extensions", "multi_civilization_extensions"],
-        help="Equation modules to validate (default: all modules)"
-    )
-
-    parser.add_argument(
-        "--quick",
-        action="store_true",
-        help="Run a quick validation without simulations (faster but less comprehensive)"
-    )
-
-    parser.add_argument(
-        "--focus",
-        choices=["coverage", "cross-scale", "simulation", "all"],
-        default="all",
-        help="Focus validation on a specific aspect (default: all)"
-    )
-
-    parser.add_argument(
-        "--timesteps",
-        type=int,
-        default=300,
-        help="Number of timesteps for simulations (default: 300)"
-    )
-
-    parser.add_argument(
-        "--generate-plan",
-        action="store_true",
-        help="Generate optimization plan (default: True)"
-    )
-
-    parser.add_argument(
-        "--plan-only",
-        action="store_true",
-        help="Only generate optimization plan without running validation"
-    )
-
-    parser.add_argument(
-        "--no-visualizations",
-        action="store_true",
-        help="Skip generating visualizations (faster)"
-    )
-
-    return parser.parse_args()
-
-
-def import_validator_components():
-    """Import the various validator components."""
-    components = {}
-
+def ensure_utils_and_validation_available():
+    """Check if required validation utilities are available."""
     try:
-        # Import UnifiedValidator
-        from validation.unified_validator import UnifiedValidator
-        components["unified_validator"] = UnifiedValidator
-    except ImportError:
-        logger.warning("Could not import UnifiedValidator, will create it")
-        # We'll create it below if needed
+        import utils.circuit_breaker
+        import utils.dim_handler
+        import utils.edge_case_checker
+        import utils.cross_level_validator
+        import utils.sensitivity_analyzer
+        logger.info("Required utils modules are available")
+        return True
+    except ImportError as e:
+        logger.error(f"Required utils are missing: {e}")
+        logger.error("Please ensure utils directory is in PYTHONPATH")
+        return False
 
+
+def run_module_mapping():
+    """Run module mapping to discover all functions."""
     try:
-        # Import EquationCoverageAnalyzer
-        from validation.equation_coverage_analyzer import EquationCoverageAnalyzer
-        components["equation_analyzer"] = EquationCoverageAnalyzer
+        # Import our module mapper
+        from module_map import discover_equation_functions, print_module_map
+
+        # Print function map
+        logger.info("Running module mapping...")
+        print_module_map()
+
+        # Get function count
+        equations = discover_equation_functions()
+        logger.info(f"Discovered {len(equations)} equation functions")
+
+        return len(equations) > 0
     except ImportError:
-        logger.warning("Could not import EquationCoverageAnalyzer, will create it")
-
-        # Try to create it
-        try:
-            # Create module directory
-            Path("validation/equation_coverage_analyzer.py").parent.mkdir(parents=True, exist_ok=True)
-
-            # Copy file content from artifacts/equation-coverage-analyzer.py if it exists
-            analyzer_path = Path("artifacts/equation-coverage-analyzer.py")
-            if analyzer_path.exists():
-                with open(analyzer_path, "r") as f_in:
-                    content = f_in.read()
-
-                with open("validation/equation_coverage_analyzer.py", "w") as f_out:
-                    f_out.write(content)
-
-                logger.info("Created equation_coverage_analyzer.py from artifact")
-
-                # Import it
-                from validation.equation_coverage_analyzer import EquationCoverageAnalyzer
-                components["equation_analyzer"] = EquationCoverageAnalyzer
-            else:
-                logger.error("Could not create EquationCoverageAnalyzer, analyzer artifact not found")
-        except Exception as e:
-            logger.error(f"Error creating EquationCoverageAnalyzer: {e}")
-
-    try:
-        # Import CrossScaleValidator
-        from validation.cross_scale_validator import CrossScaleValidator
-        components["cross_validator"] = CrossScaleValidator
-    except ImportError:
-        logger.warning("Could not import CrossScaleValidator, will create it")
-
-        # Try to create it
-        try:
-            # Copy file content from artifacts/cross-scale-validator.py if it exists
-            validator_path = Path("artifacts/cross-scale-validator.py")
-            if validator_path.exists():
-                with open(validator_path, "r") as f_in:
-                    content = f_in.read()
-
-                with open("validation/cross_scale_validator.py", "w") as f_out:
-                    f_out.write(content)
-
-                logger.info("Created cross_scale_validator.py from artifact")
-
-                # Import it
-                from validation.cross_scale_validator import CrossScaleValidator
-                components["cross_validator"] = CrossScaleValidator
-            else:
-                logger.error("Could not create CrossScaleValidator, validator artifact not found")
-        except Exception as e:
-            logger.error(f"Error creating CrossScaleValidator: {e}")
-
-    try:
-        # Import ComparativeSimulationAnalyzer
-        from validation.comparative_analyzer import ComparativeSimulationAnalyzer
-        components["comparative_analyzer"] = ComparativeSimulationAnalyzer
-    except ImportError:
-        logger.warning("Could not import ComparativeSimulationAnalyzer, will create it")
-
-        # Try to create it
-        try:
-            # Copy file content from artifacts/comparative-simulation-analyzer.py if it exists
-            analyzer_path = Path("artifacts/comparative-simulation-analyzer.py")
-            if analyzer_path.exists():
-                with open(analyzer_path, "r") as f_in:
-                    content = f_in.read()
-
-                with open("validation/comparative_analyzer.py", "w") as f_out:
-                    f_out.write(content)
-
-                logger.info("Created comparative_analyzer.py from artifact")
-
-                # Import it
-                from validation.comparative_analyzer import ComparativeSimulationAnalyzer
-                components["comparative_analyzer"] = ComparativeSimulationAnalyzer
-            else:
-                logger.error("Could not create ComparativeSimulationAnalyzer, analyzer artifact not found")
-        except Exception as e:
-            logger.error(f"Error creating ComparativeSimulationAnalyzer: {e}")
-
-    try:
-        # Import ReportGenerator
-        from validation.report_generator import ReportGenerator
-        components["report_generator"] = ReportGenerator
-    except ImportError:
-        logger.warning("Could not import ReportGenerator, will create it")
-
-        # Try to create it
-        try:
-            # Copy file content from artifacts/report-generator.py if it exists
-            generator_path = Path("artifacts/report-generator.py")
-            if generator_path.exists():
-                with open(generator_path, "r") as f_in:
-                    content = f_in.read()
-
-                with open("validation/report_generator.py", "w") as f_out:
-                    f_out.write(content)
-
-                logger.info("Created report_generator.py from artifact")
-
-                # Import it
-                from validation.report_generator import ReportGenerator
-                components["report_generator"] = ReportGenerator
-            else:
-                logger.error("Could not create ReportGenerator, generator artifact not found")
-        except Exception as e:
-            logger.error(f"Error creating ReportGenerator: {e}")
-
-    # Check if we need to create UnifiedValidator from scratch
-    if "unified_validator" not in components:
-        try:
-            # Copy file content from artifacts/unified-validation-controller.py if it exists
-            controller_path = Path("artifacts/unified-validation-controller.py")
-            if controller_path.exists():
-                with open(controller_path, "r") as f_in:
-                    content = f_in.read()
-
-                with open("validation/unified_validator.py", "w") as f_out:
-                    f_out.write(content)
-
-                logger.info("Created unified_validator.py from artifact")
-
-                # Import it
-                from validation.unified_validator import UnifiedValidator
-                components["unified_validator"] = UnifiedValidator
-            else:
-                logger.error("Could not create UnifiedValidator, controller artifact not found")
-        except Exception as e:
-            logger.error(f"Error creating UnifiedValidator: {e}")
-
-    return components
+        logger.error("module_map.py not found. Please create it first.")
+        logger.error("See documentation for instructions on setting up module mapping")
+        return False
 
 
-def run_validation(args):
-    """Run the unified validation process with the specified arguments."""
-    logger.info("Starting unified validation process")
+def create_validation_dirs():
+    """Create necessary directories for validation outputs."""
+    dirs = [
+        "validation/reports",
+        "validation/reports/edge_case",
+        "validation/reports/cross_level",
+        "validation/reports/sensitivity",
+        "validation/reports/historical",
+        "validation/reports/dimensional",
+        "validation/reports/unified",
+        "validation/logs"
+    ]
 
-    # Import validator components
-    components = import_validator_components()
+    for d in dirs:
+        os.makedirs(d, exist_ok=True)
 
-    # Check if we have the necessary components
-    if "unified_validator" in components:
-        # Use the unified validator
-        logger.info("Using UnifiedValidator")
-        validator = components["unified_validator"](output_dir=args.output_dir)
-
-        # Set focus areas based on args
-        focus_areas = []
-        if args.focus == "all" or args.focus == "coverage":
-            focus_areas.append("equation_completeness")
-        if args.focus == "all" or args.focus == "cross-scale":
-            focus_areas.append("cross_level_interaction")
-        if args.focus == "all" or args.focus == "simulation":
-            focus_areas.append("parameter_sensitivity")
-
-        # Run full validation
-        results = validator.run_full_validation(
-            equation_modules=args.modules,
-            focus_areas=focus_areas,
-            generate_report=True
-        )
-
-        # If requested, generate optimization plan
-        if args.generate_plan:
-            plan = validator.generate_optimization_plan()
-            logger.info(f"Optimization plan generated at {validator.output_dir}/optimization_plan.md")
-
-        # Return results for possible further processing
-        return results
-
-    else:
-        # If UnifiedValidator is not available, use individual components
-        logger.info("Using individual validator components")
-
-        # Initialize results dictionary
-        results = {}
-
-        # Run equation coverage analysis if available
-        if "equation_analyzer" in components and (args.focus == "all" or args.focus == "coverage"):
-            logger.info("Running equation coverage analysis")
-            analyzer = components["equation_analyzer"]()
-            results["equation_coverage"] = analyzer.analyze_equation_set(
-                equation_modules=args.modules,
-                identify_gaps=True
-            )
-
-            # Visualize coverage if requested
-            if not args.no_visualizations:
-                analyzer.visualize_coverage(results["equation_coverage"]["coverage"],
-                                            f"{args.output_dir}/equation_coverage.png")
-
-                if results["equation_coverage"]["gaps"]:
-                    analyzer.visualize_gaps(results["equation_coverage"]["gaps"],
-                                            f"{args.output_dir}/equation_gaps.png")
-
-        # Run cross-scale interaction validation if available
-        if "cross_validator" in components and (args.focus == "all" or args.focus == "cross-scale"):
-            logger.info("Running cross-scale interaction validation")
-            validator = components["cross_validator"]()
-            results["cross_scale"] = validator.evaluate_cross_scale_interactions(
-                levels=None,
-                key_transitions=None,
-                source_modules=args.modules
-            )
-
-            # Visualize cross-scale interactions if requested
-            if not args.no_visualizations:
-                validator.visualize_dependency_graph(results["cross_scale"]["dependency_graph"],
-                                                     f"{args.output_dir}/dependency_graph.png")
-                validator.visualize_scale_adjacency(results["cross_scale"]["dependency_graph"],
-                                                    f"{args.output_dir}/scale_adjacency.png")
-                validator.visualize_signal_propagation(results["cross_scale"]["signal_propagation"],
-                                                       f"{args.output_dir}/signal_propagation.png")
-
-        # Run comparative simulation analysis if available
-        if "comparative_analyzer" in components and (
-                args.focus == "all" or args.focus == "simulation") and not args.quick:
-            logger.info("Running comparative simulation analysis")
-            analyzer = components["comparative_analyzer"](output_dir=args.output_dir)
-
-            # Define configurations
-            configurations = [
-                {"name": "base", "description": "Core equations only"},
-                {"name": "quantum", "description": "With quantum effects"},
-                {"name": "astrophysics", "description": "With astrophysics analogies"},
-                {"name": "multi_civ", "description": "With multi-civilization dynamics"},
-                {"name": "integrated", "description": "All extensions integrated"}
-            ]
-
-            # Run analysis
-            results["comparative"] = analyzer.run_comparative_analysis(
-                configurations=configurations,
-                metrics=None,
-                timesteps=args.timesteps
-            )
-
-        # Generate comprehensive report if report generator is available
-        if "report_generator" in components:
-            logger.info("Generating comprehensive report")
-            generator = components["report_generator"]()
-
-            # Create output directory if it doesn't exist
-            Path(args.output_dir).mkdir(parents=True, exist_ok=True)
-
-            # Generate report
-            report_path = generator.generate_unified_report(
-                results,
-                f"{args.output_dir}/unified_validation_report.html",
-                include_visualizations=not args.no_visualizations
-            )
-
-            logger.info(f"Comprehensive report generated at {report_path}")
-
-        # Generate optimization plan if requested
-        if args.generate_plan:
-            logger.info("Generating optimization plan")
-
-            # Identify optimization opportunities
-            opportunities = identify_optimization_opportunities(results)
-            results["opportunities"] = opportunities
-
-            # Generate plan
-            plan = generate_optimization_plan(results, f"{args.output_dir}/optimization_plan.md")
-
-            logger.info(f"Optimization plan generated at {args.output_dir}/optimization_plan.md")
-
-        return results
+    logger.info(f"Created validation directories")
 
 
-def identify_optimization_opportunities(results):
+def run_unified_validation(components=None):
     """
-    Identify opportunities for equation optimization based on validation results.
+    Run unified validation with specified components.
 
     Args:
-        results: Dictionary containing all validation results
-
-    Returns:
-        Dictionary of optimization opportunities
+        components: List of components to validate, or None for defaults
     """
-    opportunities = {
-        "equation_gaps": [],
-        "cross_scale_improvements": [],
-        "stability_enhancements": [],
-        "parameter_optimizations": [],
-        "integration_opportunities": []
-    }
+    try:
+        # Import unified validator
+        sys.path.append(".")  # Ensure current directory is in path
+        from unified_validator import run_validation
 
-    # Identify equation gaps
-    if "equation_coverage" in results and "gaps" in results["equation_coverage"]:
-        for gap in results["equation_coverage"]["gaps"]:
-            severity = gap.get("severity", "medium")
-            priority = "High" if severity == "high" else ("Medium" if severity == "medium" else "Low")
+        # Run validation
+        validator = run_validation(components)
 
-            opportunities["equation_gaps"].append({
-                "description": gap.get("description", ""),
-                "priority": priority,
-                "recommendation": gap.get("recommendation", "Fill this gap with an appropriate equation")
-            })
+        # Check for errors
+        error_components = [c for c, r in validator.validation_results.items()
+                            if r["status"] == "Error" and r["status"] != "Not Run"]
 
-    # Identify cross-scale improvements
-    if "cross_scale" in results:
-        # Check transitions
-        if "scale_transitions" in results["cross_scale"] and "transitions" in results["cross_scale"][
-            "scale_transitions"]:
-            transitions = results["cross_scale"]["scale_transitions"]["transitions"]
-
-            for (scale1, scale2), details in transitions.items():
-                quality = details.get("quality", 0)
-                if quality < 0.4:
-                    priority = "High" if quality < 0.2 else "Medium"
-
-                    opportunities["cross_scale_improvements"].append({
-                        "transition": (scale1, scale2),
-                        "quality": quality,
-                        "priority": priority,
-                        "recommendation": f"Improve integration between {scale1} and {scale2} scales"
-                    })
-
-        # Check key transitions
-        if "transition_quality" in results["cross_scale"]:
-            for (eq1, eq2), quality in results["cross_scale"]["transition_quality"].items():
-                if quality < 0.4:
-                    priority = "High" if quality < 0.2 else "Medium"
-
-                    opportunities["cross_scale_improvements"].append({
-                        "transition": (eq1, eq2),
-                        "quality": quality,
-                        "priority": priority,
-                        "recommendation": f"Strengthen connection between {eq1} and {eq2}"
-                    })
-
-    # Identify parameter optimizations from comparative analysis
-    if "comparative" in results and "comparison" in results["comparative"]:
-        comparison = results["comparative"]["comparison"]
-
-        # Find metrics where different configurations perform best
-        for key in comparison:
-            if key.startswith("best_") and key != "best_overall":
-                metric = key.replace("best_", "")
-                best_config = comparison[key].get("configuration", "")
-
-                if "best_overall" in comparison and best_config != comparison["best_overall"].get("configuration", ""):
-                    # This metric performs best in a different configuration than the overall best
-                    opportunities["parameter_optimizations"].append({
-                        "parameter": metric,
-                        "best_config": best_config,
-                        "priority": "Medium",
-                        "recommendation": f"Study {best_config} configuration to optimize {metric}"
-                    })
-
-    # Suggest integration opportunities
-    if "comparative" in results and "comparison" in results["comparative"]:
-        comparison = results["comparative"]["comparison"]
-
-        if "best_overall" in comparison:
-            best_overall = comparison["best_overall"].get("configuration", "")
-
-            opportunities["integration_opportunities"].append({
-                "best_config": best_overall,
-                "priority": "High",
-                "recommendation": f"Integrate successful patterns from {best_overall} configuration into other configurations"
-            })
-
-    return opportunities
+        if error_components:
+            logger.error(f"Validation errors in components: {', '.join(error_components)}")
+            return False
+        else:
+            logger.info("Unified validation completed successfully")
+            return True
+    except ImportError:
+        logger.error("unified_validator.py not found. Please create it first.")
+        return False
 
 
-def generate_optimization_plan(results, output_path):
+def run_individual_validations(components):
     """
-    Generate a concrete plan for optimization based on identified opportunities.
+    Run individual validation components separately.
 
     Args:
-        results: Dictionary containing validation results
-        output_path: Path to save the optimization plan
-
-    Returns:
-        String containing the optimization plan
+        components: List of components to validate
     """
-    # Get optimization opportunities
-    opportunities = results.get("opportunities", {})
+    success = True
 
-    # Create the plan
-    plan = "# Equation Optimization Plan\n\n"
-    plan += f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+    # Edge case validation
+    if "edge_cases" in components:
+        try:
+            logger.info("Running edge case validation...")
+            from utils.edge_case_checker import EdgeCaseChecker, run_edge_case_check
 
-    # Add high priority items first
-    high_priority = []
-    for category, items in opportunities.items():
-        for item in items:
-            if item.get("priority") == "High":
-                high_priority.append({
-                    "category": category,
-                    "item": item
-                })
+            # Run edge case checking
+            run_edge_case_check("validation/reports/edge_case")
+            logger.info("Edge case validation completed")
+        except Exception as e:
+            logger.error(f"Edge case validation failed: {e}")
+            success = False
 
-    if high_priority:
-        plan += "## High Priority Optimizations\n\n"
-        for i, opportunity in enumerate(high_priority, 1):
-            category = opportunity["category"].replace("_", " ").title()
-            item = opportunity["item"]
-            plan += f"### {i}. {category}: {item.get('description', item.get('best_config', 'Optimization'))}\n\n"
-            plan += f"**Recommendation:** {item.get('recommendation', 'No specific recommendation')}\n\n"
+    # Cross-level validation
+    if "cross_level" in components:
+        try:
+            logger.info("Running cross-level validation...")
+            from utils.cross_level_validator import run_cross_level_validation
 
-    # Add categorized items
-    for category, items in opportunities.items():
-        if items:
-            category_title = category.replace("_", " ").title()
-            plan += f"## {category_title}\n\n"
+            # Run cross-level validation
+            run_cross_level_validation("validation/reports/cross_level")
+            logger.info("Cross-level validation completed")
+        except Exception as e:
+            logger.error(f"Cross-level validation failed: {e}")
+            success = False
 
-            for i, item in enumerate(items, 1):
-                if item.get("priority") == "High":
-                    continue  # Skip high priority items, already included above
+    # Historical validation
+    if "historical" in components:
+        try:
+            logger.info("Running historical validation...")
+            from config.historical_validation import run_historical_validation
 
-                plan += f"### {i}. {item.get('description', item.get('best_config', 'Optimization'))}\n\n"
-                plan += f"**Priority:** {item.get('priority', 'Medium')}\n\n"
-                plan += f"**Recommendation:** {item.get('recommendation', 'No specific recommendation')}\n\n"
+            # Run historical validation
+            validator = run_historical_validation(
+                output_dir="validation/reports/historical",
+                optimize=True,
+                visualize=True
+            )
+            logger.info(f"Historical validation completed with error: {validator.calculate_error():.2f}")
+        except Exception as e:
+            logger.error(f"Historical validation failed: {e}")
+            success = False
 
-    # Add implementation steps
-    plan += "## Implementation Steps\n\n"
-    plan += "1. **Address High Priority Items First**\n"
-    plan += "   - Focus on stability enhancements before adding new features\n"
-    plan += "   - Improve cross-scale transitions with poor quality scores\n\n"
+    # Dimensional consistency
+    if "dimensions" in components:
+        try:
+            logger.info("Running dimensional consistency validation...")
+            from utils.dimensional_consistency import run_dimensional_validation
 
-    plan += "2. **Refine Existing Equations**\n"
-    plan += "   - Optimize sensitive parameters identified in the analysis\n"
-    plan += "   - Enhance stability of equations with numerical issues\n\n"
+            # Run dimensional validation
+            run_dimensional_validation("validation/reports/dimensional")
+            logger.info("Dimensional consistency validation completed")
+        except Exception as e:
+            logger.error(f"Dimensional consistency validation failed: {e}")
+            success = False
 
-    plan += "3. **Fill Identified Gaps**\n"
-    plan += "   - Develop new equations for missing physical analogies\n"
-    plan += "   - Ensure dimensional consistency in new equations\n\n"
+    # Sensitivity analysis
+    if "sensitivity" in components:
+        try:
+            logger.info("Running sensitivity analysis...")
+            from utils.sensitivity_analyzer import run_sensitivity_analysis
 
-    plan += "4. **Improve Integration**\n"
-    plan += "   - Strengthen connections between quantum and astrophysical scales\n"
-    plan += "   - Ensure consistent parameter usage across all scales\n\n"
+            # Run sensitivity analysis
+            run_sensitivity_analysis("validation/reports/sensitivity")
+            logger.info("Sensitivity analysis completed")
+        except Exception as e:
+            logger.error(f"Sensitivity analysis failed: {e}")
+            success = False
 
-    plan += "5. **Validate and Test**\n"
-    plan += "   - Re-run validation suite after each major change\n"
-    plan += "   - Ensure no regressions in existing functionality\n\n"
-
-    # Save the plan to a file
-    plan_path = output_path
-    os.makedirs(os.path.dirname(plan_path), exist_ok=True)
-
-    with open(plan_path, "w") as f:
-        f.write(plan)
-
-    return plan
+    return success
 
 
 def main():
-    """Main function to run the unified validation process."""
-    # Parse command line arguments
-    args = parse_arguments()
+    """Main validation entry point."""
+    parser = argparse.ArgumentParser(description="Run validation for simulation framework")
+    parser.add_argument("--components", nargs="*",
+                        choices=["edge_cases", "dimensions", "cross_level", "historical", "sensitivity", "all"],
+                        default=["edge_cases", "dimensions", "cross_level", "historical"],
+                        help="Components to validate")
+    parser.add_argument("--unified", action="store_true",
+                        help="Use unified validator instead of individual components")
+    parser.add_argument("--no-module-map", action="store_true",
+                        help="Skip module mapping")
 
-    # Create output directory if it doesn't exist
-    Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+    args = parser.parse_args()
 
-    # Run the validation process if not just generating plan
-    if not args.plan_only:
-        results = run_validation(args)
+    # Check if required utils are available
+    if not ensure_utils_and_validation_available():
+        logger.error("Required validation utilities not available. Exiting.")
+        return 1
+
+    # Create validation directories
+    create_validation_dirs()
+
+    # Handle "all" components choice
+    if "all" in args.components:
+        args.components = ["edge_cases", "dimensions", "cross_level", "historical", "sensitivity"]
+
+    # Run module mapping if requested
+    if not args.no_module_map:
+        if not run_module_mapping():
+            logger.error("Module mapping failed. Continuing with validation anyway...")
+
+    success = True
+
+    # Run validation
+    if args.unified:
+        success = run_unified_validation(args.components)
     else:
-        # Load previous results if available
-        results_path = f"{args.output_dir}/validation_results.json"
-        if os.path.exists(results_path):
-            import json
-            with open(results_path, "r") as f:
-                results = json.load(f)
-        else:
-            logger.error("Cannot generate plan only without previous results")
-            sys.exit(1)
+        success = run_individual_validations(args.components)
 
-    logger.info("Unified validation process completed successfully")
+    # Report result
+    if success:
+        logger.info("Validation completed successfully")
+        return 0
+    else:
+        logger.error("Validation failed")
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
