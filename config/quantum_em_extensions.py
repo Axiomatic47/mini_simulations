@@ -16,6 +16,10 @@ def knowledge_field_influence(K_i, K_j, r_ij, kappa=0.05, K_max=1000.0, r_min=0.
 
     Returns:
         float: Knowledge field influence (analogous to electromagnetic force)
+
+    Physics Domain: electromagnetism
+    Scale Level: group
+    Application Domains: knowledge
     """
     # Enforce parameter bounds
     K_i_safe = min(K_max, max(0.0, K_i))
@@ -41,6 +45,10 @@ def quantum_entanglement_correlation(K_i, K_j, rho=0.1, sigma=0.05, K_diff_max=1
 
     Returns:
         float: Entanglement correlation factor (nonlocal connection strength)
+
+    Physics Domain: quantum_mechanics
+    Scale Level: quantum
+    Application Domains: knowledge
     """
     # Enforce parameter bounds
     rho_safe = min(1.0, max(0.0, rho))
@@ -73,6 +81,10 @@ def knowledge_field_gradient(agent_knowledge, agent_positions, field_strength=0.
 
     Returns:
         array: Gradient vector indicating direction and strength of knowledge flow
+
+    Physics Domain: electromagnetism
+    Scale Level: group
+    Application Domains: knowledge
     """
     num_agents = len(agent_knowledge)
     gradients = np.zeros_like(agent_positions, dtype=float)
@@ -149,6 +161,10 @@ def build_entanglement_network(agent_knowledge, max_entanglement=0.2, decay_rate
 
     Returns:
         array: Matrix of entanglement strengths between all agent pairs
+
+    Physics Domain: quantum_mechanics
+    Scale Level: group
+    Application Domains: knowledge
     """
     num_agents = len(agent_knowledge)
     entanglement_matrix = np.zeros((num_agents, num_agents))
@@ -195,6 +211,10 @@ def quantum_tunneling_probability(barrier_height, barrier_width, energy_level,
 
     Returns:
         float: Probability of tunneling through suppression barrier
+
+    Physics Domain: quantum_mechanics
+    Scale Level: quantum
+    Application Domains: knowledge, resistance
     """
     # Ensure energy_level is non-negative
     energy_level = max(0.0, energy_level)

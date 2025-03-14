@@ -33,6 +33,10 @@ def intelligence_growth(K, W, R, S, N, K_max=100.0):
 
     Returns:
         float: Intelligence growth rate
+
+    Physics Domain: thermodynamics
+    Scale Level: agent
+    Application Domains: intelligence, knowledge
     """
     # Apply saturation term to prevent unbounded growth
     # Cap knowledge to prevent overflow
@@ -72,6 +76,10 @@ def free_will_decision(q_Id, E_K, q_R, E_F):
 
     Returns:
         float: Net decision force (positive towards knowledge-based decisions)
+
+    Physics Domain: electromagnetism
+    Scale Level: agent
+    Application Domains: free_will, knowledge
     """
     # Apply safe bounds to parameters
     q_Id_safe = min(10.0, max(-10.0, q_Id))
@@ -103,6 +111,10 @@ def truth_adoption(T, A, T_max):
 
     Returns:
         float: Rate of truth adoption
+
+    Physics Domain: relativity
+    Scale Level: agent
+    Application Domains: truth, knowledge
     """
     # Ensure parameters are within safe bounds
     T = min(T_max, max(0.0, T))
@@ -140,6 +152,10 @@ def wisdom_field(W_0, alpha, S, R, K, max_growth=5.0):
 
     Returns:
         float: Wisdom field strength
+
+    Physics Domain: electromagnetism
+    Scale Level: agent
+    Application Domains: wisdom, knowledge, suppression
     """
     # Apply safe bounds to all parameters
     W_0_safe = min(10.0, max(0.01, W_0))
@@ -212,6 +228,10 @@ def resistance_resurgence(S_0, lambda_decay, t, alpha_resurge, mu_resurge, t_cri
 
     Returns:
         float: Suppression level with resurgence
+
+    Physics Domain: weak_nuclear
+    Scale Level: group
+    Application Domains: resistance, suppression
     """
     # Apply safe bounds to all parameters
     S_0_safe = min(100.0, max(0.0, S_0))
@@ -288,6 +308,10 @@ def suppression_feedback(alpha, S, beta, K):
 
     Returns:
         float: Suppression feedback effect
+
+    Physics Domain: weak_nuclear
+    Scale Level: group
+    Application Domains: suppression, knowledge
     """
     # Initialize local circuit breaker for this function
     local_cb = CircuitBreaker(
@@ -363,6 +387,10 @@ def quantum_tunneling_probability(barrier_height, barrier_width, energy_level,
 
     Returns:
         float: Probability of tunneling through suppression barrier
+
+    Physics Domain: quantum_mechanics
+    Scale Level: quantum
+    Application Domains: knowledge, resistance
     """
     # Ensure energy_level is non-negative
     energy_level = max(0.0, energy_level)
@@ -463,6 +491,10 @@ def knowledge_field_influence(K_i, K_j, r_ij, kappa=0.05, K_max=1000.0, r_min=0.
 
     Returns:
         float: Knowledge field influence (analogous to electromagnetic force)
+
+    Physics Domain: electromagnetism
+    Scale Level: group
+    Application Domains: knowledge
     """
     # Enforce parameter bounds
     K_i_safe = min(K_max, max(0.0, K_i))
@@ -504,6 +536,10 @@ def knowledge_field_gradient(agent_knowledge, agent_positions, field_strength=0.
 
     Returns:
         array: Gradient vector indicating direction and strength of knowledge flow
+
+    Physics Domain: electromagnetism
+    Scale Level: group
+    Application Domains: knowledge
     """
     num_agents = len(agent_knowledge)
     gradients = np.zeros_like(agent_positions, dtype=float)
@@ -606,6 +642,10 @@ def wisdom_field_enhanced(W_0, alpha, S, R, K, max_growth=5.0):
 
     Returns:
         float: Wisdom field strength
+
+    Physics Domain: electromagnetism
+    Scale Level: agent
+    Application Domains: wisdom, knowledge, suppression
     """
     # Simply call the updated wisdom_field function which now has all enhancements
     return wisdom_field(W_0, alpha, S, R, K, max_growth)

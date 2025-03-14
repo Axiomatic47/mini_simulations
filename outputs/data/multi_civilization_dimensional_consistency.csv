@@ -1,0 +1,6 @@
+Function,Status,Notes
+multi_civ_intelligence_growth,Error,"multi_civ_intelligence_growth() missing 4 required positional arguments: 'W_dim', 'R_dim', 'S_dim', and 'N_factor'"
+multi_civ_decision_probability,Error,multi_civ_decision_probability() missing 1 required positional argument: 'S_dim'
+wisdom_field_with_dimensions,Consistent,
+truth_adoption_with_dimensions,Consistent,
+suppression_feedback_with_dimensions,Consistent,

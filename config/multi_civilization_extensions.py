@@ -18,6 +18,10 @@ def initialize_civilizations(num_civilizations, max_age_variance=100):
 
     Returns:
         dict: Dictionary containing civilization parameters
+
+    Physics Domain: multi_system
+    Scale Level: multi_civilization
+    Application Domains: civilization
     """
     # Ensure valid parameters
     num_civilizations = max(1, int(num_civilizations))
@@ -64,6 +68,10 @@ def calculate_distance_matrix(positions):
 
     Returns:
         array: Matrix of distances between civilizations
+
+    Physics Domain: multi_system
+    Scale Level: multi_civilization
+    Application Domains: civilization
     """
     # Use the safe version
     return safe_calculate_distance_matrix(positions)
@@ -80,6 +88,10 @@ def calculate_interaction_strength(distance_matrix, max_interaction_distance=5.0
 
     Returns:
         array: Matrix of interaction strengths
+
+    Physics Domain: multi_system
+    Scale Level: multi_civilization
+    Application Domains: civilization
     """
     # Apply parameter bounds
     max_interaction_distance = max(min_distance, max_interaction_distance)
@@ -116,6 +128,10 @@ def galactic_collision_effect(civ_i, civ_j, collision_threshold=1.0,
 
     Returns:
         tuple: Knowledge transfer, suppression effect, resource exchange
+
+    Physics Domain: multi_system
+    Scale Level: multi_civilization
+    Application Domains: civilization, knowledge, suppression
     """
     # Calculate distance between civilizations
     distance = np.linalg.norm(civ_i["position"] - civ_j["position"])
@@ -174,6 +190,10 @@ def knowledge_diffusion(civilizations, knowledge_array, interaction_strength,
 
     Returns:
         array: Knowledge change due to diffusion
+
+    Physics Domain: multi_system
+    Scale Level: multi_civilization
+    Application Domains: knowledge
     """
     # Apply parameter bounds
     diffusion_rate = max(0, min(1, diffusion_rate))
@@ -277,6 +297,10 @@ def cultural_influence(civilizations, influence_array, interaction_strength,
 
     Returns:
         array: Influence change due to cultural exchange
+
+    Physics Domain: multi_system
+    Scale Level: multi_civilization
+    Application Domains: civilization
     """
     # Apply parameter bounds
     base_influence_rate = max(0, min(1, base_influence_rate))
@@ -328,6 +352,10 @@ def resource_competition(civilizations, resources_array, interaction_strength,
 
     Returns:
         array: Resource change due to competition
+
+    Physics Domain: multi_system
+    Scale Level: multi_civilization
+    Application Domains: civilization
     """
     # Apply parameter bounds
     competition_rate = max(0, min(1, competition_rate))
@@ -385,6 +413,10 @@ def civilization_movement(civilizations, interaction_strength, dt=1.0,
 
     Returns:
         array: Updated positions for all civilizations
+
+    Physics Domain: multi_system
+    Scale Level: multi_civilization
+    Application Domains: civilization
     """
     # Apply parameter bounds
     dt = max(0.01, min(2.0, dt))
@@ -443,21 +475,23 @@ def civilization_movement(civilizations, interaction_strength, dt=1.0,
 
 def update_civilization_sizes(civilizations, knowledge_array, influence_array,
                               growth_factor=0.01, max_growth=0.05, min_size=0.1, max_size=10.0):
-    """
-    Update the sizes of civilizations based on their knowledge and influence.
+    """Update the sizes of civilizations based on their knowledge and influence.
 
-    Parameters:
-        civilizations (dict): Civilization parameters
-        knowledge_array (array): Knowledge levels for all civilizations
-        influence_array (array): Influence levels for all civilizations
-        growth_factor (float): Base growth rate for civilization sizes
-        max_growth (float): Maximum growth factor per time step
-        min_size (float): Minimum civilization size
-        max_size (float): Maximum civilization size
+Parameters:
+    civilizations (dict): Civilization parameters
+    knowledge_array (array): Knowledge levels for all civilizations
+    influence_array (array): Influence levels for all civilizations
+    growth_factor (float): Base growth rate for civilization sizes
+    max_growth (float): Maximum growth factor per time step
+    min_size (float): Minimum civilization size
+    max_size (float): Maximum civilization size
 
-    Returns:
-        array: Updated sizes for all civilizations
-    """
+Returns:
+    array: Updated sizes for all civilizations
+
+Physics Domain: Multi System
+Scale Level: Multi Civilization
+Application Domains: Civilization"""
     # Apply parameter bounds
     growth_factor = max(0, min(0.1, growth_factor))
 
@@ -489,18 +523,20 @@ def update_civilization_sizes(civilizations, knowledge_array, influence_array,
 
 
 def detect_civilization_collapse(knowledge_array, suppression_array, threshold=0.1, min_division=0.1):
-    """
-    Detect civilizations that have collapsed due to high suppression and low knowledge.
+    """Detect civilizations that have collapsed due to high suppression and low knowledge.
 
-    Parameters:
-        knowledge_array (array): Knowledge levels for all civilizations
-        suppression_array (array): Suppression levels for all civilizations
-        threshold (float): Collapse threshold for knowledge/suppression ratio
-        min_division (float): Minimum value for division safety
+Parameters:
+    knowledge_array (array): Knowledge levels for all civilizations
+    suppression_array (array): Suppression levels for all civilizations
+    threshold (float): Collapse threshold for knowledge/suppression ratio
+    min_division (float): Minimum value for division safety
 
-    Returns:
-        array: Boolean array indicating collapsed civilizations
-    """
+Returns:
+    array: Boolean array indicating collapsed civilizations
+
+Physics Domain: Multi System
+Scale Level: Multi Civilization
+Application Domains: Civilization, Suppression"""
     # Ensure arrays are not empty
     if len(knowledge_array) == 0 or len(suppression_array) == 0:
         return np.array([], dtype=bool)
@@ -516,17 +552,19 @@ def detect_civilization_collapse(knowledge_array, suppression_array, threshold=0
 
 
 def detect_civilization_mergers(civilizations, distance_threshold=0.5, size_ratio_threshold=3.0):
-    """
-    Detect and process civilization mergers when they become very close.
+    """Detect and process civilization mergers when they become very close.
 
-    Parameters:
-        civilizations (dict): Civilization parameters
-        distance_threshold (float): Distance threshold for mergers
-        size_ratio_threshold (float): Size ratio beyond which larger absorbs smaller
+Parameters:
+    civilizations (dict): Civilization parameters
+    distance_threshold (float): Distance threshold for mergers
+    size_ratio_threshold (float): Size ratio beyond which larger absorbs smaller
 
-    Returns:
-        list: Pairs of civilizations that should merge [[(i, j), ...]]
-    """
+Returns:
+    list: Pairs of civilizations that should merge [[(i, j), ...]]
+
+Physics Domain: Multi System
+Scale Level: Multi Civilization
+Application Domains: Civilization"""
     num_civilizations = len(civilizations["positions"])
 
     # Handle empty case
@@ -565,23 +603,25 @@ def detect_civilization_mergers(civilizations, distance_threshold=0.5, size_rati
 def process_civilization_merger(civilizations, knowledge_array, i, j,
                                 knowledge_transfer_ratio=0.8, resource_transfer_ratio=1.0,
                                 influence_transfer_ratio=0.9, size_transfer_ratio=0.7):
-    """
-    Process a merger between two civilizations (i absorbs j).
+    """Process a merger between two civilizations (i absorbs j).
 
-    Parameters:
-        civilizations (dict): Civilization parameters
-        knowledge_array (array): Knowledge levels for all civilizations
-        i (int): Index of absorbing civilization
-        j (int): Index of absorbed civilization
-        knowledge_transfer_ratio (float): How much knowledge is retained in merger
-        resource_transfer_ratio (float): How much resources are retained in merger
-        influence_transfer_ratio (float): How much influence is retained in merger
-        size_transfer_ratio (float): How much size is retained in merger
+Parameters:
+    civilizations (dict): Civilization parameters
+    knowledge_array (array): Knowledge levels for all civilizations
+    i (int): Index of absorbing civilization
+    j (int): Index of absorbed civilization
+    knowledge_transfer_ratio (float): How much knowledge is retained in merger
+    resource_transfer_ratio (float): How much resources are retained in merger
+    influence_transfer_ratio (float): How much influence is retained in merger
+    size_transfer_ratio (float): How much size is retained in merger
 
-    Returns:
-        dict: Updated civilization parameters
-        array: Updated knowledge array
-    """
+Returns:
+    dict: Updated civilization parameters
+    array: Updated knowledge array
+
+Physics Domain: Multi System
+Scale Level: Multi Civilization
+Application Domains: Civilization, Knowledge"""
     # Apply parameter bounds
     knowledge_transfer_ratio = max(0, min(1, knowledge_transfer_ratio))
     resource_transfer_ratio = max(0, min(1, resource_transfer_ratio))
@@ -633,27 +673,29 @@ def spawn_new_civilization(civilizations, knowledge_array, suppression_array, po
                            mutation_factor=0.2, min_size=0.1, max_size=10.0,
                            resource_transfer_ratio=0.2, influence_transfer_ratio=0.1,
                            knowledge_transfer_ratio=0.3):
-    """
-    Spawn a new civilization, either randomly or as offspring of an existing one.
+    """Spawn a new civilization, either randomly or as offspring of an existing one.
 
-    Parameters:
-        civilizations (dict): Civilization parameters
-        knowledge_array (array): Knowledge levels for all civilizations
-        suppression_array (array): Suppression levels for all civilizations
-        position (array): Starting position for new civilization
-        parent_idx (int): Index of parent civilization (None for random)
-        mutation_factor (float): How much offspring parameters vary from parent
-        min_size (float): Minimum civilization size
-        max_size (float): Maximum civilization size
-        resource_transfer_ratio (float): Ratio of resources transferred from parent
-        influence_transfer_ratio (float): Ratio of influence transferred from parent
-        knowledge_transfer_ratio (float): Ratio of knowledge transferred from parent
+Parameters:
+    civilizations (dict): Civilization parameters
+    knowledge_array (array): Knowledge levels for all civilizations
+    suppression_array (array): Suppression levels for all civilizations
+    position (array): Starting position for new civilization
+    parent_idx (int): Index of parent civilization (None for random)
+    mutation_factor (float): How much offspring parameters vary from parent
+    min_size (float): Minimum civilization size
+    max_size (float): Maximum civilization size
+    resource_transfer_ratio (float): Ratio of resources transferred from parent
+    influence_transfer_ratio (float): Ratio of influence transferred from parent
+    knowledge_transfer_ratio (float): Ratio of knowledge transferred from parent
 
-    Returns:
-        dict: Updated civilization parameters
-        array: Updated knowledge array
-        array: Updated suppression array
-    """
+Returns:
+    dict: Updated civilization parameters
+    array: Updated knowledge array
+    array: Updated suppression array
+
+Physics Domain: Multi System
+Scale Level: Multi Civilization
+Application Domains: Civilization, Knowledge"""
     # Apply parameter bounds
     mutation_factor = max(0, min(1, mutation_factor))
     resource_transfer_ratio = max(0, min(1, resource_transfer_ratio))
@@ -777,20 +819,22 @@ def spawn_new_civilization(civilizations, knowledge_array, suppression_array, po
 
 
 def remove_civilization(civilizations, knowledge_array, suppression_array, idx):
-    """
-    Remove a civilization from the simulation (due to collapse or merger).
+    """Remove a civilization from the simulation (due to collapse or merger).
 
-    Parameters:
-        civilizations (dict): Civilization parameters
-        knowledge_array (array): Knowledge levels for all civilizations
-        suppression_array (array): Suppression levels for all civilizations
-        idx (int): Index of civilization to remove
+Parameters:
+    civilizations (dict): Civilization parameters
+    knowledge_array (array): Knowledge levels for all civilizations
+    suppression_array (array): Suppression levels for all civilizations
+    idx (int): Index of civilization to remove
 
-    Returns:
-        dict: Updated civilization parameters
-        array: Updated knowledge array
-        array: Updated suppression array
-    """
+Returns:
+    dict: Updated civilization parameters
+    array: Updated knowledge array
+    array: Updated suppression array
+
+Physics Domain: Multi System
+Scale Level: Multi Civilization
+Application Domains: Civilization"""
     # Get number of civilizations and validate index
     num_civilizations = len(knowledge_array)
     if idx < 0 or idx >= num_civilizations:
@@ -818,14 +862,11 @@ def remove_civilization(civilizations, knowledge_array, suppression_array, idx):
 
 def _process_interactions(civs_data, num_civs):
     """
-    Helper function for process_all_civilization_interactions that assumes correct dimensions.
+    Internal helper function for processing civilization interactions.
 
-    Parameters:
-        civs_data (dict): Dictionary containing civilization data
-        num_civs (int): Number of civilizations
-
-    Returns:
-        dict: Updated civilization data
+    Physics Domain: multi_system
+    Scale Level: multi_civilization
+    Application Domains: civilization
     """
     # Unpack data
     civilizations = civs_data['civilizations']
@@ -1147,29 +1188,31 @@ def _process_interactions(civs_data, num_civs):
 def process_all_civilization_interactions(civilizations, knowledge_array, suppression_array, influence_array,
                                           resources_array, dt=1.0, max_spawn_probability=0.05,
                                           max_random_spawn_probability=0.01, max_civilizations=20, min_division=0.01):
-    """
-    Process all interactions between civilizations in a single time step.
+    """Process all interactions between civilizations in a single time step.
 
-    Parameters:
-        civilizations (dict): Civilization parameters
-        knowledge_array (array): Knowledge levels for all civilizations
-        suppression_array (array): Suppression levels for all civilizations
-        influence_array (array): Influence levels for all civilizations
-        resources_array (array): Resource levels for all civilizations
-        dt (float): Time step size
-        max_spawn_probability (float): Maximum probability for spawning new civilizations
-        max_random_spawn_probability (float): Maximum probability for random new civilizations
-        max_civilizations (int): Maximum number of civilizations allowed
-        min_division (float): Minimum value for division safety
+Parameters:
+    civilizations (dict): Civilization parameters
+    knowledge_array (array): Knowledge levels for all civilizations
+    suppression_array (array): Suppression levels for all civilizations
+    influence_array (array): Influence levels for all civilizations
+    resources_array (array): Resource levels for all civilizations
+    dt (float): Time step size
+    max_spawn_probability (float): Maximum probability for spawning new civilizations
+    max_random_spawn_probability (float): Maximum probability for random new civilizations
+    max_civilizations (int): Maximum number of civilizations allowed
+    min_division (float): Minimum value for division safety
 
-    Returns:
-        dict: Updated civilization parameters
-        array: Updated knowledge array
-        array: Updated suppression array
-        array: Updated influence array
-        array: Updated resources array
-        list: Information about key events
-    """
+Returns:
+    dict: Updated civilization parameters
+    array: Updated knowledge array
+    array: Updated suppression array
+    array: Updated influence array
+    array: Updated resources array
+    list: Information about key events
+
+Physics Domain: Multi System
+Scale Level: Multi Civilization
+Application Domains: Civilization, Knowledge, Suppression"""
     # Package data
     civs_data = {
         'civilizations': civilizations,

@@ -1,3 +1,4 @@
+import functools
 # utils/dimensional_consistency.py
 
 import numpy as np

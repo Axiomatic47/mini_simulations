@@ -1,0 +1,6 @@
+configuration,success,error,final_knowledge,knowledge_growth_rate,final_suppression,suppression_decay_rate,convergence_time,stability_issues,event_count,runtime
+base,False,No simulation module available for configuration: base,,,,,,,,
+quantum,False,No simulation module available for configuration: quantum,,,,,,,,
+astrophysics,False,No simulation module available for configuration: astrophysics,,,,,,,,
+multi_civ,False,module 'simulations.multi_civilization_simulation' has no attribute 'run_simulation',,,,,,,,
+integrated,True,,6.411097412791187,0.0062126538394577935,906.9535985325662,-0.015138463727352613,104.0,0.0,612.0,0.013750791549682617

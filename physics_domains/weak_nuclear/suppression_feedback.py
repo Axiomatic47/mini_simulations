@@ -1,0 +1,1 @@
+/Users/joseph/Git/mini_simulations/config/equations.py

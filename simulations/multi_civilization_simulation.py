@@ -961,4 +961,4 @@ stability_df.to_csv(data_dir / "multi_civilization_stability.csv", index=False)
 print(f"✅ Stability metrics saved at: {data_dir / 'multi_civilization_stability.csv'}")
 
 print("All visualizations and data exports completed.")
-plt.show()
+plt.close()

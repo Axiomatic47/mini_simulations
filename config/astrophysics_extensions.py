@@ -18,6 +18,10 @@ def civilization_lifecycle_phase(age, intensity, phase_thresholds, phase_intensi
     Returns:
         float: Civilization intensity at current age
         int: Current phase of civilization (0-5)
+
+    Physics Domain: astrophysics
+    Scale Level: civilization
+    Application Domains: civilization, intelligence
     """
     # Apply parameter bounds
     age = max(0, age)
@@ -159,6 +163,10 @@ def suppression_event_horizon(S, K, critical_constant=2.0, min_K=0.01, max_S=100
     Returns:
         float: Critical radius beyond which knowledge cannot escape suppression
         bool: Whether system is beyond event horizon (True if suppressed)
+
+    Physics Domain: astrophysics
+    Scale Level: civilization
+    Application Domains: suppression, knowledge
     """
     # Apply parameter bounds
     K = max(min_K, K)
@@ -193,6 +201,10 @@ def cosmic_background_knowledge(time, base_level, fluctuation_amplitude=0.1,
 
     Returns:
         float: Background knowledge level
+
+    Physics Domain: astrophysics
+    Scale Level: cosmic
+    Application Domains: knowledge
     """
     # Apply parameter bounds
     time = max(0, time)
@@ -229,6 +241,10 @@ def knowledge_inflation(K, T, inflation_threshold, expansion_rate=2.0, duration=
     Returns:
         float: Knowledge expansion multiplier
         bool: Whether inflation is active
+
+    Physics Domain: astrophysics
+    Scale Level: civilization
+    Application Domains: knowledge, truth
     """
     # Apply parameter bounds
     K = max(0, K)
@@ -280,6 +296,10 @@ def knowledge_gravitational_lensing(truth_value, suppression_strength, observer_
     Returns:
         float: Apparent (distorted) truth value
         float: Distortion magnitude
+
+    Physics Domain: astrophysics
+    Scale Level: civilization
+    Application Domains: truth, suppression
     """
     # Apply parameter bounds
     truth_value = max(0, truth_value)
@@ -327,6 +347,10 @@ def dark_energy_knowledge_acceleration(time, K, unexplained_factor=0.05,
 
     Returns:
         float: Additional knowledge growth
+
+    Physics Domain: astrophysics
+    Scale Level: cosmic
+    Application Domains: knowledge
     """
     # Apply parameter bounds
     time = max(0, min(max_time, time))
@@ -344,20 +368,22 @@ def dark_energy_knowledge_acceleration(time, K, unexplained_factor=0.05,
 # 7. Galactic Formation and Structure - Societal Organization
 def galactic_structure_model(num_agents, core_influence=2.0, arm_strength=0.5,
                              max_influence=5.0, min_influence=0.0):
-    """
-    Models societal structure similar to galactic formation,
-    with core and peripheral agents.
+    """Models societal structure similar to galactic formation,
+with core and peripheral agents.
 
-    Parameters:
-        num_agents (int): Number of agents in society
-        core_influence (float): Strength of core knowledge influence
-        arm_strength (float): Strength of "spiral arm" connections
-        max_influence (float): Maximum influence value for stability
-        min_influence (float): Minimum influence value
+Parameters:
+    num_agents (int): Number of agents in society
+    core_influence (float): Strength of core knowledge influence
+    arm_strength (float): Strength of "spiral arm" connections
+    max_influence (float): Maximum influence value for stability
+    min_influence (float): Minimum influence value
 
-    Returns:
-        array: Influence matrix between agents
-    """
+Returns:
+    array: Influence matrix between agents
+
+Physics Domain: Astrophysics
+Scale Level: Civilization
+Application Domains: Intelligence, Knowledge"""
     # Apply parameter bounds
     num_agents = max(1, int(num_agents))
     core_influence = max(min_influence, min(max_influence, core_influence))
