@@ -565,3 +565,491 @@
 2025-03-13 19:50:04,385 - ReportGenerator - INFO - Unified report saved to validation/reports/unified/unified_validation_report.html
 2025-03-13 19:50:04,385 - IntegrationRunner - INFO - Comprehensive report generated at validation/reports/unified/unified_validation_report.html
 2025-03-13 19:50:04,385 - IntegrationRunner - INFO - Unified validation process completed successfully
+2025-03-13 19:55:38,742 - IntegrationRunner - INFO - Starting unified validation process
+2025-03-13 19:56:10,133 - IntegrationRunner - INFO - Starting unified validation process
+2025-03-13 19:57:28,728 - IntegrationRunner - INFO - Starting unified validation process
+2025-03-13 19:57:29,182 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-13 19:57:29,183 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-13 19:57:30,167 - IntegrationRunner - WARNING - Could not import UnifiedValidator, will create it
+2025-03-13 19:57:30,169 - IntegrationRunner - ERROR - Could not create UnifiedValidator, controller artifact not found
+2025-03-13 19:57:30,169 - IntegrationRunner - INFO - Using individual validator components
+2025-03-13 19:57:30,169 - IntegrationRunner - INFO - Running equation coverage analysis
+2025-03-13 19:57:30,169 - EquationAnalyzer - INFO - Analyzing equation coverage for modules: ['equations', 'quantum_em_extensions', 'astrophysics_extensions', 'multi_civilization_extensions', 'strong_nuclear', 'bridge_functions']
+2025-03-13 19:57:30,175 - EquationAnalyzer - INFO - Loaded 10 equations from equations
+2025-03-13 19:57:30,177 - EquationAnalyzer - INFO - Loaded 5 equations from quantum_em_extensions
+2025-03-13 19:57:30,180 - EquationAnalyzer - INFO - Loaded 7 equations from astrophysics_extensions
+2025-03-13 19:57:30,190 - EquationAnalyzer - INFO - Loaded 18 equations from multi_civilization_extensions
+2025-03-13 19:57:30,190 - EquationAnalyzer - ERROR - Could not import module strong_nuclear: No module named 'config.strong_nuclear'
+2025-03-13 19:57:30,190 - EquationAnalyzer - ERROR - Could not import module bridge_functions: No module named 'config.bridge_functions'
+2025-03-13 19:57:31,107 - EquationAnalyzer - INFO - Coverage visualization saved to validation/reports/unified/equation_coverage.png
+2025-03-13 19:57:31,333 - EquationAnalyzer - INFO - Gap visualization saved to validation/reports/unified/equation_gaps.png
+2025-03-13 19:57:31,333 - IntegrationRunner - INFO - Generating comprehensive report
+2025-03-13 19:57:31,333 - ReportGenerator - INFO - Generating unified validation report
+2025-03-13 19:57:31,697 - ReportGenerator - INFO - Unified report saved to validation/reports/unified/unified_validation_report.html
+2025-03-13 19:57:31,697 - IntegrationRunner - INFO - Comprehensive report generated at validation/reports/unified/unified_validation_report.html
+2025-03-13 19:57:31,697 - IntegrationRunner - INFO - Unified validation process completed successfully
+2025-03-13 19:57:31,902 - IntegrationRunner - INFO - Starting unified validation process
+2025-03-13 19:57:32,125 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-13 19:57:32,125 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-13 19:57:32,755 - IntegrationRunner - WARNING - Could not import UnifiedValidator, will create it
+2025-03-13 19:57:32,757 - IntegrationRunner - ERROR - Could not create UnifiedValidator, controller artifact not found
+2025-03-13 19:57:32,757 - IntegrationRunner - INFO - Using individual validator components
+2025-03-13 19:57:32,757 - IntegrationRunner - INFO - Running equation coverage analysis
+2025-03-13 19:57:32,757 - EquationAnalyzer - INFO - Analyzing equation coverage for modules: ['strong_nuclear']
+2025-03-13 19:57:32,757 - EquationAnalyzer - ERROR - Could not import module strong_nuclear: No module named 'config.strong_nuclear'
+2025-03-13 19:57:33,624 - EquationAnalyzer - INFO - Coverage visualization saved to validation/reports/unified/equation_coverage.png
+2025-03-13 19:57:33,849 - EquationAnalyzer - INFO - Gap visualization saved to validation/reports/unified/equation_gaps.png
+2025-03-13 19:57:33,849 - IntegrationRunner - INFO - Generating comprehensive report
+2025-03-13 19:57:33,849 - ReportGenerator - INFO - Generating unified validation report
+2025-03-13 19:57:34,202 - ReportGenerator - INFO - Unified report saved to validation/reports/unified/unified_validation_report.html
+2025-03-13 19:57:34,202 - IntegrationRunner - INFO - Comprehensive report generated at validation/reports/unified/unified_validation_report.html
+2025-03-13 19:57:34,202 - IntegrationRunner - INFO - Unified validation process completed successfully
+2025-03-13 19:59:16,193 - IntegrationRunner - INFO - Starting unified validation process
+2025-03-13 20:13:02,878 - IntegrationRunner - INFO - Starting unified validation process
+2025-03-13 20:13:03,357 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-13 20:13:03,357 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-13 20:13:04,352 - IntegrationRunner - WARNING - Could not import UnifiedValidator, will create it
+2025-03-13 20:13:04,354 - IntegrationRunner - ERROR - Could not create UnifiedValidator, controller artifact not found
+2025-03-13 20:13:04,354 - IntegrationRunner - INFO - Using individual validator components
+2025-03-13 20:13:04,354 - IntegrationRunner - INFO - Running equation coverage analysis
+2025-03-13 20:13:04,354 - EquationAnalyzer - INFO - Analyzing equation coverage for modules: ['config.equations', 'config.quantum_em_extensions', 'config.astrophysics_extensions', 'config.multi_civilization_extensions', 'physics_domains.strong_nuclear', 'bridge_functions']
+2025-03-13 20:13:04,354 - EquationAnalyzer - ERROR - Could not import module config.equations: No module named 'config.config'
+2025-03-13 20:13:04,354 - EquationAnalyzer - ERROR - Could not import module config.quantum_em_extensions: No module named 'config.config'
+2025-03-13 20:13:04,354 - EquationAnalyzer - ERROR - Could not import module config.astrophysics_extensions: No module named 'config.config'
+2025-03-13 20:13:04,354 - EquationAnalyzer - ERROR - Could not import module config.multi_civilization_extensions: No module named 'config.config'
+2025-03-13 20:13:04,354 - EquationAnalyzer - ERROR - Could not import module physics_domains.strong_nuclear: No module named 'config.physics_domains'
+2025-03-13 20:13:04,354 - EquationAnalyzer - ERROR - Could not import module bridge_functions: No module named 'config.bridge_functions'
+2025-03-13 20:13:05,899 - EquationAnalyzer - INFO - Coverage visualization saved to validation/reports/unified/equation_coverage.png
+2025-03-13 20:13:06,128 - EquationAnalyzer - INFO - Gap visualization saved to validation/reports/unified/equation_gaps.png
+2025-03-13 20:13:06,128 - IntegrationRunner - INFO - Generating comprehensive report
+2025-03-13 20:13:06,128 - ReportGenerator - INFO - Generating unified validation report
+2025-03-13 20:13:06,481 - ReportGenerator - INFO - Unified report saved to validation/reports/unified/unified_validation_report.html
+2025-03-13 20:13:06,481 - IntegrationRunner - INFO - Comprehensive report generated at validation/reports/unified/unified_validation_report.html
+2025-03-13 20:13:06,481 - IntegrationRunner - INFO - Unified validation process completed successfully
+2025-03-13 20:13:27,549 - IntegrationRunner - INFO - Starting unified validation process
+2025-03-13 20:13:27,928 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-13 20:13:27,929 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-13 20:13:28,887 - IntegrationRunner - WARNING - Could not import UnifiedValidator, will create it
+2025-03-13 20:13:28,889 - IntegrationRunner - ERROR - Could not create UnifiedValidator, controller artifact not found
+2025-03-13 20:13:28,889 - IntegrationRunner - INFO - Using individual validator components
+2025-03-13 20:13:28,889 - IntegrationRunner - INFO - Running equation coverage analysis
+2025-03-13 20:13:28,889 - EquationAnalyzer - INFO - Analyzing equation coverage for modules: ['equations', 'astrophysics_extensions', 'quantum_em_extensions', 'multi_civilization_extensions']
+2025-03-13 20:13:28,894 - EquationAnalyzer - INFO - Loaded 10 equations from equations
+2025-03-13 20:13:28,897 - EquationAnalyzer - INFO - Loaded 7 equations from astrophysics_extensions
+2025-03-13 20:13:28,899 - EquationAnalyzer - INFO - Loaded 5 equations from quantum_em_extensions
+2025-03-13 20:13:28,909 - EquationAnalyzer - INFO - Loaded 18 equations from multi_civilization_extensions
+2025-03-13 20:13:29,801 - EquationAnalyzer - INFO - Coverage visualization saved to validation/reports/unified/equation_coverage.png
+2025-03-13 20:13:30,028 - EquationAnalyzer - INFO - Gap visualization saved to validation/reports/unified/equation_gaps.png
+2025-03-13 20:13:30,028 - IntegrationRunner - INFO - Running cross-scale interaction validation
+2025-03-13 20:13:30,028 - CrossScaleValidator - INFO - Evaluating cross-scale interactions across 6 levels
+2025-03-13 20:13:30,031 - CrossScaleValidator - INFO - Loaded equations from equations
+2025-03-13 20:13:30,033 - CrossScaleValidator - INFO - Loaded equations from astrophysics_extensions
+2025-03-13 20:13:30,034 - CrossScaleValidator - INFO - Loaded equations from quantum_em_extensions
+2025-03-13 20:13:30,039 - CrossScaleValidator - INFO - Loaded equations from multi_civilization_extensions
+2025-03-13 20:13:30,635 - CrossScaleValidator - INFO - Dependency graph saved to validation/reports/unified/dependency_graph.png
+2025-03-13 20:13:31,030 - CrossScaleValidator - INFO - Scale adjacency matrix saved to validation/reports/unified/scale_adjacency.png
+2025-03-13 20:13:31,387 - CrossScaleValidator - INFO - Signal propagation visualization saved to validation/reports/unified/signal_propagation.png
+2025-03-13 20:13:31,387 - IntegrationRunner - INFO - Running comparative simulation analysis
+2025-03-13 20:13:31,389 - ComparativeAnalyzer - WARNING - Could not import comprehensive_simulation
+2025-03-13 20:13:31,390 - ComparativeAnalyzer - WARNING - Could not import quantum_em_simulation
+2025-03-13 20:13:31,390 - ComparativeAnalyzer - WARNING - Could not import astrophysics_simulation
+2025-03-13 20:13:32,149 - ComparativeAnalyzer - INFO - Successfully imported simulation modules
+2025-03-13 20:13:32,149 - ComparativeAnalyzer - INFO - Running comparative analysis with 5 configurations
+2025-03-13 20:13:32,149 - ComparativeAnalyzer - INFO - Running base simulation
+2025-03-13 20:13:32,149 - ComparativeAnalyzer - ERROR - Error running base simulation: No simulation module available for configuration: base
+2025-03-13 20:13:32,149 - ComparativeAnalyzer - INFO - Running quantum simulation
+2025-03-13 20:13:32,149 - ComparativeAnalyzer - ERROR - Error running quantum simulation: No simulation module available for configuration: quantum
+2025-03-13 20:13:32,149 - ComparativeAnalyzer - INFO - Running astrophysics simulation
+2025-03-13 20:13:32,149 - ComparativeAnalyzer - ERROR - Error running astrophysics simulation: No simulation module available for configuration: astrophysics
+2025-03-13 20:13:32,149 - ComparativeAnalyzer - INFO - Running multi_civ simulation
+2025-03-13 20:13:32,149 - ComparativeAnalyzer - ERROR - Error running multi_civ simulation: module 'simulations.multi_civilization_simulation' has no attribute 'run_simulation'
+2025-03-13 20:13:32,149 - ComparativeAnalyzer - INFO - Running integrated simulation
+2025-03-13 20:13:32,149 - ComparativeAnalyzer - INFO - Running integrated simulation with 300 timesteps
+2025-03-13 20:13:32,164 - ComparativeAnalyzer - INFO - Completed integrated simulation with 610 events
+2025-03-13 20:13:32,164 - ComparativeAnalyzer - INFO - Successfully ran integrated simulation in 0.01 seconds
+2025-03-13 20:13:32,164 - ComparativeAnalyzer - INFO - Saved comparison results to validation/reports/unified/simulation_comparison.csv
+2025-03-13 20:13:32,165 - ComparativeAnalyzer - INFO - Saved metric comparison to validation/reports/unified/metric_comparison.csv
+2025-03-13 20:13:32,165 - ComparativeAnalyzer - INFO - Saved configuration scores to validation/reports/unified/configuration_scores.csv
+2025-03-13 20:13:32,560 - ComparativeAnalyzer - INFO - Saved metric comparison chart to validation/reports/unified/metric_comparison.png
+2025-03-13 20:13:32,718 - ComparativeAnalyzer - INFO - Saved knowledge time series comparison to validation/reports/unified/knowledge_comparison.png
+2025-03-13 20:13:32,890 - ComparativeAnalyzer - INFO - Saved suppression time series comparison to validation/reports/unified/suppression_comparison.png
+2025-03-13 20:13:33,037 - ComparativeAnalyzer - INFO - Saved intelligence time series comparison to validation/reports/unified/intelligence_comparison.png
+2025-03-13 20:13:33,188 - ComparativeAnalyzer - INFO - Saved truth time series comparison to validation/reports/unified/truth_comparison.png
+2025-03-13 20:13:33,291 - ComparativeAnalyzer - INFO - Saved configuration scores chart to validation/reports/unified/configuration_scores.png
+2025-03-13 20:13:33,291 - IntegrationRunner - INFO - Generating comprehensive report
+2025-03-13 20:13:33,291 - ReportGenerator - INFO - Generating unified validation report
+2025-03-13 20:13:34,224 - ReportGenerator - INFO - Unified report saved to validation/reports/unified/unified_validation_report.html
+2025-03-13 20:13:34,224 - IntegrationRunner - INFO - Comprehensive report generated at validation/reports/unified/unified_validation_report.html
+2025-03-13 20:13:34,224 - IntegrationRunner - INFO - Unified validation process completed successfully
+2025-03-13 20:16:25,190 - IntegrationRunner - INFO - Starting unified validation process
+2025-03-13 20:16:25,613 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-13 20:16:25,613 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-13 20:16:26,571 - IntegrationRunner - WARNING - Could not import UnifiedValidator, will create it
+2025-03-13 20:16:26,573 - IntegrationRunner - ERROR - Could not create UnifiedValidator, controller artifact not found
+2025-03-13 20:16:26,573 - IntegrationRunner - INFO - Using individual validator components
+2025-03-13 20:16:26,573 - IntegrationRunner - INFO - Running equation coverage analysis
+2025-03-13 20:16:26,573 - EquationAnalyzer - INFO - Analyzing equation coverage for modules: ['config.equations', 'config.quantum_em_extensions', 'config.astrophysics_extensions', 'config.multi_civilization_extensions', 'physics_domains.strong_nuclear', 'bridge_functions']
+2025-03-13 20:16:26,573 - EquationAnalyzer - ERROR - Could not import module config.equations: No module named 'config.config'
+2025-03-13 20:16:26,573 - EquationAnalyzer - ERROR - Could not import module config.quantum_em_extensions: No module named 'config.config'
+2025-03-13 20:16:26,573 - EquationAnalyzer - ERROR - Could not import module config.astrophysics_extensions: No module named 'config.config'
+2025-03-13 20:16:26,573 - EquationAnalyzer - ERROR - Could not import module config.multi_civilization_extensions: No module named 'config.config'
+2025-03-13 20:16:26,573 - EquationAnalyzer - ERROR - Could not import module physics_domains.strong_nuclear: No module named 'config.physics_domains'
+2025-03-13 20:16:26,574 - EquationAnalyzer - ERROR - Could not import module bridge_functions: No module named 'config.bridge_functions'
+2025-03-13 20:16:27,489 - EquationAnalyzer - INFO - Coverage visualization saved to validation/reports/unified/equation_coverage.png
+2025-03-13 20:16:27,721 - EquationAnalyzer - INFO - Gap visualization saved to validation/reports/unified/equation_gaps.png
+2025-03-13 20:16:27,721 - IntegrationRunner - INFO - Generating comprehensive report
+2025-03-13 20:16:27,721 - ReportGenerator - INFO - Generating unified validation report
+2025-03-13 20:16:28,072 - ReportGenerator - INFO - Unified report saved to validation/reports/unified/unified_validation_report.html
+2025-03-13 20:16:28,072 - IntegrationRunner - INFO - Comprehensive report generated at validation/reports/unified/unified_validation_report.html
+2025-03-13 20:16:28,072 - IntegrationRunner - INFO - Unified validation process completed successfully
+2025-03-13 20:16:43,479 - IntegrationRunner - INFO - Starting unified validation process
+2025-03-13 20:16:43,879 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-13 20:16:43,879 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-13 20:16:44,820 - IntegrationRunner - WARNING - Could not import UnifiedValidator, will create it
+2025-03-13 20:16:44,822 - IntegrationRunner - ERROR - Could not create UnifiedValidator, controller artifact not found
+2025-03-13 20:16:44,822 - IntegrationRunner - INFO - Using individual validator components
+2025-03-13 20:16:44,822 - IntegrationRunner - INFO - Running equation coverage analysis
+2025-03-13 20:16:44,822 - EquationAnalyzer - INFO - Analyzing equation coverage for modules: ['equations', 'astrophysics_extensions', 'quantum_em_extensions', 'multi_civilization_extensions']
+2025-03-13 20:16:44,828 - EquationAnalyzer - INFO - Loaded 10 equations from equations
+2025-03-13 20:16:44,830 - EquationAnalyzer - INFO - Loaded 7 equations from astrophysics_extensions
+2025-03-13 20:16:44,832 - EquationAnalyzer - INFO - Loaded 5 equations from quantum_em_extensions
+2025-03-13 20:16:44,842 - EquationAnalyzer - INFO - Loaded 18 equations from multi_civilization_extensions
+2025-03-13 20:16:45,724 - EquationAnalyzer - INFO - Coverage visualization saved to validation/reports/unified/equation_coverage.png
+2025-03-13 20:16:45,948 - EquationAnalyzer - INFO - Gap visualization saved to validation/reports/unified/equation_gaps.png
+2025-03-13 20:16:45,948 - IntegrationRunner - INFO - Running cross-scale interaction validation
+2025-03-13 20:16:45,948 - CrossScaleValidator - INFO - Evaluating cross-scale interactions across 6 levels
+2025-03-13 20:16:45,951 - CrossScaleValidator - INFO - Loaded equations from equations
+2025-03-13 20:16:45,953 - CrossScaleValidator - INFO - Loaded equations from astrophysics_extensions
+2025-03-13 20:16:45,954 - CrossScaleValidator - INFO - Loaded equations from quantum_em_extensions
+2025-03-13 20:16:45,959 - CrossScaleValidator - INFO - Loaded equations from multi_civilization_extensions
+2025-03-13 20:16:46,548 - CrossScaleValidator - INFO - Dependency graph saved to validation/reports/unified/dependency_graph.png
+2025-03-13 20:16:46,940 - CrossScaleValidator - INFO - Scale adjacency matrix saved to validation/reports/unified/scale_adjacency.png
+2025-03-13 20:16:47,291 - CrossScaleValidator - INFO - Signal propagation visualization saved to validation/reports/unified/signal_propagation.png
+2025-03-13 20:16:47,292 - IntegrationRunner - INFO - Running comparative simulation analysis
+2025-03-13 20:16:47,293 - ComparativeAnalyzer - WARNING - Could not import comprehensive_simulation
+2025-03-13 20:16:47,294 - ComparativeAnalyzer - WARNING - Could not import quantum_em_simulation
+2025-03-13 20:16:47,294 - ComparativeAnalyzer - WARNING - Could not import astrophysics_simulation
+2025-03-13 20:16:48,079 - ComparativeAnalyzer - INFO - Successfully imported simulation modules
+2025-03-13 20:16:48,079 - ComparativeAnalyzer - INFO - Running comparative analysis with 5 configurations
+2025-03-13 20:16:48,079 - ComparativeAnalyzer - INFO - Running base simulation
+2025-03-13 20:16:48,079 - ComparativeAnalyzer - ERROR - Error running base simulation: No simulation module available for configuration: base
+2025-03-13 20:16:48,079 - ComparativeAnalyzer - INFO - Running quantum simulation
+2025-03-13 20:16:48,079 - ComparativeAnalyzer - ERROR - Error running quantum simulation: No simulation module available for configuration: quantum
+2025-03-13 20:16:48,079 - ComparativeAnalyzer - INFO - Running astrophysics simulation
+2025-03-13 20:16:48,079 - ComparativeAnalyzer - ERROR - Error running astrophysics simulation: No simulation module available for configuration: astrophysics
+2025-03-13 20:16:48,079 - ComparativeAnalyzer - INFO - Running multi_civ simulation
+2025-03-13 20:16:48,079 - ComparativeAnalyzer - ERROR - Error running multi_civ simulation: module 'simulations.multi_civilization_simulation' has no attribute 'run_simulation'
+2025-03-13 20:16:48,079 - ComparativeAnalyzer - INFO - Running integrated simulation
+2025-03-13 20:16:48,079 - ComparativeAnalyzer - INFO - Running integrated simulation with 300 timesteps
+2025-03-13 20:16:48,093 - ComparativeAnalyzer - INFO - Completed integrated simulation with 613 events
+2025-03-13 20:16:48,093 - ComparativeAnalyzer - INFO - Successfully ran integrated simulation in 0.01 seconds
+2025-03-13 20:16:48,094 - ComparativeAnalyzer - INFO - Saved comparison results to validation/reports/unified/simulation_comparison.csv
+2025-03-13 20:16:48,095 - ComparativeAnalyzer - INFO - Saved metric comparison to validation/reports/unified/metric_comparison.csv
+2025-03-13 20:16:48,095 - ComparativeAnalyzer - INFO - Saved configuration scores to validation/reports/unified/configuration_scores.csv
+2025-03-13 20:16:48,490 - ComparativeAnalyzer - INFO - Saved metric comparison chart to validation/reports/unified/metric_comparison.png
+2025-03-13 20:16:48,647 - ComparativeAnalyzer - INFO - Saved knowledge time series comparison to validation/reports/unified/knowledge_comparison.png
+2025-03-13 20:16:48,818 - ComparativeAnalyzer - INFO - Saved suppression time series comparison to validation/reports/unified/suppression_comparison.png
+2025-03-13 20:16:48,963 - ComparativeAnalyzer - INFO - Saved intelligence time series comparison to validation/reports/unified/intelligence_comparison.png
+2025-03-13 20:16:49,114 - ComparativeAnalyzer - INFO - Saved truth time series comparison to validation/reports/unified/truth_comparison.png
+2025-03-13 20:16:49,219 - ComparativeAnalyzer - INFO - Saved configuration scores chart to validation/reports/unified/configuration_scores.png
+2025-03-13 20:16:49,220 - IntegrationRunner - INFO - Generating comprehensive report
+2025-03-13 20:16:49,220 - ReportGenerator - INFO - Generating unified validation report
+2025-03-13 20:16:50,165 - ReportGenerator - INFO - Unified report saved to validation/reports/unified/unified_validation_report.html
+2025-03-13 20:16:50,165 - IntegrationRunner - INFO - Comprehensive report generated at validation/reports/unified/unified_validation_report.html
+2025-03-13 20:16:50,165 - IntegrationRunner - INFO - Unified validation process completed successfully
+2025-03-13 20:23:16,438 - IntegrationRunner - INFO - Starting unified validation process
+2025-03-13 20:23:16,878 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-13 20:23:16,878 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-13 20:23:17,864 - IntegrationRunner - WARNING - Could not import UnifiedValidator, will create it
+2025-03-13 20:23:17,872 - IntegrationRunner - ERROR - Could not create UnifiedValidator, controller artifact not found
+2025-03-13 20:23:17,872 - IntegrationRunner - INFO - Using individual validator components
+2025-03-13 20:23:17,872 - IntegrationRunner - INFO - Running equation coverage analysis
+2025-03-13 20:23:17,872 - EquationAnalyzer - INFO - Analyzing equation coverage for modules: ['equations', 'astrophysics_extensions', 'quantum_em_extensions', 'multi_civilization_extensions']
+2025-03-13 20:23:17,874 - EquationAnalyzer - INFO - Successfully imported equations as config.equations
+2025-03-13 20:23:17,878 - EquationAnalyzer - INFO - Loaded 10 equations from equations
+2025-03-13 20:23:17,878 - EquationAnalyzer - INFO - Successfully imported astrophysics_extensions as config.astrophysics_extensions
+2025-03-13 20:23:17,881 - EquationAnalyzer - INFO - Loaded 7 equations from astrophysics_extensions
+2025-03-13 20:23:17,881 - EquationAnalyzer - INFO - Successfully imported quantum_em_extensions as config.quantum_em_extensions
+2025-03-13 20:23:17,882 - EquationAnalyzer - INFO - Loaded 5 equations from quantum_em_extensions
+2025-03-13 20:23:17,883 - EquationAnalyzer - INFO - Successfully imported multi_civilization_extensions as config.multi_civilization_extensions
+2025-03-13 20:23:17,892 - EquationAnalyzer - INFO - Loaded 18 equations from multi_civilization_extensions
+2025-03-13 20:23:18,783 - EquationAnalyzer - INFO - Coverage visualization saved to validation/reports/unified/equation_coverage.png
+2025-03-13 20:23:18,997 - EquationAnalyzer - INFO - Gap visualization saved to validation/reports/unified/equation_gaps.png
+2025-03-13 20:23:18,997 - IntegrationRunner - INFO - Running cross-scale interaction validation
+2025-03-13 20:23:18,997 - CrossScaleValidator - INFO - Evaluating cross-scale interactions across 6 levels
+2025-03-13 20:23:19,000 - CrossScaleValidator - INFO - Loaded equations from equations
+2025-03-13 20:23:19,002 - CrossScaleValidator - INFO - Loaded equations from astrophysics_extensions
+2025-03-13 20:23:19,003 - CrossScaleValidator - INFO - Loaded equations from quantum_em_extensions
+2025-03-13 20:23:19,008 - CrossScaleValidator - INFO - Loaded equations from multi_civilization_extensions
+2025-03-13 20:23:19,601 - CrossScaleValidator - INFO - Dependency graph saved to validation/reports/unified/dependency_graph.png
+2025-03-13 20:23:19,995 - CrossScaleValidator - INFO - Scale adjacency matrix saved to validation/reports/unified/scale_adjacency.png
+2025-03-13 20:23:20,341 - CrossScaleValidator - INFO - Signal propagation visualization saved to validation/reports/unified/signal_propagation.png
+2025-03-13 20:23:20,341 - IntegrationRunner - INFO - Running comparative simulation analysis
+2025-03-13 20:23:20,343 - ComparativeAnalyzer - WARNING - Could not import comprehensive_simulation
+2025-03-13 20:23:20,343 - ComparativeAnalyzer - WARNING - Could not import quantum_em_simulation
+2025-03-13 20:23:20,344 - ComparativeAnalyzer - WARNING - Could not import astrophysics_simulation
+2025-03-13 20:23:21,075 - ComparativeAnalyzer - INFO - Successfully imported simulation modules
+2025-03-13 20:23:21,075 - ComparativeAnalyzer - INFO - Running comparative analysis with 5 configurations
+2025-03-13 20:23:21,075 - ComparativeAnalyzer - INFO - Running base simulation
+2025-03-13 20:23:21,075 - ComparativeAnalyzer - ERROR - Error running base simulation: No simulation module available for configuration: base
+2025-03-13 20:23:21,076 - ComparativeAnalyzer - INFO - Running quantum simulation
+2025-03-13 20:23:21,076 - ComparativeAnalyzer - ERROR - Error running quantum simulation: No simulation module available for configuration: quantum
+2025-03-13 20:23:21,076 - ComparativeAnalyzer - INFO - Running astrophysics simulation
+2025-03-13 20:23:21,076 - ComparativeAnalyzer - ERROR - Error running astrophysics simulation: No simulation module available for configuration: astrophysics
+2025-03-13 20:23:21,076 - ComparativeAnalyzer - INFO - Running multi_civ simulation
+2025-03-13 20:23:21,076 - ComparativeAnalyzer - ERROR - Error running multi_civ simulation: module 'simulations.multi_civilization_simulation' has no attribute 'run_simulation'
+2025-03-13 20:23:21,076 - ComparativeAnalyzer - INFO - Running integrated simulation
+2025-03-13 20:23:21,076 - ComparativeAnalyzer - INFO - Running integrated simulation with 300 timesteps
+2025-03-13 20:23:21,090 - ComparativeAnalyzer - INFO - Completed integrated simulation with 603 events
+2025-03-13 20:23:21,090 - ComparativeAnalyzer - INFO - Successfully ran integrated simulation in 0.01 seconds
+2025-03-13 20:23:21,091 - ComparativeAnalyzer - INFO - Saved comparison results to validation/reports/unified/simulation_comparison.csv
+2025-03-13 20:23:21,091 - ComparativeAnalyzer - INFO - Saved metric comparison to validation/reports/unified/metric_comparison.csv
+2025-03-13 20:23:21,091 - ComparativeAnalyzer - INFO - Saved configuration scores to validation/reports/unified/configuration_scores.csv
+2025-03-13 20:23:21,481 - ComparativeAnalyzer - INFO - Saved metric comparison chart to validation/reports/unified/metric_comparison.png
+2025-03-13 20:23:21,636 - ComparativeAnalyzer - INFO - Saved knowledge time series comparison to validation/reports/unified/knowledge_comparison.png
+2025-03-13 20:23:21,804 - ComparativeAnalyzer - INFO - Saved suppression time series comparison to validation/reports/unified/suppression_comparison.png
+2025-03-13 20:23:21,945 - ComparativeAnalyzer - INFO - Saved intelligence time series comparison to validation/reports/unified/intelligence_comparison.png
+2025-03-13 20:23:22,094 - ComparativeAnalyzer - INFO - Saved truth time series comparison to validation/reports/unified/truth_comparison.png
+2025-03-13 20:23:22,198 - ComparativeAnalyzer - INFO - Saved configuration scores chart to validation/reports/unified/configuration_scores.png
+2025-03-13 20:23:22,198 - IntegrationRunner - INFO - Generating comprehensive report
+2025-03-13 20:23:22,198 - ReportGenerator - INFO - Generating unified validation report
+2025-03-13 20:23:23,101 - ReportGenerator - INFO - Unified report saved to validation/reports/unified/unified_validation_report.html
+2025-03-13 20:23:23,101 - IntegrationRunner - INFO - Comprehensive report generated at validation/reports/unified/unified_validation_report.html
+2025-03-13 20:23:23,101 - IntegrationRunner - INFO - Unified validation process completed successfully
+2025-03-13 20:25:44,042 - IntegrationRunner - INFO - Starting unified validation process
+2025-03-13 20:25:44,483 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-13 20:25:44,484 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-13 20:25:45,497 - IntegrationRunner - WARNING - Could not import UnifiedValidator, will create it
+2025-03-13 20:25:45,515 - IntegrationRunner - ERROR - Could not create UnifiedValidator, controller artifact not found
+2025-03-13 20:25:45,515 - IntegrationRunner - INFO - Using individual validator components
+2025-03-13 20:25:45,515 - IntegrationRunner - INFO - Running equation coverage analysis
+2025-03-13 20:25:45,515 - EquationAnalyzer - INFO - Analyzing equation coverage for modules: ['equations', 'astrophysics_extensions', 'quantum_em_extensions', 'multi_civilization_extensions']
+2025-03-13 20:25:45,517 - EquationAnalyzer - INFO - Successfully imported equations as config.equations
+2025-03-13 20:25:45,520 - EquationAnalyzer - INFO - Loaded 10 equations from equations
+2025-03-13 20:25:45,521 - EquationAnalyzer - INFO - Successfully imported astrophysics_extensions as config.astrophysics_extensions
+2025-03-13 20:25:45,523 - EquationAnalyzer - INFO - Loaded 7 equations from astrophysics_extensions
+2025-03-13 20:25:45,523 - EquationAnalyzer - INFO - Successfully imported quantum_em_extensions as config.quantum_em_extensions
+2025-03-13 20:25:45,525 - EquationAnalyzer - INFO - Loaded 5 equations from quantum_em_extensions
+2025-03-13 20:25:45,526 - EquationAnalyzer - INFO - Successfully imported multi_civilization_extensions as config.multi_civilization_extensions
+2025-03-13 20:25:45,535 - EquationAnalyzer - INFO - Loaded 18 equations from multi_civilization_extensions
+2025-03-13 20:25:46,439 - EquationAnalyzer - INFO - Coverage visualization saved to validation/reports/unified/equation_coverage.png
+2025-03-13 20:25:46,656 - EquationAnalyzer - INFO - Gap visualization saved to validation/reports/unified/equation_gaps.png
+2025-03-13 20:25:46,657 - IntegrationRunner - INFO - Running cross-scale interaction validation
+2025-03-13 20:25:46,657 - CrossScaleValidator - INFO - Evaluating cross-scale interactions across 6 levels
+2025-03-13 20:25:46,659 - CrossScaleValidator - INFO - Loaded equations from equations
+2025-03-13 20:25:46,661 - CrossScaleValidator - INFO - Loaded equations from astrophysics_extensions
+2025-03-13 20:25:46,663 - CrossScaleValidator - INFO - Loaded equations from quantum_em_extensions
+2025-03-13 20:25:46,668 - CrossScaleValidator - INFO - Loaded equations from multi_civilization_extensions
+2025-03-13 20:25:47,257 - CrossScaleValidator - INFO - Dependency graph saved to validation/reports/unified/dependency_graph.png
+2025-03-13 20:25:47,639 - CrossScaleValidator - INFO - Scale adjacency matrix saved to validation/reports/unified/scale_adjacency.png
+2025-03-13 20:25:48,008 - CrossScaleValidator - INFO - Signal propagation visualization saved to validation/reports/unified/signal_propagation.png
+2025-03-13 20:25:48,008 - IntegrationRunner - INFO - Running comparative simulation analysis
+2025-03-13 20:25:48,012 - ComparativeAnalyzer - WARNING - Could not import comprehensive_simulation
+2025-03-13 20:25:48,012 - ComparativeAnalyzer - WARNING - Could not import quantum_em_simulation
+2025-03-13 20:25:48,013 - ComparativeAnalyzer - WARNING - Could not import astrophysics_simulation
+2025-03-13 20:25:48,756 - ComparativeAnalyzer - INFO - Successfully imported simulation modules
+2025-03-13 20:25:48,756 - ComparativeAnalyzer - INFO - Running comparative analysis with 5 configurations
+2025-03-13 20:25:48,756 - ComparativeAnalyzer - INFO - Running base simulation
+2025-03-13 20:25:48,756 - ComparativeAnalyzer - ERROR - Error running base simulation: No simulation module available for configuration: base
+2025-03-13 20:25:48,756 - ComparativeAnalyzer - INFO - Running quantum simulation
+2025-03-13 20:25:48,756 - ComparativeAnalyzer - ERROR - Error running quantum simulation: No simulation module available for configuration: quantum
+2025-03-13 20:25:48,756 - ComparativeAnalyzer - INFO - Running astrophysics simulation
+2025-03-13 20:25:48,756 - ComparativeAnalyzer - ERROR - Error running astrophysics simulation: No simulation module available for configuration: astrophysics
+2025-03-13 20:25:48,756 - ComparativeAnalyzer - INFO - Running multi_civ simulation
+2025-03-13 20:25:48,756 - ComparativeAnalyzer - ERROR - Error running multi_civ simulation: module 'simulations.multi_civilization_simulation' has no attribute 'run_simulation'
+2025-03-13 20:25:48,756 - ComparativeAnalyzer - INFO - Running integrated simulation
+2025-03-13 20:25:48,756 - ComparativeAnalyzer - INFO - Running integrated simulation with 300 timesteps
+2025-03-13 20:25:48,769 - ComparativeAnalyzer - INFO - Completed integrated simulation with 629 events
+2025-03-13 20:25:48,769 - ComparativeAnalyzer - INFO - Successfully ran integrated simulation in 0.01 seconds
+2025-03-13 20:25:48,770 - ComparativeAnalyzer - INFO - Saved comparison results to validation/reports/unified/simulation_comparison.csv
+2025-03-13 20:25:48,770 - ComparativeAnalyzer - INFO - Saved metric comparison to validation/reports/unified/metric_comparison.csv
+2025-03-13 20:25:48,770 - ComparativeAnalyzer - INFO - Saved configuration scores to validation/reports/unified/configuration_scores.csv
+2025-03-13 20:25:49,170 - ComparativeAnalyzer - INFO - Saved metric comparison chart to validation/reports/unified/metric_comparison.png
+2025-03-13 20:25:49,335 - ComparativeAnalyzer - INFO - Saved knowledge time series comparison to validation/reports/unified/knowledge_comparison.png
+2025-03-13 20:25:49,507 - ComparativeAnalyzer - INFO - Saved suppression time series comparison to validation/reports/unified/suppression_comparison.png
+2025-03-13 20:25:49,651 - ComparativeAnalyzer - INFO - Saved intelligence time series comparison to validation/reports/unified/intelligence_comparison.png
+2025-03-13 20:25:49,802 - ComparativeAnalyzer - INFO - Saved truth time series comparison to validation/reports/unified/truth_comparison.png
+2025-03-13 20:25:49,905 - ComparativeAnalyzer - INFO - Saved configuration scores chart to validation/reports/unified/configuration_scores.png
+2025-03-13 20:25:49,906 - IntegrationRunner - INFO - Generating comprehensive report
+2025-03-13 20:25:49,906 - ReportGenerator - INFO - Generating unified validation report
+2025-03-13 20:25:50,818 - ReportGenerator - INFO - Unified report saved to validation/reports/unified/unified_validation_report.html
+2025-03-13 20:25:50,818 - IntegrationRunner - INFO - Comprehensive report generated at validation/reports/unified/unified_validation_report.html
+2025-03-13 20:25:50,818 - IntegrationRunner - INFO - Unified validation process completed successfully
+2025-03-13 20:38:00,229 - IntegrationRunner - INFO - Starting unified validation process
+2025-03-13 20:38:00,728 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-13 20:38:00,729 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-13 20:38:01,900 - IntegrationRunner - WARNING - Could not import UnifiedValidator, will create it
+2025-03-13 20:38:01,904 - IntegrationRunner - ERROR - Could not create UnifiedValidator, controller artifact not found
+2025-03-13 20:38:01,904 - IntegrationRunner - INFO - Using individual validator components
+2025-03-13 20:38:01,904 - IntegrationRunner - INFO - Running equation coverage analysis
+2025-03-13 20:38:01,904 - EquationAnalyzer - INFO - Analyzing equation coverage for modules: ['equations', 'astrophysics_extensions', 'quantum_em_extensions', 'multi_civilization_extensions']
+2025-03-13 20:38:01,906 - EquationAnalyzer - INFO - Successfully imported equations as config.equations
+2025-03-13 20:38:01,909 - EquationAnalyzer - INFO - Loaded 10 equations from equations
+2025-03-13 20:38:01,910 - EquationAnalyzer - INFO - Successfully imported astrophysics_extensions as config.astrophysics_extensions
+2025-03-13 20:38:01,913 - EquationAnalyzer - INFO - Loaded 7 equations from astrophysics_extensions
+2025-03-13 20:38:01,913 - EquationAnalyzer - INFO - Successfully imported quantum_em_extensions as config.quantum_em_extensions
+2025-03-13 20:38:01,915 - EquationAnalyzer - INFO - Loaded 5 equations from quantum_em_extensions
+2025-03-13 20:38:01,916 - EquationAnalyzer - INFO - Successfully imported multi_civilization_extensions as config.multi_civilization_extensions
+2025-03-13 20:38:01,926 - EquationAnalyzer - INFO - Loaded 18 equations from multi_civilization_extensions
+2025-03-13 20:38:02,923 - EquationAnalyzer - INFO - Coverage visualization saved to validation/reports/unified/equation_coverage.png
+2025-03-13 20:38:03,160 - EquationAnalyzer - INFO - Gap visualization saved to validation/reports/unified/equation_gaps.png
+2025-03-13 20:38:03,160 - IntegrationRunner - INFO - Running cross-scale interaction validation
+2025-03-13 20:38:03,160 - CrossScaleValidator - INFO - Evaluating cross-scale interactions across 6 levels
+2025-03-13 20:38:03,163 - CrossScaleValidator - INFO - Loaded equations from equations
+2025-03-13 20:38:03,165 - CrossScaleValidator - INFO - Loaded equations from astrophysics_extensions
+2025-03-13 20:38:03,166 - CrossScaleValidator - INFO - Loaded equations from quantum_em_extensions
+2025-03-13 20:38:03,172 - CrossScaleValidator - INFO - Loaded equations from multi_civilization_extensions
+2025-03-13 20:38:03,803 - CrossScaleValidator - INFO - Dependency graph saved to validation/reports/unified/dependency_graph.png
+2025-03-13 20:38:04,234 - CrossScaleValidator - INFO - Scale adjacency matrix saved to validation/reports/unified/scale_adjacency.png
+2025-03-13 20:38:04,618 - CrossScaleValidator - INFO - Signal propagation visualization saved to validation/reports/unified/signal_propagation.png
+2025-03-13 20:38:04,618 - IntegrationRunner - INFO - Running comparative simulation analysis
+2025-03-13 20:38:04,620 - ComparativeAnalyzer - WARNING - Could not import comprehensive_simulation
+2025-03-13 20:38:04,621 - ComparativeAnalyzer - WARNING - Could not import quantum_em_simulation
+2025-03-13 20:38:04,621 - ComparativeAnalyzer - WARNING - Could not import astrophysics_simulation
+2025-03-13 20:38:05,452 - ComparativeAnalyzer - INFO - Successfully imported simulation modules
+2025-03-13 20:38:05,452 - ComparativeAnalyzer - INFO - Running comparative analysis with 5 configurations
+2025-03-13 20:38:05,452 - ComparativeAnalyzer - INFO - Running base simulation
+2025-03-13 20:38:05,452 - ComparativeAnalyzer - ERROR - Error running base simulation: No simulation module available for configuration: base
+2025-03-13 20:38:05,452 - ComparativeAnalyzer - INFO - Running quantum simulation
+2025-03-13 20:38:05,452 - ComparativeAnalyzer - ERROR - Error running quantum simulation: No simulation module available for configuration: quantum
+2025-03-13 20:38:05,452 - ComparativeAnalyzer - INFO - Running astrophysics simulation
+2025-03-13 20:38:05,452 - ComparativeAnalyzer - ERROR - Error running astrophysics simulation: No simulation module available for configuration: astrophysics
+2025-03-13 20:38:05,452 - ComparativeAnalyzer - INFO - Running multi_civ simulation
+2025-03-13 20:38:05,452 - ComparativeAnalyzer - ERROR - Error running multi_civ simulation: module 'simulations.multi_civilization_simulation' has no attribute 'run_simulation'
+2025-03-13 20:38:05,452 - ComparativeAnalyzer - INFO - Running integrated simulation
+2025-03-13 20:38:05,452 - ComparativeAnalyzer - INFO - Running integrated simulation with 300 timesteps
+2025-03-13 20:38:05,468 - ComparativeAnalyzer - INFO - Completed integrated simulation with 619 events
+2025-03-13 20:38:05,468 - ComparativeAnalyzer - INFO - Successfully ran integrated simulation in 0.02 seconds
+2025-03-13 20:38:05,469 - ComparativeAnalyzer - INFO - Saved comparison results to validation/reports/unified/simulation_comparison.csv
+2025-03-13 20:38:05,469 - ComparativeAnalyzer - INFO - Saved metric comparison to validation/reports/unified/metric_comparison.csv
+2025-03-13 20:38:05,470 - ComparativeAnalyzer - INFO - Saved configuration scores to validation/reports/unified/configuration_scores.csv
+2025-03-13 20:38:05,896 - ComparativeAnalyzer - INFO - Saved metric comparison chart to validation/reports/unified/metric_comparison.png
+2025-03-13 20:38:06,060 - ComparativeAnalyzer - INFO - Saved knowledge time series comparison to validation/reports/unified/knowledge_comparison.png
+2025-03-13 20:38:06,244 - ComparativeAnalyzer - INFO - Saved suppression time series comparison to validation/reports/unified/suppression_comparison.png
+2025-03-13 20:38:06,402 - ComparativeAnalyzer - INFO - Saved intelligence time series comparison to validation/reports/unified/intelligence_comparison.png
+2025-03-13 20:38:06,566 - ComparativeAnalyzer - INFO - Saved truth time series comparison to validation/reports/unified/truth_comparison.png
+2025-03-13 20:38:06,679 - ComparativeAnalyzer - INFO - Saved configuration scores chart to validation/reports/unified/configuration_scores.png
+2025-03-13 20:38:06,679 - IntegrationRunner - INFO - Generating comprehensive report
+2025-03-13 20:38:06,680 - ReportGenerator - INFO - Generating unified validation report
+2025-03-13 20:38:07,776 - ReportGenerator - INFO - Unified report saved to validation/reports/unified/unified_validation_report.html
+2025-03-13 20:38:07,776 - IntegrationRunner - INFO - Comprehensive report generated at validation/reports/unified/unified_validation_report.html
+2025-03-13 20:38:07,776 - IntegrationRunner - INFO - Unified validation process completed successfully
+2025-03-13 21:29:06,853 - IntegrationRunner - INFO - Starting unified validation process
+2025-03-13 21:29:07,598 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-13 21:29:07,598 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-13 21:29:09,012 - IntegrationRunner - WARNING - Could not import UnifiedValidator, will create it
+2025-03-13 21:29:09,015 - IntegrationRunner - ERROR - Could not create UnifiedValidator, controller artifact not found
+2025-03-13 21:29:09,015 - IntegrationRunner - INFO - Using individual validator components
+2025-03-13 21:29:09,015 - IntegrationRunner - INFO - Running equation coverage analysis
+2025-03-13 21:29:09,015 - EquationAnalyzer - INFO - Analyzing equation coverage for modules: ['equations', 'astrophysics_extensions', 'quantum_em_extensions', 'multi_civilization_extensions']
+2025-03-13 21:29:09,016 - EquationAnalyzer - INFO - Successfully imported equations as config.equations
+2025-03-13 21:29:09,019 - EquationAnalyzer - INFO - Loaded 10 equations from equations
+2025-03-13 21:29:09,020 - EquationAnalyzer - ERROR - Could not import module astrophysics_extensions: Direct import failed: No module named 'astrophysics_extensions'; Config prefix import failed: cannot import name 'civilization_lifecycle_phase' from 'physics_domains.astrophysics' (unknown location)
+2025-03-13 21:29:09,021 - EquationAnalyzer - INFO - Successfully imported quantum_em_extensions as config.quantum_em_extensions
+2025-03-13 21:29:09,022 - EquationAnalyzer - INFO - Loaded 5 equations from quantum_em_extensions
+2025-03-13 21:29:09,023 - EquationAnalyzer - INFO - Successfully imported multi_civilization_extensions as config.multi_civilization_extensions
+2025-03-13 21:29:09,032 - EquationAnalyzer - INFO - Loaded 18 equations from multi_civilization_extensions
+2025-03-13 21:29:10,325 - EquationAnalyzer - INFO - Coverage visualization saved to validation/reports/unified/equation_coverage.png
+2025-03-13 21:29:10,535 - EquationAnalyzer - INFO - Gap visualization saved to validation/reports/unified/equation_gaps.png
+2025-03-13 21:29:10,535 - IntegrationRunner - INFO - Running cross-scale interaction validation
+2025-03-13 21:29:10,535 - CrossScaleValidator - INFO - Evaluating cross-scale interactions across 6 levels
+2025-03-13 21:29:10,538 - CrossScaleValidator - INFO - Loaded equations from equations
+2025-03-13 21:29:10,539 - CrossScaleValidator - ERROR - Could not import module astrophysics_extensions: cannot import name 'civilization_lifecycle_phase' from 'physics_domains.astrophysics' (unknown location)
+2025-03-13 21:29:10,540 - CrossScaleValidator - INFO - Loaded equations from quantum_em_extensions
+2025-03-13 21:29:10,545 - CrossScaleValidator - INFO - Loaded equations from multi_civilization_extensions
+2025-03-13 21:29:11,022 - CrossScaleValidator - INFO - Dependency graph saved to validation/reports/unified/dependency_graph.png
+2025-03-13 21:29:11,425 - CrossScaleValidator - INFO - Scale adjacency matrix saved to validation/reports/unified/scale_adjacency.png
+2025-03-13 21:29:11,774 - CrossScaleValidator - INFO - Signal propagation visualization saved to validation/reports/unified/signal_propagation.png
+2025-03-13 21:29:11,774 - IntegrationRunner - INFO - Running comparative simulation analysis
+2025-03-13 21:29:11,774 - ComparativeAnalyzer - WARNING - Could not import astrophysics_extensions
+2025-03-13 21:29:11,775 - ComparativeAnalyzer - WARNING - Could not import comprehensive_simulation
+2025-03-13 21:29:11,776 - ComparativeAnalyzer - WARNING - Could not import quantum_em_simulation
+2025-03-13 21:29:11,777 - ComparativeAnalyzer - WARNING - Could not import astrophysics_simulation
+2025-03-13 21:29:11,779 - ComparativeAnalyzer - WARNING - Could not import multi_civilization_simulation
+2025-03-13 21:29:11,779 - ComparativeAnalyzer - INFO - Successfully imported simulation modules
+2025-03-13 21:29:11,779 - ComparativeAnalyzer - INFO - Running comparative analysis with 5 configurations
+2025-03-13 21:29:11,779 - ComparativeAnalyzer - INFO - Running base simulation
+2025-03-13 21:29:11,779 - ComparativeAnalyzer - ERROR - Error running base simulation: No simulation module available for configuration: base
+2025-03-13 21:29:11,779 - ComparativeAnalyzer - INFO - Running quantum simulation
+2025-03-13 21:29:11,779 - ComparativeAnalyzer - ERROR - Error running quantum simulation: No simulation module available for configuration: quantum
+2025-03-13 21:29:11,779 - ComparativeAnalyzer - INFO - Running astrophysics simulation
+2025-03-13 21:29:11,779 - ComparativeAnalyzer - ERROR - Error running astrophysics simulation: No simulation module available for configuration: astrophysics
+2025-03-13 21:29:11,779 - ComparativeAnalyzer - INFO - Running multi_civ simulation
+2025-03-13 21:29:11,779 - ComparativeAnalyzer - ERROR - Error running multi_civ simulation: No simulation module available for configuration: multi_civ
+2025-03-13 21:29:11,779 - ComparativeAnalyzer - INFO - Running integrated simulation
+2025-03-13 21:29:11,779 - ComparativeAnalyzer - INFO - Running integrated simulation with 300 timesteps
+2025-03-13 21:29:11,794 - ComparativeAnalyzer - INFO - Completed integrated simulation with 26 events
+2025-03-13 21:29:11,794 - ComparativeAnalyzer - INFO - Successfully ran integrated simulation in 0.02 seconds
+2025-03-13 21:29:11,799 - ComparativeAnalyzer - INFO - Saved comparison results to validation/reports/unified/simulation_comparison.csv
+2025-03-13 21:29:11,799 - ComparativeAnalyzer - INFO - Saved metric comparison to validation/reports/unified/metric_comparison.csv
+2025-03-13 21:29:11,800 - ComparativeAnalyzer - INFO - Saved configuration scores to validation/reports/unified/configuration_scores.csv
+2025-03-13 21:29:12,233 - ComparativeAnalyzer - INFO - Saved metric comparison chart to validation/reports/unified/metric_comparison.png
+2025-03-13 21:29:12,413 - ComparativeAnalyzer - INFO - Saved knowledge time series comparison to validation/reports/unified/knowledge_comparison.png
+2025-03-13 21:29:12,588 - ComparativeAnalyzer - INFO - Saved suppression time series comparison to validation/reports/unified/suppression_comparison.png
+2025-03-13 21:29:12,737 - ComparativeAnalyzer - INFO - Saved intelligence time series comparison to validation/reports/unified/intelligence_comparison.png
+2025-03-13 21:29:12,892 - ComparativeAnalyzer - INFO - Saved truth time series comparison to validation/reports/unified/truth_comparison.png
+2025-03-13 21:29:12,996 - ComparativeAnalyzer - INFO - Saved configuration scores chart to validation/reports/unified/configuration_scores.png
+2025-03-13 21:29:12,996 - IntegrationRunner - INFO - Generating comprehensive report
+2025-03-13 21:29:12,996 - ReportGenerator - INFO - Generating unified validation report
+2025-03-13 21:29:13,898 - ReportGenerator - INFO - Unified report saved to validation/reports/unified/unified_validation_report.html
+2025-03-13 21:29:13,898 - IntegrationRunner - INFO - Comprehensive report generated at validation/reports/unified/unified_validation_report.html
+2025-03-13 21:29:13,898 - IntegrationRunner - INFO - Unified validation process completed successfully
+2025-03-13 22:22:09,461 - IntegrationRunner - INFO - Starting unified validation process
+2025-03-13 22:22:09,867 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-13 22:22:09,867 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-13 22:22:10,836 - IntegrationRunner - WARNING - Could not import UnifiedValidator, will create it
+2025-03-13 22:22:10,839 - IntegrationRunner - ERROR - Could not create UnifiedValidator, controller artifact not found
+2025-03-13 22:22:10,839 - IntegrationRunner - INFO - Using individual validator components
+2025-03-13 22:22:10,839 - IntegrationRunner - INFO - Running equation coverage analysis
+2025-03-13 22:22:10,839 - EquationAnalyzer - INFO - Analyzing equation coverage for modules: ['equations', 'astrophysics_extensions', 'quantum_em_extensions', 'multi_civilization_extensions']
+2025-03-13 22:22:10,849 - EquationAnalyzer - INFO - Successfully imported equations as config.equations
+2025-03-13 22:22:10,851 - EquationAnalyzer - INFO - Loaded 10 equations from equations
+2025-03-13 22:22:10,856 - EquationAnalyzer - INFO - Successfully imported astrophysics_extensions as config.astrophysics_extensions
+2025-03-13 22:22:10,858 - EquationAnalyzer - INFO - Loaded 7 equations from astrophysics_extensions
+2025-03-13 22:22:10,858 - EquationAnalyzer - INFO - Successfully imported quantum_em_extensions as config.quantum_em_extensions
+2025-03-13 22:22:10,860 - EquationAnalyzer - INFO - Loaded 5 equations from quantum_em_extensions
+2025-03-13 22:22:10,872 - EquationAnalyzer - INFO - Successfully imported multi_civilization_extensions as config.multi_civilization_extensions
+2025-03-13 22:22:10,878 - EquationAnalyzer - INFO - Loaded 17 equations from multi_civilization_extensions
+2025-03-13 22:22:11,765 - EquationAnalyzer - INFO - Coverage visualization saved to validation/reports/unified/equation_coverage.png
+2025-03-13 22:22:11,979 - EquationAnalyzer - INFO - Gap visualization saved to validation/reports/unified/equation_gaps.png
+2025-03-13 22:22:11,979 - IntegrationRunner - INFO - Running cross-scale interaction validation
+2025-03-13 22:22:11,979 - CrossScaleValidator - INFO - Evaluating cross-scale interactions across 6 levels
+2025-03-13 22:22:11,981 - CrossScaleValidator - INFO - Loaded equations from equations
+2025-03-13 22:22:11,983 - CrossScaleValidator - INFO - Loaded equations from astrophysics_extensions
+2025-03-13 22:22:11,985 - CrossScaleValidator - INFO - Loaded equations from quantum_em_extensions
+2025-03-13 22:22:11,989 - CrossScaleValidator - INFO - Loaded equations from multi_civilization_extensions
+2025-03-13 22:22:12,585 - CrossScaleValidator - INFO - Dependency graph saved to validation/reports/unified/dependency_graph.png
+2025-03-13 22:22:12,957 - CrossScaleValidator - INFO - Scale adjacency matrix saved to validation/reports/unified/scale_adjacency.png
+2025-03-13 22:22:13,304 - CrossScaleValidator - INFO - Signal propagation visualization saved to validation/reports/unified/signal_propagation.png
+2025-03-13 22:22:13,304 - IntegrationRunner - INFO - Running comparative simulation analysis
+2025-03-13 22:22:13,306 - ComparativeAnalyzer - WARNING - Could not import comprehensive_simulation
+2025-03-13 22:22:13,306 - ComparativeAnalyzer - WARNING - Could not import quantum_em_simulation
+2025-03-13 22:22:13,307 - ComparativeAnalyzer - WARNING - Could not import astrophysics_simulation
+2025-03-13 22:22:14,054 - ComparativeAnalyzer - INFO - Successfully imported simulation modules
+2025-03-13 22:22:14,054 - ComparativeAnalyzer - INFO - Running comparative analysis with 5 configurations
+2025-03-13 22:22:14,054 - ComparativeAnalyzer - INFO - Running base simulation
+2025-03-13 22:22:14,054 - ComparativeAnalyzer - ERROR - Error running base simulation: No simulation module available for configuration: base
+2025-03-13 22:22:14,054 - ComparativeAnalyzer - INFO - Running quantum simulation
+2025-03-13 22:22:14,054 - ComparativeAnalyzer - ERROR - Error running quantum simulation: No simulation module available for configuration: quantum
+2025-03-13 22:22:14,054 - ComparativeAnalyzer - INFO - Running astrophysics simulation
+2025-03-13 22:22:14,054 - ComparativeAnalyzer - ERROR - Error running astrophysics simulation: No simulation module available for configuration: astrophysics
+2025-03-13 22:22:14,054 - ComparativeAnalyzer - INFO - Running multi_civ simulation
+2025-03-13 22:22:14,054 - ComparativeAnalyzer - ERROR - Error running multi_civ simulation: module 'simulations.multi_civilization_simulation' has no attribute 'run_simulation'
+2025-03-13 22:22:14,054 - ComparativeAnalyzer - INFO - Running integrated simulation
+2025-03-13 22:22:14,054 - ComparativeAnalyzer - INFO - Running integrated simulation with 300 timesteps
+2025-03-13 22:22:14,071 - ComparativeAnalyzer - INFO - Completed integrated simulation with 631 events
+2025-03-13 22:22:14,071 - ComparativeAnalyzer - INFO - Successfully ran integrated simulation in 0.02 seconds
+2025-03-13 22:22:14,072 - ComparativeAnalyzer - INFO - Saved comparison results to validation/reports/unified/simulation_comparison.csv
+2025-03-13 22:22:14,072 - ComparativeAnalyzer - INFO - Saved metric comparison to validation/reports/unified/metric_comparison.csv
+2025-03-13 22:22:14,073 - ComparativeAnalyzer - INFO - Saved configuration scores to validation/reports/unified/configuration_scores.csv
+2025-03-13 22:22:14,466 - ComparativeAnalyzer - INFO - Saved metric comparison chart to validation/reports/unified/metric_comparison.png
+2025-03-13 22:22:14,613 - ComparativeAnalyzer - INFO - Saved knowledge time series comparison to validation/reports/unified/knowledge_comparison.png
+2025-03-13 22:22:14,780 - ComparativeAnalyzer - INFO - Saved suppression time series comparison to validation/reports/unified/suppression_comparison.png
+2025-03-13 22:22:14,922 - ComparativeAnalyzer - INFO - Saved intelligence time series comparison to validation/reports/unified/intelligence_comparison.png
+2025-03-13 22:22:15,071 - ComparativeAnalyzer - INFO - Saved truth time series comparison to validation/reports/unified/truth_comparison.png
+2025-03-13 22:22:15,172 - ComparativeAnalyzer - INFO - Saved configuration scores chart to validation/reports/unified/configuration_scores.png
+2025-03-13 22:22:15,173 - IntegrationRunner - INFO - Generating comprehensive report
+2025-03-13 22:22:15,173 - ReportGenerator - INFO - Generating unified validation report
+2025-03-13 22:22:16,095 - ReportGenerator - INFO - Unified report saved to validation/reports/unified/unified_validation_report.html
+2025-03-13 22:22:16,095 - IntegrationRunner - INFO - Comprehensive report generated at validation/reports/unified/unified_validation_report.html
+2025-03-13 22:22:16,095 - IntegrationRunner - INFO - Unified validation process completed successfully

@@ -71,36 +71,6 @@ except Exception as e:
     # Add the class to the mock module
     mock_module.HistoricalValidation = HistoricalValidation
     logger.info("Successfully imported historical_validation module")
-except Exception as e:
-    logger.warning(f"Could not import historical_validation: {e}")
-    # Create a minimal mock module
-    import sys
-    import types
-
-    # Create a mock module
-    mock_module = types.ModuleType('config.historical_validation')
-    sys.modules['config.historical_validation'] = mock_module
-
-    # Add a minimal HistoricalValidation class
-    class HistoricalValidation:
-        def __init__(self, enable_circuit_breaker=False, enable_adaptive_timestep=False):
-            pass
-
-        def optimize_parameters(self, params_to_optimize=None, max_iterations=20):
-            return {'knowledge_growth_rate': 0.15, 'truth_adoption_rate': 0.12, 'alpha_wisdom': 0.1}
-
-        def visualize_comparison(self, save_path=None):
-            pass
-
-        def calculate_error(self):
-            return 5.0
-
-        def save_results(self, output_dir=None):
-            pass
-
-    # Add the class to the mock module
-    mock_module.HistoricalValidation = HistoricalValidation
-    logger.info("Successfully imported historical_validation module")
 except ImportError as e:
     logger.warning(f"Could not import historical_validation: {e}")
 

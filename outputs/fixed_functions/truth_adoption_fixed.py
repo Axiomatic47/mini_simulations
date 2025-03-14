@@ -3,6 +3,10 @@ def truth_adoption(T, A, T_max):
     Computes the rate of truth adoption with a relativistic limit and additional damping.
     Includes comprehensive numerical stability safeguards.
 
+    Physics Domain: relativity
+    Scale Level: agent
+    Application Domains: truth, knowledge
+
     Parameters:
         T (float): Current truth adoption level
         A (float): Adoption acceleration factor

@@ -1,8 +1,8 @@
 metric,integrated
-final_knowledge,6.411097412791187
-knowledge_growth_rate,0.0062126538394577935
-final_suppression,906.9535985325662
-suppression_decay_rate,-0.015138463727352613
-convergence_time,104.0
+final_knowledge,5.988408433976249
+knowledge_growth_rate,0.005983918110984199
+final_suppression,906.247529823644
+suppression_decay_rate,-0.015135828400621554
+convergence_time,103.0
 stability_issues,0.0
-event_count,612.0
+event_count,631.0

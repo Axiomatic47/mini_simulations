@@ -1,4 +1,3 @@
-
 """
 Equation Coverage Analyzer
 This tool analyzes your equation sets for completeness, consistency, and optimization opportunities.
@@ -9,6 +8,8 @@ import importlib
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
+import physics_domains.strong_nuclear.identity_binding
+import physics_domains.strong_nuclear.civilization_oscillation
 from pathlib import Path
 
 # Setup logging
@@ -125,9 +126,67 @@ class EquationCoverageAnalyzer:
 
         for module_name in module_names:
             try:
-                # Import the module
-                full_module_name = f"config.{module_name}"
-                module = importlib.import_module(full_module_name)
+                # Try different import strategies
+                module = None
+                import_errors = []
+
+                # Strategy 1: Try importing the module directly
+                try:
+                    module = importlib.import_module(module_name)
+                    logger.info(f"Successfully imported {module_name} directly")
+                except ImportError as e:
+                    import_errors.append(f"Direct import failed: {str(e)}")
+
+                # Strategy 2: Try with config prefix if it's not already there
+                if module is None and not module_name.startswith('config.'):
+                    try:
+                        full_module_name = f"config.{module_name}"
+                        module = importlib.import_module(full_module_name)
+                        logger.info(f"Successfully imported {module_name} as {full_module_name}")
+                    except ImportError as e:
+                        import_errors.append(f"Config prefix import failed: {str(e)}")
+
+                # Strategy 3: Special handling for specific modules
+                if module is None:
+                    # For physics_domains.strong_nuclear
+                    if module_name == 'physics_domains.strong_nuclear':
+                        try:
+                            # Try to import identity_binding and civilization_oscillation directly
+                            identity_binding_module = importlib.import_module(
+                                'physics_domains.strong_nuclear.identity_binding')
+                            civilization_oscillation_module = importlib.import_module(
+                                'physics_domains.strong_nuclear.civilization_oscillation')
+
+                            # Create a composite module
+                            import types
+                            module = types.ModuleType('physics_domains.strong_nuclear')
+
+                            # Copy functions from the individual modules
+                            if hasattr(identity_binding_module, 'identity_binding'):
+                                setattr(module, 'identity_binding', identity_binding_module.identity_binding)
+
+                            if hasattr(civilization_oscillation_module, 'civilization_oscillation'):
+                                setattr(module, 'civilization_oscillation',
+                                        civilization_oscillation_module.civilization_oscillation)
+
+                            logger.info(f"Successfully created composite module for {module_name}")
+                        except ImportError as e:
+                            import_errors.append(f"Strong nuclear special handling failed: {str(e)}")
+
+                    # For bridge_functions
+                    elif module_name == 'bridge_functions':
+                        try:
+                            # Try importing from the root directory
+                            module = importlib.import_module('bridge_functions')
+                            logger.info(f"Successfully imported {module_name} from root")
+                        except ImportError as e:
+                            import_errors.append(f"Bridge functions root import failed: {str(e)}")
+
+                # If all strategies failed, log the errors and continue to the next module
+                if module is None:
+                    error_msg = f"Could not import module {module_name}: {'; '.join(import_errors)}"
+                    logger.error(error_msg)
+                    continue
 
                 # Get all functions from the module
                 module_functions = {}
@@ -137,34 +196,36 @@ class EquationCoverageAnalyzer:
                         continue
 
                     # Extract function information
-                    source = inspect.getsource(func)
-                    signature = str(inspect.signature(func))
-                    docstring = inspect.getdoc(func) or ""
+                    try:
+                        source = inspect.getsource(func)
+                        signature = str(inspect.signature(func))
+                        docstring = inspect.getdoc(func) or ""
 
-                    # Determine physics domain
-                    domain = self._determine_physics_domain(name, docstring, source)
+                        # Determine physics domain
+                        domain = self._determine_physics_domain(name, docstring, source)
 
-                    # Determine application domain
-                    application = self._determine_application_domain(name, docstring, source)
+                        # Determine application domain
+                        application = self._determine_application_domain(name, docstring, source)
 
-                    # Determine scale level
-                    scale = self._determine_scale_level(name, docstring, source)
+                        # Determine scale level
+                        scale = self._determine_scale_level(name, docstring, source)
 
-                    module_functions[name] = {
-                        "name": name,
-                        "signature": signature,
-                        "docstring": docstring,
-                        "source_length": len(source),
-                        "physics_domain": domain,
-                        "application_domain": application,
-                        "scale_level": scale
-                    }
+                        module_functions[name] = {
+                            "name": name,
+                            "signature": signature,
+                            "docstring": docstring,
+                            "source_length": len(source),
+                            "physics_domain": domain,
+                            "application_domain": application,
+                            "scale_level": scale
+                        }
+                    except Exception as e:
+                        logger.warning(f"Error processing function {name}: {str(e)}")
+                        continue
 
                 equations[module_name] = module_functions
                 logger.info(f"Loaded {len(module_functions)} equations from {module_name}")
 
-            except ImportError as e:
-                logger.error(f"Could not import module {module_name}: {str(e)}")
             except Exception as e:
                 logger.error(f"Error processing module {module_name}: {str(e)}")
 
@@ -182,6 +243,14 @@ class EquationCoverageAnalyzer:
         Returns:
             String representing the physics domain
         """
+        # First, look for explicit Physics Domain annotation in docstring
+        if docstring:
+            for line in docstring.split('\n'):
+                if line.strip().startswith('Physics Domain:'):
+                    domain = line.strip()[len('Physics Domain:'):].strip().lower()
+                    if domain in self.physics_domains:
+                        return domain
+
         # Look for keywords in name, docstring, and source
         combined_text = f"{name} {docstring} {source}".lower()
 
@@ -216,7 +285,9 @@ class EquationCoverageAnalyzer:
             "knowledge_diffusion": "multi_system",
             "cultural_influence": "multi_system",
             "resource_competition": "multi_system",
-            "civilization_movement": "multi_system"
+            "civilization_movement": "multi_system",
+            "identity_binding": "strong_nuclear",
+            "civilization_oscillation": "strong_nuclear"
         }
 
         # Check direct mapping first
@@ -244,6 +315,19 @@ class EquationCoverageAnalyzer:
         Returns:
             String representing the application domain
         """
+        # First, look for explicit Application Domains annotation in docstring
+        if docstring:
+            for line in docstring.split('\n'):
+                if line.strip().startswith('Application Domains:'):
+                    domains_str = line.strip()[len('Application Domains:'):].strip().lower()
+                    domains = [d.strip() for d in domains_str.split(',')]
+                    for domain in domains:
+                        if domain in self.application_domains:
+                            return domain
+                    # If we got domains but none match our known list, return the first one
+                    if domains:
+                        return domains[0]
+
         combined_text = f"{name} {docstring} {source}".lower()
 
         domain_keywords = {
@@ -271,7 +355,9 @@ class EquationCoverageAnalyzer:
             "suppression_event_horizon": "suppression",
             "knowledge_gravitational_lensing": "knowledge",
             "cosmic_background_knowledge": "knowledge",
-            "galactic_structure_model": "civilization"
+            "galactic_structure_model": "civilization",
+            "identity_binding": "knowledge",
+            "civilization_oscillation": "civilization"
         }
 
         # Check direct mapping first
@@ -298,6 +384,24 @@ class EquationCoverageAnalyzer:
         Returns:
             String representing the scale level
         """
+        # First, look for explicit Scale Level annotation in docstring
+        if docstring:
+            for line in docstring.split('\n'):
+                if line.strip().startswith('Scale Level:'):
+                    scale = line.strip()[len('Scale Level:'):].strip().lower()
+                    if scale in self.scale_levels:
+                        return scale
+                # Also check for Scale Levels (plural)
+                elif line.strip().startswith('Scale Levels:'):
+                    scales_str = line.strip()[len('Scale Levels:'):].strip().lower()
+                    scales = [s.strip() for s in scales_str.split(',')]
+                    for scale in scales:
+                        if scale in self.scale_levels:
+                            return scale
+                    # If we got scales but none match our known list, return the first one
+                    if scales:
+                        return scales[0]
+
         combined_text = f"{name} {docstring} {source}".lower()
 
         scale_keywords = {
@@ -331,7 +435,9 @@ class EquationCoverageAnalyzer:
             "civilization_movement": "multi_civilization",
             "galactic_structure_model": "cosmic",
             "cosmic_background_knowledge": "cosmic",
-            "dark_energy_knowledge_acceleration": "cosmic"
+            "dark_energy_knowledge_acceleration": "cosmic",
+            "identity_binding": "agent",
+            "civilization_oscillation": "civilization"
         }
 
         # Check direct mapping first
@@ -789,3 +895,18 @@ if __name__ == "__main__":
     print(f"Application domain coverage: {results['coverage']['application_coverage_pct']:.1f}%")
     print(f"Scale level coverage: {results['coverage']['scale_coverage_pct']:.1f}%")
     print(f"Identified {len(results['gaps'])} gaps in equation coverage")
+
+    if __name__ == "__main__":
+        analyzer = EquationCoverageAnalyzer()
+
+        # Specifically analyze strong nuclear
+        strong_nuclear_results = analyzer.analyze_equation_set(
+            equation_modules=["physics_domains.strong_nuclear"],
+            identify_gaps=False
+        )
+
+        # Print detected functions
+        print("\nStrong Nuclear Functions Detected:")
+        for module, functions in strong_nuclear_results["equations"].items():
+            for func_name, func_info in functions.items():
+                print(f"  - {func_name} ({func_info['physics_domain']})")

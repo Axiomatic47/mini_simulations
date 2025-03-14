@@ -3,4 +3,4 @@ base,False,No simulation module available for configuration: base,,,,,,,,
 quantum,False,No simulation module available for configuration: quantum,,,,,,,,
 astrophysics,False,No simulation module available for configuration: astrophysics,,,,,,,,
 multi_civ,False,module 'simulations.multi_civilization_simulation' has no attribute 'run_simulation',,,,,,,,
-integrated,True,,6.411097412791187,0.0062126538394577935,906.9535985325662,-0.015138463727352613,104.0,0.0,612.0,0.013750791549682617
+integrated,True,,5.988408433976249,0.005983918110984199,906.247529823644,-0.015135828400621554,103.0,0.0,631.0,0.01674818992614746

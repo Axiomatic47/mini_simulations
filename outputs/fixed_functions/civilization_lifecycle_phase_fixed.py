@@ -13,6 +13,10 @@ def civilization_lifecycle_phase(age, intensity, phase_thresholds, phase_intensi
     Returns:
         float: Civilization intensity at current age
         int: Current phase of civilization (0-5)
+
+    Physics Domain: astrophysics
+    Scale Level: civilization
+    Application Domains: civilization, intelligence
     """
     age = max(0, age)
     intensity = max(min_intensity, min(max_intensity, intensity))

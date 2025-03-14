@@ -15,6 +15,17 @@ mini_axiomatic_simulation/
 │   ├── multi_civilization_extensions.py  # Multi-civilization simulation models
 │   └── astrophysics_extensions.py  # Astrophysics analogies
 │
+├── physics_domains/      # Physics-based domain organization of functions
+│   ├── __init__.py       # Makes physics_domains a proper package
+│   ├── astrophysics/     # Astrophysics-based models
+│   ├── electromagnetism/ # Electromagnetic field-based models
+│   ├── multi_system/     # Multi-civilization interaction models
+│   ├── quantum_mechanics/ # Quantum phenomena-based models
+│   ├── relativity/       # Relativistic limit-based models
+│   ├── strong_nuclear/   # Strong nuclear force-based models
+│   ├── thermodynamics/   # Thermodynamic-based models
+│   └── weak_nuclear/     # Weak nuclear force-based models
+│
 ├── utils/                 # Utility functions and classes
 │   ├── __init__.py        # Makes utils a proper package
 │   ├── circuit_breaker.py # Numerical stability utility
@@ -74,6 +85,21 @@ The framework models societal dynamics as analogies to fundamental physics princ
 6. **Quantum Mechanics**: Entanglement and tunneling between knowledge states
 7. **Astrophysics**: Civilization lifecycle analogies to stellar evolution
 8. **Multi-Civilization Dynamics**: Interactions between civilization groups across conceptual space
+
+## Physics Domain Organization
+
+All equations are organized by their physics domain in the `physics_domains` directory, providing a clear separation of concerns:
+
+- **Astrophysics**: Models based on stellar evolution, black holes, and cosmic phenomena
+- **Electromagnetism**: Field-based models for knowledge transfer and influence
+- **Multi-System**: Models for interactions between multiple civilizations
+- **Quantum Mechanics**: Entanglement and tunneling models
+- **Relativity**: Truth adoption with relativistic-like limits
+- **Strong Nuclear**: Identity binding models
+- **Thermodynamics**: Intelligence growth models
+- **Weak Nuclear**: Suppression and resistance models
+
+Each function has its own file with consistent documentation, including physics domain, scale level, and application domains for validation.
 
 ## Multi-Civilization Dashboard
 
@@ -240,57 +266,53 @@ bash run_tests.sh --check-stability
 
 ## Key Components
 
-### Enhanced Stabilized Equations (config/equations.py)
+### Domain-Based Organization (physics_domains/)
 
-Numerically stabilized versions of core equations with circuit breaker integration:
+Each physics domain contains specialized models:
 
-- Intelligence Growth with Circuit Breaker (`intelligence_growth`)
-- Free Will Decisions with Bounded Output (`free_will_decision`)
-- Truth Adoption with Additional Damping (`truth_adoption`)
-- Wisdom Field with Numerical Safeguards (`wisdom_field`, `wisdom_field_enhanced`)
-- Suppression and Resistance with Time Bounds (`resistance_resurgence`, `suppression_feedback`)
-- Enhanced Suppression Feedback with Smooth Transitions (`suppression_feedback_enhanced`) 
-- Quantum Tunneling with Enhanced Stability (`quantum_tunneling_probability`)
-- Knowledge Field Influence with Stability Safeguards (`knowledge_field_influence`)
+- **Thermodynamics**: Intelligence growth as counteracting entropy
+  - `intelligence_growth`: Models knowledge growth with saturation and stabilization
 
-### Quantum and EM Extensions (config/quantum_em_extensions.py)
+- **Relativity**: Truth adoption with relativistic-like constraints
+  - `truth_adoption`: Models truth adoption with relativistic limits
 
-Extended models for electromagnetic and quantum effects:
+- **Strong Nuclear**: Identity binding and oscillations
+  - `identity_binding`: Models how agent identity binds to knowledge
+  - `civilization_oscillation`: Models oscillation patterns in civilization development
 
-- Knowledge Field Influence (`knowledge_field_influence`)
-- Quantum Entanglement (`quantum_entanglement_correlation`)
-- Field Gradients (`knowledge_field_gradient`)
-- Entanglement Networks (`build_entanglement_network`)
-- Quantum Tunneling (`quantum_tunneling_probability`)
-  - Includes special case handling for specific barrier/energy combinations
-  - Uses non-linear mapping for tunneling breakthrough scenarios
+- **Weak Nuclear**: Suppression feedback and phase transitions
+  - `resistance_resurgence`: Models resistance resurgence with smooth transitions
+  - `suppression_feedback`: Models suppression feedback with enhanced stability
 
-### Multi-Civilization Extensions (config/multi_civilization_extensions.py)
+- **Electromagnetism**: Field-based knowledge influence
+  - `free_will_decision`: Calculates decision force with bounded output
+  - `wisdom_field`: Computes wisdom field strength with safeguards
+  - `knowledge_field_influence`: Calculates electromagnetic-like knowledge influence
+  - `knowledge_field_gradient`: Computes knowledge field gradients
 
-Models for simulating interactions between multiple civilizations:
+- **Quantum Mechanics**: Entanglement and tunneling effects
+  - `quantum_entanglement_correlation`: Models quantum-like correlations
+  - `build_entanglement_network`: Builds correlation matrices between agents
+  - `quantum_tunneling_probability`: Calculates tunneling probability
 
-- Civilization Initialization (`initialize_civilizations`)
-- Distance and Interaction Calculation (`calculate_distance_matrix`, `calculate_interaction_strength`)
-- Knowledge Diffusion Between Civilizations (`knowledge_diffusion`)
-- Cultural Influence Dynamics (`cultural_influence`)
-- Resource Competition (`resource_competition`)
-- Civilization Movement (`civilization_movement`)
-- Civilization Growth and Size (`update_civilization_sizes`)
-- Collapse and Merger Detection (`detect_civilization_collapse`, `detect_civilization_mergers`)
-- Spawning New Civilizations (`spawn_new_civilization`)
-- Comprehensive Interaction Processing (`process_all_civilization_interactions`)
+- **Astrophysics**: Civilization lifecycle and cosmic analogies
+  - `civilization_lifecycle_phase`: Models civilization phases like stellar evolution
+  - `suppression_event_horizon`: Calculates thresholds using black hole analogies
+  - `cosmic_background_knowledge`: Models baseline knowledge like cosmic radiation
+  - `knowledge_inflation`: Models explosive growth phases like cosmic inflation
+  - `knowledge_gravitational_lensing`: Models distortion of truth perception
+  - `dark_energy_knowledge_acceleration`: Models unexplained acceleration
+  - `galactic_structure_model`: Models societal structure like galaxies
 
-### Astrophysics Extensions (config/astrophysics_extensions.py)
-
-Models based on astrophysical phenomena:
-
-- Civilization Lifecycle Phases (`civilization_lifecycle_phase`)
-- Knowledge Event Horizons (`suppression_event_horizon`)
-- Background Knowledge (`cosmic_background_knowledge`)
-- Knowledge Inflation (`knowledge_inflation`)
-- Knowledge Gravitational Lensing (`knowledge_gravitational_lensing`)
-- Dark Energy Acceleration (`dark_energy_knowledge_acceleration`)
-- Galactic Structure Models (`galactic_structure_model`)
+- **Multi-System**: Interactions between multiple civilizations
+  - `initialize_civilizations`: Sets up multiple civilizations
+  - `calculate_distance_matrix`: Computes distances between civilizations
+  - `calculate_interaction_strength`: Determines interaction intensities
+  - `knowledge_diffusion`: Models knowledge flow between civilizations
+  - `cultural_influence`: Models cultural and ideological spread
+  - `resource_competition`: Models competition for resources
+  - `civilization_movement`: Updates positions based on forces
+  - Various detection and processing functions for events
 
 ### Circuit Breaker Utility (utils/circuit_breaker.py)
 
@@ -447,11 +469,12 @@ result = intelligence_growth_with_dimensions(K, W, R, S, 1.5)
 
 To add new physics-based analogies:
 
-1. Create a new module in the `config` directory
-2. Implement the mathematical models with numerical stability safeguards
-3. Create a simulation script in the `simulations` directory
-4. Import your new models and integrate them with existing dynamics
-5. Add appropriate tests in the `tests` directory
+1. Create a new file in the appropriate `physics_domains/` subdirectory
+2. Implement the mathematical model with numerical stability safeguards
+3. Add the function to the domain's `__init__.py` file
+4. Update the corresponding config file to import and re-export the function
+5. Create a simulation script in the `simulations/` directory
+6. Add appropriate tests in the `tests/` directory
 
 ## Extending the Dashboard
 

@@ -3,6 +3,10 @@ def intelligence_growth(K, W, R, S, N, K_max=100.0):
     Computes intelligence growth with saturation to prevent unbounded growth.
     Includes comprehensive numerical stability safeguards.
 
+    Physics Domain: thermodynamics
+    Scale Level: agent
+    Application Domains: intelligence, knowledge
+
     Parameters:
         K (float): Knowledge level
         W (float): Wisdom factor (knowledge integration efficiency)

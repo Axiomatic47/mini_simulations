@@ -2,6 +2,10 @@ def quantum_tunneling_probability(barrier_height, barrier_width, energy_level, P
     """
     Calculates tunneling probability with improved numerical stability.
 
+    Physics Domain: quantum_mechanics
+    Scale Level: quantum
+    Application Domains: knowledge, resistance
+
     Parameters:
         barrier_height (float): Height of suppression barrier
         barrier_width (float): Width of suppression barrier (resistance over time)
