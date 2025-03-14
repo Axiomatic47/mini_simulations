@@ -1,2 +1,2 @@
-knowledge_growth_rate,truth_adoption_rate,alpha_wisdom,circuit_breaker_threshold
-0.24999999999999997,0.2,0.1,1e-10
+knowledge_growth_rate,truth_adoption_rate,alpha_wisdom
+0.22499999999999998,0.2,0.1

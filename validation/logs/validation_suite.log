@@ -1798,3 +1798,38 @@
 2025-03-12 20:40:09,514 - validation_suite - INFO - Generating historical validation report
 2025-03-12 20:40:09,521 - validation_suite - INFO - Historical validation completed: Warning
 2025-03-12 20:40:09,521 - validation_suite - INFO - Full validation completed: 6 components run
+2025-03-14 12:21:33,838 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-14 12:21:33,838 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-14 12:24:55,753 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-14 12:24:55,757 - validation_suite - WARNING - Could not import automated_reports: No module named 'schedule'
+2025-03-14 12:26:09,669 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-14 12:26:10,282 - validation_suite - INFO - Successfully imported automated_reports module
+2025-03-14 12:38:51,040 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-14 12:38:51,669 - validation_suite - INFO - Successfully imported automated_reports module
+2025-03-14 12:44:34,192 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-14 12:44:34,193 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-14 12:44:52,644 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-14 12:44:52,645 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-14 12:47:14,653 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-14 12:47:14,654 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-14 12:48:41,737 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-14 12:48:41,738 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-14 12:48:55,271 - validation_suite - INFO - Validation suite initialized
+2025-03-14 12:50:06,982 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-14 12:50:06,983 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-14 12:50:18,415 - validation_suite - INFO - Validation suite initialized
+2025-03-14 12:51:10,324 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-14 12:51:10,325 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-14 12:51:20,213 - validation_suite - INFO - Validation suite initialized
+2025-03-14 12:52:14,286 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-14 12:52:14,286 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-14 12:52:24,074 - validation_suite - INFO - Validation suite initialized
+2025-03-14 12:52:24,074 - UnifiedValidator - INFO - Unified Validator initialized
+2025-03-14 12:52:24,074 - UnifiedValidator - INFO - Starting full validation process
+2025-03-14 12:52:24,074 - UnifiedValidator - INFO - Running basic validation suite
+2025-03-14 12:53:48,289 - validation_suite - INFO - Successfully imported historical_validation module
+2025-03-14 12:53:48,290 - validation_suite - WARNING - Could not import automated_reports: No module named 'validation.reports.automated_reports'
+2025-03-14 12:54:05,686 - validation_suite - INFO - Validation suite initialized
+2025-03-14 12:54:05,686 - UnifiedValidator - INFO - Unified Validator initialized
+2025-03-14 12:54:05,686 - UnifiedValidator - INFO - Starting full validation process
+2025-03-14 12:54:05,686 - UnifiedValidator - INFO - Running basic validation suite

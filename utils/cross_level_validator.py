@@ -1021,3 +1021,64 @@ class FunctionCallVisitor(ast.NodeVisitor):
 
         # Continue visiting child nodes
         self.generic_visit(node)
+
+        def run_cross_level_validation(equations, hierarchy_levels=None, output_dir=None):
+            """
+            Run cross-level validation on the provided equations.
+
+            Args:
+                equations (dict): Dictionary of equation functions
+                hierarchy_levels (dict, optional): Dictionary mapping levels to function names
+                output_dir (str, optional): Directory to save output reports
+
+            Returns:
+                dict: Results of cross-level validation
+            """
+            # If hierarchy levels not provided, create default levels
+            if hierarchy_levels is None:
+                # Create default hierarchy based on module structure
+                try:
+                    from module_map import map_function_to_domain
+                    domain_mapping = map_function_to_domain()
+
+                    # Group functions by domain
+                    hierarchy_levels = {}
+                    for func_name, domain in domain_mapping.items():
+                        level_name = f"Level {domain}"
+                        if level_name not in hierarchy_levels:
+                            hierarchy_levels[level_name] = []
+                        if func_name in equations:
+                            hierarchy_levels[level_name].append(func_name)
+                except Exception as e:
+                    print(f"Warning: Could not create default hierarchy: {e}")
+                    # Create simple default hierarchy
+                    hierarchy_levels = {"Default Level": list(equations.keys())}
+
+            # Create validator
+            validator = CrossLevelValidator(equations, hierarchy_levels)
+            validator.build_dependency_graph()
+
+            # Validate level dependencies
+            dependency_results = validator.validate_level_dependencies()
+
+            # Detect feedback loops
+            feedback_loops = validator.detect_feedback_loops()
+            cross_level_loops = [loop for loop in feedback_loops if loop.get('is_cross_level', False)]
+
+            # Create results
+            results = {
+                'is_valid': dependency_results.get('is_valid', True),
+                'violations': dependency_results.get('violations', []),
+                'feedback_loops': cross_level_loops,
+                'status': 'success' if dependency_results.get('is_valid', True) else 'warning'
+            }
+
+            # Generate report if output directory provided
+            if output_dir:
+                try:
+                    validator.generate_validation_report(output_dir)
+                except Exception as e:
+                    print(f"Warning: Could not generate cross-level validation report: {e}")
+                    results['status'] = 'warning'
+
+            return results

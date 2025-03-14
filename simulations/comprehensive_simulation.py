@@ -330,3 +330,173 @@ stability_df.to_csv(data_dir / "comprehensive_simulation_stability.csv", index=F
 print(f"Stability metrics saved to: {data_dir / 'comprehensive_simulation_stability.csv'}")
 
 plt.show()
+
+# Added wrapper function for unified_validator.py compatibility
+def run_simulation():
+    """
+    Run the comprehensive simulation and return the results.
+
+    This function wraps the simulation code into a callable function
+    for use by the unified validator.
+
+    Returns:
+        dict: Simulation results
+    """
+    # Initialize arrays
+    K, S, I = (np.zeros((num_agents, timesteps)) for _ in range(3))
+    T, E = np.zeros(timesteps), np.zeros(timesteps)
+
+    # Initial conditions
+    K[:, 0], S[:, 0], I[:, 0] = 1, np.linspace(5, 10, num_agents), 5.0
+    T[0], E[0], dE_dt = 1.0, 0.05, 0.0
+
+    # Stability tracking
+    stability_issues = 0
+    adaptive_timestep = dt
+
+    # Run the simulation
+    for t in range(1, timesteps):
+        # Use adaptive timestep if enabled
+        if is_adaptive_timestep:
+            # Adjust timestep based on rate of change in previous step
+            if t > 1:
+                max_change_k = np.max(np.abs(K[:, t - 1] - K[:, t - 2]))
+                max_change_s = np.max(np.abs(S[:, t - 1] - S[:, t - 2]))
+                max_change = max(max_change_k, max_change_s)
+
+                if max_change > 10.0:
+                    adaptive_timestep = max(MIN_TIMESTEP, adaptive_timestep * 0.5)
+                elif max_change < 1.0:
+                    adaptive_timestep = min(MAX_TIMESTEP, adaptive_timestep * 1.1)
+
+            current_dt = adaptive_timestep
+        else:
+            current_dt = dt
+
+        if use_dimensional_analysis:
+            # Create dimensional value for Truth
+            T_dim = DimensionalValue(T[t - 1], Dimension.TRUTH)
+
+            # Truth adoption update with bounds using dimensional analysis
+            truth_change_dim = truth_adoption_with_dimensions(T_dim, A_truth, T_max)
+            # Extract the raw value from the dimensional result for the update
+            T[t] = np.clip(T[t - 1] + truth_change_dim.value * current_dt, MIN_VALUE, MAX_TRUTH)
+        else:
+            # Truth adoption update with bounds (original version)
+            truth_change = truth_adoption(T[t - 1], A_truth, T_max)
+            T[t] = np.clip(T[t - 1] + truth_change * current_dt, MIN_VALUE, MAX_TRUTH)
+
+        for agent in range(num_agents):
+            if use_dimensional_analysis:
+                # Convert raw values to dimensional values
+                K_dim = DimensionalValue(K[agent, t - 1], Dimension.KNOWLEDGE)
+                S_dim = DimensionalValue(S[agent, t - 1], Dimension.SUPPRESSION)
+
+                # Calculate wisdom with dimensional analysis
+                W_dim = wisdom_field_with_dimensions(W_0, alpha_wisdom, S_dim, R, K_dim)
+            else:
+                # Calculate wisdom with bounds (original version)
+                W = wisdom_field(W_0, alpha_wisdom, S[agent, t - 1], R_val, K[agent, t - 1])
+
+            # Knowledge growth with phase transition (using original function)
+            k_growth = knowledge_growth_phase_transition(
+                K[agent, t - 1], beta_decay_phase, t, A_phase, gamma_phase, T[t - 1], T_crit_phase)
+
+            # Check for potential instability in knowledge growth
+            if circuit_breaker.check_value_stability(k_growth):
+                # If unstable, use a safer, limited growth rate
+                stability_issues += 1
+                k_growth = np.clip(k_growth, 0, K[agent, t - 1] * 0.1)  # Limit growth to 10%
+
+            K[agent, t] = np.clip(K[agent, t - 1] + k_growth * current_dt, MIN_VALUE, MAX_KNOWLEDGE)
+
+            if use_dimensional_analysis:
+                # Update Knowledge dimensional value with the latest value
+                K_dim_updated = DimensionalValue(K[agent, t], Dimension.KNOWLEDGE)
+
+                # Calculate suppression base value with dimensional analysis
+                s_base_dim = resistance_resurgence_with_dimensions(
+                    S[agent, 0], lambda_decay, t, alpha_resurge, mu_resurge, t_crit_resurge)
+
+                # Calculate suppression feedback with dimensional analysis
+                s_feedback_dim = suppression_feedback_with_dimensions(
+                    alpha_feedback, S_dim, beta_feedback, K_dim_updated)
+
+                # Check for potential instability in suppression calculation
+                if circuit_breaker.check_value_stability(s_feedback_dim.value):
+                    stability_issues += 1
+                    s_feedback = np.clip(s_feedback_dim.value, -1.0, 1.0)  # Limit feedback magnitude
+                else:
+                    s_feedback = s_feedback_dim.value
+
+                # Update suppression using the dimensional values
+                S[agent, t] = np.clip(s_base_dim.value + s_feedback * current_dt, MIN_VALUE, MAX_SUPPRESSION)
+
+                # Intelligence growth with dimensional analysis
+                i_growth_dim = intelligence_growth_with_dimensions(
+                    K_dim_updated,
+                    W_dim,
+                    R,
+                    DimensionalValue(S[agent, t], Dimension.SUPPRESSION),
+                    N
+                )
+
+                # Check for potential instability in intelligence growth
+                if circuit_breaker.check_value_stability(i_growth_dim.value):
+                    stability_issues += 1
+                    i_growth = np.clip(i_growth_dim.value, -1.0, 1.0)  # Limit growth/decline rate
+                else:
+                    i_growth = i_growth_dim.value
+
+            else:
+                # Suppression update with bounds (original version)
+                s_base = resistance_resurgence(
+                    S[agent, 0], lambda_decay, t, alpha_resurge, mu_resurge, t_crit_resurge)
+
+                s_feedback = suppression_feedback(alpha_feedback, S[agent, t - 1], beta_feedback, K[agent, t - 1])
+
+                # Check for potential instability in suppression calculation
+                if circuit_breaker.check_value_stability(s_feedback):
+                    stability_issues += 1
+                    s_feedback = np.clip(s_feedback, -1.0, 1.0)  # Limit feedback magnitude
+
+                S[agent, t] = np.clip(s_base + s_feedback * current_dt, MIN_VALUE, MAX_SUPPRESSION)
+
+                # Intelligence growth with bounds (original version)
+                i_growth = intelligence_growth(K[agent, t], W, R_val, S[agent, t], N)
+
+                # Check for potential instability in intelligence growth
+                if circuit_breaker.check_value_stability(i_growth):
+                    stability_issues += 1
+                    i_growth = np.clip(i_growth, -1.0, 1.0)  # Limit growth/decline rate
+
+            I[agent, t] = np.clip(I[agent, t - 1] + i_growth * current_dt, MIN_VALUE, MAX_INTELLIGENCE)
+
+        # Civilization oscillation with bounds
+        osc_acceleration = civilization_oscillation(E[t - 1], dE_dt, gamma_osc, omega_osc)
+
+        # Check for potential instability in oscillation
+        if circuit_breaker.check_value_stability(osc_acceleration):
+            stability_issues += 1
+            osc_acceleration = np.clip(osc_acceleration, -0.1, 0.1)  # Limit acceleration
+
+        dE_dt = np.clip(dE_dt + osc_acceleration * current_dt, -1.0, 1.0)
+        E[t] = np.clip(E[t - 1] + dE_dt * current_dt, -1.0, 1.0)
+
+    # Clean and prepare the results
+    K = np.nan_to_num(K, nan=0.0, posinf=MAX_KNOWLEDGE, neginf=0.0)
+    S = np.nan_to_num(S, nan=0.0, posinf=MAX_SUPPRESSION, neginf=0.0)
+    I = np.nan_to_num(I, nan=0.0, posinf=MAX_INTELLIGENCE, neginf=0.0)
+    T = np.nan_to_num(T, nan=0.0, posinf=MAX_TRUTH, neginf=0.0)
+    E = np.nan_to_num(E, nan=0.0, posinf=1.0, neginf=-1.0)
+
+    # Return the simulation results
+    return {
+        'time': np.arange(timesteps),
+        'knowledge': K,
+        'suppression': S,
+        'intelligence': I,
+        'truth': T,
+        'oscillation': E,
+        'stability_issues': stability_issues
+    }

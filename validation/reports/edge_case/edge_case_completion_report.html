@@ -85,16 +85,16 @@
                 <div class="summary">
                     <h2>Executive Summary</h2>
                     <p>This report analyzes the edge case handling in the equation functions.</p>
-                    <p>Overall protection rate: <span class="metric">13.5%</span></p>
+                    <p>Overall protection rate: <span class="metric">7.1%</span></p>
                     <div class="progress">
-                        <div class="progress-bar" style="width: 13.513513513513514%;"></div>
+                        <div class="progress-bar" style="width: 7.142857142857142%;"></div>
                     </div>
-                    <p>Average safety score: <span class="metric">53.0/100</span></p>
+                    <p>Average safety score: <span class="metric">68.5/100</span></p>
                     <div class="progress">
-                        <div class="progress-bar" style="width: 53.0%;"></div>
+                        <div class="progress-bar" style="width: 68.5%;"></div>
                     </div>
-                    <p>Total edge cases identified: <span class="metric">74</span></p>
-                    <p>Edge cases with protection: <span class="metric">10</span></p>
+                    <p>Total edge cases identified: <span class="metric">28</span></p>
+                    <p>Edge cases with protection: <span class="metric">2</span></p>
                 </div>
 
                 <h2>Edge Cases by Category</h2>
@@ -112,52 +112,25 @@
                         <td>division_by_zero</td>
                         <td>Division that might lead to division by zero</td>
                         <td class="high">HIGH</td>
-                        <td>27</td>
-                        <td>7</td>
-                        <td>25.9%</td>
+                        <td>9</td>
+                        <td>1</td>
+                        <td>11.1%</td>
                     </tr>
             
                     <tr>
                         <td>exponent_overflow</td>
                         <td>Exponential that might overflow</td>
                         <td class="medium">MEDIUM</td>
-                        <td>7</td>
-                        <td>2</td>
-                        <td>28.6%</td>
+                        <td>4</td>
+                        <td>1</td>
+                        <td>25.0%</td>
                     </tr>
             
                     <tr>
                         <td>conditional_logic</td>
                         <td>Conditional logic that might need additional testing</td>
                         <td class="low">LOW</td>
-                        <td>37</td>
-                        <td>0</td>
-                        <td>0.0%</td>
-                    </tr>
-            
-                    <tr>
-                        <td>log_of_non_positive</td>
-                        <td>Logarithm that might receive zero or negative input</td>
-                        <td class="high">HIGH</td>
-                        <td>1</td>
-                        <td>0</td>
-                        <td>0.0%</td>
-                    </tr>
-            
-                    <tr>
-                        <td>sqrt_of_negative</td>
-                        <td>Square root that might receive negative input</td>
-                        <td class="high">HIGH</td>
-                        <td>1</td>
-                        <td>1</td>
-                        <td>100.0%</td>
-                    </tr>
-            
-                    <tr>
-                        <td>array_bounds</td>
-                        <td>Array indexing that might go out of bounds</td>
-                        <td class="high">HIGH</td>
-                        <td>1</td>
+                        <td>15</td>
                         <td>0</td>
                         <td>0.0%</td>
                     </tr>
@@ -174,22 +147,6 @@
                         <th>Protected</th>
                     </tr>
         
-                    <tr>
-                        <td>civilization_lifecycle_phase</td>
-                        <td class="score-cell high">0.0</td>
-                        <td class="high">HIGH</td>
-                        <td>32</td>
-                        <td>7</td>
-                    </tr>
-            
-                    <tr>
-                        <td>quantum_tunneling_probability</td>
-                        <td class="score-cell high">5.0</td>
-                        <td class="high">HIGH</td>
-                        <td>15</td>
-                        <td>1</td>
-                    </tr>
-            
                     <tr>
                         <td>resistance_resurgence</td>
                         <td class="score-cell high">47.0</td>
@@ -231,10 +188,10 @@
                     </tr>
             
                     <tr>
-                        <td>knowledge_field_influence</td>
-                        <td class="score-cell low">100.0</td>
+                        <td>civilization_oscillation</td>
+                        <td class="score-cell low">92.0</td>
                         <td class="low">LOW</td>
-                        <td>0</td>
+                        <td>1</td>
                         <td>0</td>
                     </tr>
             
@@ -244,10 +201,6 @@
                 <p>Based on risk level and edge case protection, these functions should be prioritized for improvement:</p>
                 <ol>
         
-                    <li><strong>civilization_lifecycle_phase</strong> (Score: 0.0)</li>
-            
-                    <li><strong>quantum_tunneling_probability</strong> (Score: 5.0)</li>
-            
                     <li><strong>resistance_resurgence</strong> (Score: 47.0)</li>
             
                 </ol>

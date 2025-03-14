@@ -1,18 +1,24 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
-Main validation entry point for Axiomatic Intelligence Growth Simulation.
+Run Validation
 
-This script coordinates the execution of various validation components
-and provides a unified interface for running validation.
+This script runs the validation framework on the refactored physics domains.
+It uses the validation adapter to bridge the gap between the validation framework
+and the refactored codebase structure.
 """
 
 import os
 import sys
-import argparse
 import logging
+import argparse
+import importlib
+import subprocess
+import webbrowser
+import platform
+from datetime import datetime
 from pathlib import Path
 
-# Setup logging
+# Set up logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -24,219 +30,182 @@ logging.basicConfig(
 logger = logging.getLogger("run_validation")
 
 
-def ensure_utils_and_validation_available():
-    """Check if required validation utilities are available."""
-    try:
-        import utils.circuit_breaker
-        import utils.dim_handler
-        import utils.edge_case_checker
-        import utils.cross_level_validator
-        import utils.sensitivity_analyzer
-        logger.info("Required utils modules are available")
-        return True
-    except ImportError as e:
-        logger.error(f"Required utils are missing: {e}")
-        logger.error("Please ensure utils directory is in PYTHONPATH")
-        return False
-
-
-def run_module_mapping():
-    """Run module mapping to discover all functions."""
-    try:
-        # Import our module mapper
-        from module_map import discover_equation_functions, print_module_map
-
-        # Print function map
-        logger.info("Running module mapping...")
-        print_module_map()
-
-        # Get function count
-        equations = discover_equation_functions()
-        logger.info(f"Discovered {len(equations)} equation functions")
-
-        return len(equations) > 0
-    except ImportError:
-        logger.error("module_map.py not found. Please create it first.")
-        logger.error("See documentation for instructions on setting up module mapping")
-        return False
-
-
-def create_validation_dirs():
-    """Create necessary directories for validation outputs."""
-    dirs = [
-        "validation/reports",
-        "validation/reports/edge_case",
-        "validation/reports/cross_level",
-        "validation/reports/sensitivity",
-        "validation/reports/historical",
-        "validation/reports/dimensional",
-        "validation/reports/unified",
-        "validation/logs"
-    ]
-
-    for d in dirs:
-        os.makedirs(d, exist_ok=True)
-
-    logger.info(f"Created validation directories")
-
-
-def run_unified_validation(components=None):
+def open_report(report_path):
     """
-    Run unified validation with specified components.
+    Open the generated report in the default browser.
 
     Args:
-        components: List of components to validate, or None for defaults
+        report_path: Path to the report file
     """
     try:
-        # Import unified validator
-        sys.path.append(".")  # Ensure current directory is in path
-        from unified_validator import run_validation
+        # Convert to absolute path if needed
+        if not os.path.isabs(report_path):
+            report_path = os.path.abspath(report_path)
 
-        # Run validation
-        validator = run_validation(components)
+        logger.info(f"Opening report at {report_path}")
 
-        # Check for errors
-        error_components = [c for c, r in validator.validation_results.items()
-                            if r["status"] == "Error" and r["status"] != "Not Run"]
-
-        if error_components:
-            logger.error(f"Validation errors in components: {', '.join(error_components)}")
-            return False
-        else:
-            logger.info("Unified validation completed successfully")
-            return True
-    except ImportError:
-        logger.error("unified_validator.py not found. Please create it first.")
-        return False
+        # Open using the system's default program
+        if platform.system() == 'Darwin':  # macOS
+            subprocess.call(['open', report_path])
+        elif platform.system() == 'Windows':
+            os.startfile(report_path)
+        else:  # Linux and other
+            subprocess.call(['xdg-open', report_path])
+    except Exception as e:
+        logger.warning(f"Could not open report automatically: {e}")
+        logger.info(f"Report is available at: {report_path}")
 
 
-def run_individual_validations(components):
+def open_validation_reports(status):
     """
-    Run individual validation components separately.
+    Open validation reports if validation completed successfully.
 
     Args:
-        components: List of components to validate
+        status: Validation status string
+
+    Returns:
+        status: The original status
     """
-    success = True
+    if status in ["success", "warning"]:
+        logger.info("Opening validation reports...")
 
-    # Edge case validation
-    if "edge_cases" in components:
+        # Open the unified report
+        unified_report_path = "validation/reports/unified/unified_validation_report.html"
+        if os.path.exists(unified_report_path):
+            open_report(unified_report_path)
+
+        # Open the historical validation report
+        historical_report_path = "validation/reports/historical/historical_validation_report.html"
+        if os.path.exists(historical_report_path):
+            open_report(historical_report_path)
+
+    return status
+
+
+def run_validation(args):
+    """
+    Run the validation suite with the adapter.
+
+    Args:
+        args: Command-line arguments
+
+    Returns:
+        str: Validation status
+    """
+    from validation_adapter import ValidationAdapter
+
+    adapter = ValidationAdapter()
+
+    # Check if physics_domains directory exists
+    physics_path = Path("physics_domains")
+    if not physics_path.exists():
+        logger.error("physics_domains directory not found. Make sure you're in the right directory.")
+        return "error"
+
+    # Create output directory
+    output_dir = args.output_dir
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+
+    # Run verification if requested
+    if args.verify_only:
+        # Run docstring checker
         try:
-            logger.info("Running edge case validation...")
-            from utils.edge_case_checker import EdgeCaseChecker, run_edge_case_check
+            import check_docstrings
+            check_docstrings.main()
+        except ImportError:
+            logger.warning("check_docstrings module not found, skipping docstring verification")
 
-            # Run edge case checking
-            run_edge_case_check("validation/reports/edge_case")
-            logger.info("Edge case validation completed")
-        except Exception as e:
-            logger.error(f"Edge case validation failed: {e}")
-            success = False
-
-    # Cross-level validation
-    if "cross_level" in components:
+        # Run function verification
         try:
-            logger.info("Running cross-level validation...")
-            from utils.cross_level_validator import run_cross_level_validation
+            import verify_functions
+            verify_functions.main()
+        except ImportError:
+            logger.warning("verify_functions module not found, skipping function verification")
 
-            # Run cross-level validation
-            run_cross_level_validation("validation/reports/cross_level")
-            logger.info("Cross-level validation completed")
-        except Exception as e:
-            logger.error(f"Cross-level validation failed: {e}")
-            success = False
+        logger.info("Verification completed")
+        return "success"
 
-    # Historical validation
-    if "historical" in components:
+    # Run historical validation if requested
+    if args.historical_only:
         try:
             logger.info("Running historical validation...")
-            from config.historical_validation import run_historical_validation
 
-            # Run historical validation
-            validator = run_historical_validation(
-                output_dir="validation/reports/historical",
-                optimize=True,
-                visualize=True
-            )
-            logger.info(f"Historical validation completed with error: {validator.calculate_error():.2f}")
+            # Try to import ValidationSuite
+            try:
+                from validation.validation_suite import ValidationSuite
+                validation_suite = ValidationSuite(adapter)
+                historical_status = validation_suite.run_historical_validation()
+
+                logger.info(f"Historical validation completed: {historical_status}")
+
+                # Open report if requested
+                if args.open:
+                    historical_report_path = "validation/reports/historical/historical_validation_report.html"
+                    if os.path.exists(historical_report_path):
+                        open_report(historical_report_path)
+
+                return historical_status
+            except ImportError:
+                logger.error("Could not import ValidationSuite, historical validation not available")
+                return "error"
         except Exception as e:
-            logger.error(f"Historical validation failed: {e}")
-            success = False
+            logger.error(f"Error in historical validation: {e}")
+            return "error"
 
-    # Dimensional consistency
-    if "dimensions" in components:
-        try:
-            logger.info("Running dimensional consistency validation...")
-            from utils.dimensional_consistency import run_dimensional_validation
+    # Run unified validation
+    try:
+        logger.info("Running unified validation...")
 
-            # Run dimensional validation
-            run_dimensional_validation("validation/reports/dimensional")
-            logger.info("Dimensional consistency validation completed")
-        except Exception as e:
-            logger.error(f"Dimensional consistency validation failed: {e}")
-            success = False
+        # Create output directory
+        if not output_dir:
+            output_dir = "validation/reports"
 
-    # Sensitivity analysis
-    if "sensitivity" in components:
-        try:
-            logger.info("Running sensitivity analysis...")
-            from utils.sensitivity_analyzer import run_sensitivity_analysis
+        # Run unified validation
+        results = adapter.run_unified_validation(output_dir)
 
-            # Run sensitivity analysis
-            run_sensitivity_analysis("validation/reports/sensitivity")
-            logger.info("Sensitivity analysis completed")
-        except Exception as e:
-            logger.error(f"Sensitivity analysis failed: {e}")
-            success = False
+        overall_status = results.get('overall_status', 'error')
+        logger.info(f"Unified validation completed. Overall status: {overall_status}")
 
-    return success
+        # Open report if requested
+        if args.open:
+            unified_report_path = f"{output_dir}/unified/unified_validation_report.html"
+            if os.path.exists(unified_report_path):
+                open_report(unified_report_path)
+
+        return overall_status
+    except Exception as e:
+        logger.error(f"Error in unified validation: {e}")
+        return "error"
 
 
 def main():
-    """Main validation entry point."""
-    parser = argparse.ArgumentParser(description="Run validation for simulation framework")
-    parser.add_argument("--components", nargs="*",
-                        choices=["edge_cases", "dimensions", "cross_level", "historical", "sensitivity", "all"],
-                        default=["edge_cases", "dimensions", "cross_level", "historical"],
-                        help="Components to validate")
-    parser.add_argument("--unified", action="store_true",
-                        help="Use unified validator instead of individual components")
-    parser.add_argument("--no-module-map", action="store_true",
-                        help="Skip module mapping")
+    """
+    Main function for running validation.
 
+    Returns:
+        int: Exit code (0 for success, 1 for error)
+    """
+    parser = argparse.ArgumentParser(description="Run validation on refactored physics domains")
+    parser.add_argument("--open", action="store_true", help="Open reports automatically")
+    parser.add_argument("--verify-only", action="store_true", help="Only verify functions and docstrings")
+    parser.add_argument("--historical-only", action="store_true", help="Only run historical validation")
+    parser.add_argument("--output-dir", default="validation/reports", help="Directory to save validation reports")
     args = parser.parse_args()
 
-    # Check if required utils are available
-    if not ensure_utils_and_validation_available():
-        logger.error("Required validation utilities not available. Exiting.")
-        return 1
-
-    # Create validation directories
-    create_validation_dirs()
-
-    # Handle "all" components choice
-    if "all" in args.components:
-        args.components = ["edge_cases", "dimensions", "cross_level", "historical", "sensitivity"]
-
-    # Run module mapping if requested
-    if not args.no_module_map:
-        if not run_module_mapping():
-            logger.error("Module mapping failed. Continuing with validation anyway...")
-
-    success = True
+    logger.info("Starting validation...")
 
     # Run validation
-    if args.unified:
-        success = run_unified_validation(args.components)
-    else:
-        success = run_individual_validations(args.components)
+    status = run_validation(args)
 
-    # Report result
-    if success:
-        logger.info("Validation completed successfully")
-        return 0
-    else:
-        logger.error("Validation failed")
-        return 1
+    # Handle opening reports
+    if args.open and not args.verify_only:
+        status = open_validation_reports(status)
+
+    logger.info(f"Validation complete - overall status: {status}")
+
+    # Return exit code
+    return 0 if status == "success" else 1
 
 
 if __name__ == "__main__":

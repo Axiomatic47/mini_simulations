@@ -1,336 +1,264 @@
 """
-Module mapping utility to dynamically discover and load equation functions
-across the physics_domains directory structure.
+Module Mapper
+
+This module maps functions to their physics domains based on directory structure
+and provides utilities for analyzing the organization of equation functions.
 """
 
 import os
-import importlib
-import inspect
 import sys
+import inspect
+import logging
 from pathlib import Path
-from typing import Dict, Callable, List, Any, Tuple, Optional
+from enum import Enum
 
-# Physics domains we want to scan
-PHYSICS_DOMAINS = [
-    "astrophysics",
-    "electromagnetism",
-    "multi_system",
-    "quantum_mechanics",
-    "relativity",
-    "strong_nuclear",
-    "thermodynamics",
-    "weak_nuclear"
-]
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
+class PhysicsDomain(Enum):
+    """Enumeration of physics domains used in the simulation."""
+    THERMODYNAMICS = "thermodynamics"
+    RELATIVITY = "relativity"
+    ELECTROMAGNETISM = "electromagnetism"
+    STRONG_NUCLEAR = "strong_nuclear"
+    WEAK_NUCLEAR = "weak_nuclear"
+    QUANTUM_MECHANICS = "quantum_mechanics"
+    ASTROPHYSICS = "astrophysics"
+    MULTI_SYSTEM = "multi_system"
+    UTILS = "utils"  # For utility functions
+    BRIDGE = "bridge"  # For bridge functions connecting domains
+    UNKNOWN = "unknown"
 
-def discover_equation_functions() -> Dict[str, Callable]:
+def map_function_to_domain():
     """
-    Dynamically discover all equation functions across physics_domains,
-    loading each file directly to avoid circular imports.
+    Maps functions to their physics domains based on directory structure.
 
     Returns:
-        Dictionary mapping function names to function objects
+        dict: Dictionary mapping function names to domain names
     """
-    equation_functions = {}
-    base_dir = Path(__file__).parent
-    physics_dir = base_dir / "physics_domains"
+    function_map = {}
 
-    # Ensure physics_domains is in the Python path
-    sys.path.insert(0, str(base_dir))
+    # Get the base path for physics_domains
+    base_path = Path(__file__).resolve().parent / "physics_domains"
 
-    # Import functions from legacy config files first
-    for config_file in ['equations.py', 'quantum_em_extensions.py', 'astrophysics_extensions.py',
-                        'multi_civilization_extensions.py']:
-        try:
-            config_path = base_dir / 'config' / config_file
-            if config_path.exists():
-                # Extract function objects defined in this file
-                extract_functions_from_file(str(config_path), equation_functions)
-        except Exception as e:
-            print(f"Error processing config file {config_file}: {e}")
+    if not base_path.exists():
+        logger.warning(f"Physics domains directory not found at {base_path}")
+        return _get_fallback_function_map()
 
-    # Process each domain directory
-    for domain in PHYSICS_DOMAINS:
-        domain_path = physics_dir / domain
-        if not domain_path.is_dir():
-            print(f"Warning: Domain directory {domain} not found")
-            continue
+    # Iterate through each domain directory
+    for domain_dir in base_path.iterdir():
+        if domain_dir.is_dir() and not domain_dir.name.startswith('__'):
+            domain_name = domain_dir.name.upper()
 
-        # Get all Python files in the domain directory
-        py_files = list(domain_path.glob("*.py"))
-        for py_file in py_files:
-            if py_file.name == "__init__.py":
-                continue
+            # Iterate through each Python file in the domain directory
+            for py_file in domain_dir.glob('*.py'):
+                if py_file.name.startswith('__'):
+                    continue
 
-            # Process this file directly
-            try:
-                extract_functions_from_file(str(py_file), equation_functions)
-            except Exception as e:
-                print(f"Error extracting functions from {py_file}: {e}")
+                # Module name is the filename without extension
+                module_name = py_file.stem
 
-    return equation_functions
+                # Add to the function map - the function name is typically the same as the file name
+                function_map[module_name] = domain_name
 
-def discover_equation_functions() -> Dict[str, Callable]:
-    """
-    Dynamically discover all equation functions across physics_domains,
-    loading each file directly to avoid circular imports.
-
-    Returns:
-        Dictionary mapping function names to function objects
-    """
-    equation_functions = {}
-    base_dir = Path(__file__).parent
-    physics_dir = base_dir / "physics_domains"
-
-    # Ensure physics_domains is in the Python path
-    sys.path.insert(0, str(base_dir))
-
-    # Import functions from legacy config files first
-    for config_file in ['equations.py', 'quantum_em_extensions.py', 'astrophysics_extensions.py',
-                        'multi_civilization_extensions.py']:
-        try:
-            config_path = base_dir / 'config' / config_file
-            if config_path.exists():
-                # Extract function objects defined in this file
-                extract_functions_from_file(str(config_path), equation_functions)
-        except Exception as e:
-            print(f"Error processing config file {config_file}: {e}")
-
-    # Process each domain directory
-    for domain in PHYSICS_DOMAINS:
-        domain_path = physics_dir / domain
-        if not domain_path.is_dir():
-            print(f"Warning: Domain directory {domain} not found")
-            continue
-
-        # Get all Python files in the domain directory
-        py_files = list(domain_path.glob("*.py"))
-        for py_file in py_files:
-            if py_file.name == "__init__.py":
-                continue
-
-            # Process this file directly
-            try:
-                extract_functions_from_file(str(py_file), equation_functions)
-            except Exception as e:
-                print(f"Error extracting functions from {py_file}: {e}")
-
-    return equation_functions
-
-def extract_functions_from_file(file_path, function_dict):
-    """
-    Extract function objects from a file without importing the module.
-
-    Args:
-        file_path: Path to the Python file
-        function_dict: Dictionary to store extracted functions
-    """
+    # Add special functions from bridge modules
     try:
-        with open(file_path, 'r') as f:
-            content = f.read()
-
-        # Parse the file to find function names
-        tree = ast.parse(content)
-        for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
-                function_name = node.name
-
-                # Skip private functions
-                if function_name.startswith('_'):
+        bridge_path = Path(__file__).resolve().parent / "bridge_functions"
+        if bridge_path.exists():
+            for py_file in bridge_path.glob('*.py'):
+                if py_file.name.startswith('__'):
                     continue
 
-                # For each function, store its name and location
-                function_dict[function_name] = {
-                    'name': function_name,
-                    'file_path': file_path,
-                    'docstring': ast.get_docstring(node),
-                    'domain': file_path.split('physics_domains/')[1].split('/')[0]
-                    if 'physics_domains/' in file_path else 'config'
-                }
-    except Exception as e:
-        print(f"Error parsing {file_path}: {e}")
-
-def map_function_to_domain(func_name: str) -> Tuple[str, str]:
-    """
-    Maps a function name to its physics domain and file.
-
-    Args:
-        func_name: Name of the function
-
-    Returns:
-        Tuple of (domain, file_name)
-    """
-    base_dir = Path(__file__).parent.parent
-    physics_dir = base_dir / "physics_domains"
-
-    for domain in PHYSICS_DOMAINS:
-        domain_path = physics_dir / domain
-        if not domain_path.is_dir():
-            continue
-
-        # Check each Python file in the domain
-        for py_file in domain_path.glob("*.py"):
-            if py_file.name == "__init__.py":
-                continue
-
-            # Read the file to check if it contains the function definition
-            content = py_file.read_text()
-            if f"def {func_name}" in content:
-                return domain, py_file.stem
-
-    # Check for functions that might still be in config
-    config_dir = base_dir / "config"
-    for py_file in config_dir.glob("*.py"):
-        if py_file.name == "__init__.py":
-            continue
-
-        content = py_file.read_text()
-        if f"def {func_name}" in content:
-            return "config", py_file.stem
-
-    return "unknown", "unknown"
-
-
-def get_function_hierarchy() -> Dict[str, List[str]]:
-    """
-    Organize functions by their physics domain.
-
-    Returns:
-        Dictionary mapping domain names to lists of function names
-    """
-    functions = discover_equation_functions()
-    hierarchy = {domain: [] for domain in PHYSICS_DOMAINS}
-    hierarchy["config"] = []  # For any remaining functions in config
-
-    for func_name in functions:
-        domain, _ = map_function_to_domain(func_name)
-        if domain in hierarchy:
-            hierarchy[domain].append(func_name)
+                module_name = py_file.stem
+                function_map[module_name] = "BRIDGE"
         else:
-            print(f"Warning: Unknown domain for function {func_name}")
+            logger.warning(f"Bridge functions directory not found at {bridge_path}")
+    except Exception as e:
+        logger.warning(f"Error processing bridge functions: {e}")
 
-    return hierarchy
+    # Add fallback mappings for functions that might not follow the filename pattern
+    fallback_mappings = _get_fallback_function_map()
 
+    # Merge the discovered mappings with the fallback mappings
+    # Discovered mappings take precedence
+    merged_map = {**fallback_mappings, **function_map}
 
-def get_bridge_functions() -> Dict[str, Callable]:
+    return merged_map
+
+def _get_fallback_function_map():
     """
-    Discover all bridge functions across scale levels.
+    Provides a fallback mapping of functions to domains when directory scanning fails.
 
     Returns:
-        Dictionary mapping bridge function names to function objects
+        dict: Manual mapping of function names to domains
     """
-    bridge_functions = {}
-    base_dir = Path(__file__).parent.parent
-    bridge_dir = base_dir / "bridge_functions"
+    return {
+        # Thermodynamics domain
+        "intelligence_growth": "THERMODYNAMICS",
+        "knowledge_growth_phase_transition": "THERMODYNAMICS",
 
-    if not bridge_dir.is_dir():
-        print(f"Warning: Bridge functions directory not found at {bridge_dir}")
-        return bridge_functions
+        # Relativity domain
+        "truth_adoption": "RELATIVITY",
 
-    # Add bridge_functions to Python path
-    sys.path.insert(0, str(base_dir))
+        # Electromagnetism domain
+        "wisdom_field": "ELECTROMAGNETISM",
+        "wisdom_field_enhanced": "ELECTROMAGNETISM",
+        "free_will_decision": "ELECTROMAGNETISM",
+        "knowledge_field_gradient": "ELECTROMAGNETISM",
+        "knowledge_field_influence": "ELECTROMAGNETISM",
 
-    # Import each bridge function module
-    for py_file in bridge_dir.glob("*.py"):
-        if py_file.name == "__init__.py":
-            continue
+        # Strong nuclear domain
+        "civilization_oscillation": "STRONG_NUCLEAR",
+        "identity_binding": "STRONG_NUCLEAR",
 
-        # Convert file path to module path
-        rel_path = py_file.relative_to(base_dir)
-        module_path = str(rel_path.with_suffix("")).replace(os.sep, ".")
+        # Weak nuclear domain
+        "suppression_feedback": "WEAK_NUCLEAR",
+        "resistance_resurgence": "WEAK_NUCLEAR",
 
-        try:
-            # Import the module
-            module = importlib.import_module(module_path)
+        # Quantum mechanics domain
+        "build_entanglement_network": "QUANTUM_MECHANICS",
+        "quantum_tunneling_probability": "QUANTUM_MECHANICS",
+        "quantum_entanglement_correlation": "QUANTUM_MECHANICS",
 
-            # Get all functions from the module
-            for name, obj in inspect.getmembers(module, inspect.isfunction):
-                # Skip private functions
-                if name.startswith("_"):
-                    continue
+        # Astrophysics domain
+        "suppression_event_horizon": "ASTROPHYSICS",
+        "civilization_lifecycle_phase": "ASTROPHYSICS",
+        "cosmic_background_knowledge": "ASTROPHYSICS",
+        "dark_energy_knowledge_acceleration": "ASTROPHYSICS",
+        "galactic_structure_model": "ASTROPHYSICS",
+        "knowledge_inflation": "ASTROPHYSICS",
+        "knowledge_gravitational_lensing": "ASTROPHYSICS",
 
-                # Add function to our dictionary
-                bridge_functions[name] = obj
+        # Multi-system domain
+        "calculate_distance_matrix": "MULTI_SYSTEM",
+        "safe_calculate_distance_matrix": "MULTI_SYSTEM",
+        "initialize_civilizations": "MULTI_SYSTEM",
+        "spawn_new_civilization": "MULTI_SYSTEM",
+        "cultural_influence": "MULTI_SYSTEM",
+        "update_civilization_sizes": "MULTI_SYSTEM",
+        "calculate_interaction_strength": "MULTI_SYSTEM",
+        "civilization_movement": "MULTI_SYSTEM",
+        "detect_civilization_collapse": "MULTI_SYSTEM",
+        "detect_civilization_mergers": "MULTI_SYSTEM",
+        "knowledge_diffusion": "MULTI_SYSTEM",
+        "process_all_civilization_interactions": "MULTI_SYSTEM",
+        "safe_process_civilization_interactions": "MULTI_SYSTEM",
+        "process_civilization_merger": "MULTI_SYSTEM",
+        "remove_civilization": "MULTI_SYSTEM",
+        "resource_competition": "MULTI_SYSTEM",
+        "galactic_collision_effect": "MULTI_SYSTEM",
 
-        except ImportError as e:
-            print(f"Error importing {module_path}: {e}")
+        # Utility functions
+        "safe_exp": "UTILS",
+        "safe_div": "UTILS",
+        "safe_sqrt": "UTILS",
+        "safe_log": "UTILS",
+    }
 
-    return bridge_functions
-
-
-def discover_equation_functions() -> Dict[str, Callable]:
+def get_functions_by_domain():
     """
-    Dynamically discover all equation functions across physics_domains.
+    Group functions by their physics domain.
 
     Returns:
-        Dictionary mapping function names to function objects
+        dict: Dictionary mapping domain names to lists of function names
     """
-    equation_functions = {}
-    base_dir = Path(__file__).parent
-    physics_dir = base_dir / "physics_domains"
+    domain_functions = {}
+    function_map = map_function_to_domain()
 
-    # Ensure physics_domains is in the Python path
-    sys.path.insert(0, str(base_dir))
+    for func_name, domain in function_map.items():
+        if domain not in domain_functions:
+            domain_functions[domain] = []
+        domain_functions[domain].append(func_name)
 
-    # Import each domain module
-    for domain in PHYSICS_DOMAINS:
-        domain_path = physics_dir / domain
-        if not domain_path.is_dir():
-            print(f"Warning: Domain directory {domain} not found")
-            continue
+    return domain_functions
 
-        # Get all Python files in the domain directory
-        py_files = list(domain_path.glob("*.py"))
-        for py_file in py_files:
-            if py_file.name == "__init__.py":
-                continue
+def print_function_map():
+    """Print the function map grouped by domain."""
+    domain_functions = get_functions_by_domain()
 
-            # Convert file path to module path
-            rel_path = py_file.relative_to(base_dir)
-            module_path = str(rel_path.with_suffix("")).replace(os.sep, ".")
+    print("\n==== Physics Domain Function Map ====\n")
 
-            try:
-                # Import the module
-                module = importlib.import_module(module_path)
-
-                # Get all functions from the module
-                for name, obj in inspect.getmembers(module, inspect.isfunction):
-                    # Skip private functions
-                    if name.startswith("_"):
-                        continue
-
-                    # Add function to our dictionary
-                    equation_functions[name] = obj
-
-            except ImportError as e:
-                print(f"Error importing {module_path}: {e}")
-            except Exception as e:
-                print(f"Unexpected error importing {module_path}: {e}")
-
-    return equation_functions
-
-def print_module_map():
-    """Print a summary of discovered functions by domain"""
-    hierarchy = get_function_hierarchy()
-
-    print("\n==== Physics Domain Function Map ====")
-    for domain, functions in hierarchy.items():
-        if not functions:
-            continue
-        print(f"\n{domain.upper()} ({len(functions)} functions):")
+    total_functions = 0
+    for domain, functions in sorted(domain_functions.items()):
+        print(f"{domain} ({len(functions)} functions):")
         for func in sorted(functions):
             print(f"  - {func}")
+        total_functions += len(functions)
+        print()
 
-    bridge_functions = get_bridge_functions()
-    if bridge_functions:
-        print("\nBRIDGE FUNCTIONS:")
-        for func in sorted(bridge_functions.keys()):
-            print(f"  - {func}")
+    print(f"Total discovered functions: {total_functions}")
 
-    # Overall stats
-    total_funcs = sum(len(funcs) for funcs in hierarchy.values()) + len(bridge_functions)
-    print(f"\nTotal discovered functions: {total_funcs}")
+def get_domain_for_function(func_name):
+    """
+    Get the physics domain for a specific function.
 
+    Args:
+        func_name (str): Name of the function
+
+    Returns:
+        str: Name of the physics domain, or None if not found
+    """
+    function_map = map_function_to_domain()
+    return function_map.get(func_name, "UNKNOWN")
+
+def load_function_from_domain(func_name, default_func=None):
+    """
+    Attempt to load a function from its physics domain.
+
+    Args:
+        func_name (str): Name of the function to load
+        default_func: Default function to return if loading fails
+
+    Returns:
+        function: The loaded function, or default_func if loading fails
+    """
+    function_map = map_function_to_domain()
+
+    # Skip if function name is not mapped
+    if func_name not in function_map:
+        logger.warning(f"Unknown domain for function {func_name}")
+        return default_func
+
+    domain = function_map[func_name].lower()
+
+    # Try to import from physics domains
+    try:
+        # Form import path
+        module_path = f"physics_domains.{domain}.{func_name}"
+
+        # Dynamically import
+        module_parts = module_path.split('.')
+        imported = __import__(module_path, fromlist=[module_parts[-1]])
+
+        # Get the function
+        if hasattr(imported, func_name):
+            return getattr(imported, func_name)
+    except ImportError:
+        # Try importing from config as fallback
+        try:
+            # Form fallback import path
+            if domain in ["thermodynamics", "relativity", "electromagnetism", "strong_nuclear", "weak_nuclear"]:
+                # Core equations
+                from config.equations import func_name
+                return func_name
+            elif domain == "astrophysics":
+                # Astrophysics extensions
+                from config.astrophysics_extensions import func_name
+                return func_name
+            elif domain == "multi_system":
+                # Multi-civilization extensions
+                from config.multi_civilization_extensions import func_name
+                return func_name
+            elif domain == "quantum_mechanics":
+                # Quantum extensions
+                from config.quantum_em_extensions import func_name
+                return func_name
+        except (ImportError, AttributeError):
+            logger.warning(f"Could not import {func_name} from any location")
+
+    return default_func
 
 if __name__ == "__main__":
-    print_module_map()
+    # Print the function map when the script is run directly
+    print_function_map()

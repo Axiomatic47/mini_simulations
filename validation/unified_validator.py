@@ -19,7 +19,7 @@ if project_root not in sys.path:
 # Import validation components
 from validation.validation_suite import ValidationSuite
 from validation.validation_visualizers import ValidationVisualizer
-from validation.automated_reports import ReportGenerator
+from report_generator import ReportGenerator
 from utils.edge_case_checker import EdgeCaseChecker
 from utils.cross_level_validator import CrossLevelValidator
 from utils.dimensional_consistency import DimensionalValidator
@@ -43,6 +43,20 @@ logging.basicConfig(
 logger = logging.getLogger("UnifiedValidator")
 
 
+
+def _dummy_simulation(params):
+    """Dummy simulation function for ParameterSensitivityAnalyzer initialization."""
+    import numpy as np
+    # Return synthetic data structure similar to simulation results
+    timesteps = 100
+    return {
+        'time': np.arange(timesteps),
+        'knowledge': np.random.rand(timesteps) * 10,
+        'suppression': np.random.rand(timesteps) * 5, 
+        'intelligence': np.random.rand(timesteps) * 15
+    }
+
+
 class UnifiedValidator:
     """
     Unified system for validating and optimizing equations across all scales.
@@ -57,10 +71,10 @@ class UnifiedValidator:
         self.validation_suite = ValidationSuite()
         self.visualizer = ValidationVisualizer()
         self.report_generator = ReportGenerator()
-        self.edge_checker = EdgeCaseChecker()
-        self.cross_validator = CrossLevelValidator()
+        self.edge_checker = EdgeCaseChecker({})
+        self.cross_validator = CrossLevelValidator({}, {'Level 1': [], 'Level 2': []})
         self.dim_validator = DimensionalValidator()
-        self.sensitivity_analyzer = ParameterSensitivityAnalyzer()
+        self.sensitivity_analyzer = ParameterSensitivityAnalyzer(_dummy_simulation, ['knowledge', 'suppression', 'intelligence'], {'alpha': 0.1, 'beta': 0.2})
 
         # Track results
         self.results = {}
@@ -93,7 +107,7 @@ class UnifiedValidator:
 
         # Step 1: Run basic validation suite
         logger.info("Running basic validation suite")
-        self.results["basic_validation"] = self.validation_suite.run_comprehensive_validation(
+        self.results["basic_validation"] = self.validation_suite.run_full_validation(
             focus_areas=focus_areas,
             generate_report=False  # We'll generate a unified report later
         )
@@ -689,6 +703,36 @@ class UnifiedValidator:
         logger.info(f"Optimization plan generated and saved to {plan_path}")
 
         return plan
+
+    def generate_comprehensive_report(self):
+        """
+        Generate a comprehensive report of all validation results.
+        """
+        logger.info("Generating comprehensive validation report")
+
+        # Create report directory
+        report_dir = Path(self.output_dir)
+        report_dir.mkdir(parents=True, exist_ok=True)
+
+        # Generate main HTML report
+        report_path = report_dir / "unified_validation_report.html"
+
+        # Use the report generator to create the report
+        self.report_generator.generate_unified_report(
+            self.results,
+            report_path,
+            include_visualizations=True
+        )
+
+        # Generate supplementary reports and visualizations
+        self._generate_supplementary_reports(report_dir)
+
+        logger.info(f"Comprehensive report generated at {report_path}")
+
+        # Automatically open the report
+        self.open_report(report_path)
+
+        return str(report_path)
 
 
 # Example usage

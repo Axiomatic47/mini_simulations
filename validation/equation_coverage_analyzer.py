@@ -231,6 +231,162 @@ class EquationCoverageAnalyzer:
 
         return equations
 
+    def scan_equations(self, domains=None):
+        """
+        Scan through modules to find and categorize equation functions.
+
+        Args:
+            domains: List of module names to scan or None to scan all
+
+        Returns:
+            Dictionary of categorized equations
+        """
+        import inspect
+        import importlib
+        import re
+
+        if domains is None:
+            # Scan both config and physics_domains directories
+            domains = [
+                # Config modules
+                "config.equations",
+                "config.astrophysics_extensions",
+                "config.quantum_em_extensions",
+                "config.multi_civilization_extensions",
+
+                # Physics domains
+                "physics_domains.thermodynamics",
+                "physics_domains.relativity",
+                "physics_domains.electromagnetism",
+                "physics_domains.quantum_mechanics",
+                "physics_domains.weak_nuclear",
+                "physics_domains.strong_nuclear",
+                "physics_domains.astrophysics",
+                "physics_domains.multi_system"
+            ]
+
+        categorized_equations = {
+            "by_physics_domain": {},
+            "by_scale_level": {},
+            "by_application_domain": {},
+            "functions": {}
+        }
+
+        # Initialize known categories
+        for domain in self.known_physics_domains:
+            categorized_equations["by_physics_domain"][domain] = []
+
+        for level in self.known_scale_levels:
+            categorized_equations["by_scale_level"][level] = []
+
+        for domain in self.known_application_domains:
+            categorized_equations["by_application_domain"][domain] = []
+
+        # Regular expressions for metadata extraction
+        physics_domain_pattern = r"Physics Domain:\s*(\w+)"
+        scale_level_pattern = r"Scale Level:\s*(\w+)"
+        application_domains_pattern = r"Application Domains:\s*([\w\s,]+)"
+
+        # Scan each module
+        for module_name in domains:
+            try:
+                # First try direct import
+                try:
+                    module = importlib.import_module(module_name)
+                except ImportError:
+                    # If that fails, try recursive import for physics_domains
+                    if "physics_domains" in module_name:
+                        base_domain = module_name.split(".")[-1]
+                        for func_name in [
+                            "intelligence_growth", "truth_adoption", "wisdom_field",
+                            "suppression_feedback", "resistance_resurgence", "civilization_oscillation",
+                            "identity_binding", "quantum_tunneling_probability", "quantum_entanglement_correlation",
+                            "build_entanglement_network", "knowledge_field_gradient", "knowledge_field_influence",
+                            "free_will_decision", "knowledge_growth_phase_transition",
+                            "dark_energy_knowledge_acceleration",
+                            "cosmic_background_knowledge", "galactic_structure_model", "civilization_lifecycle_phase",
+                            "suppression_event_horizon", "knowledge_gravitational_lensing", "knowledge_inflation",
+                            "calculate_distance_matrix", "calculate_interaction_strength", "civilization_movement",
+                            "cultural_influence", "detect_civilization_collapse", "detect_civilization_mergers",
+                            "galactic_collision_effect", "initialize_civilizations", "knowledge_diffusion",
+                            "process_all_civilization_interactions", "process_civilization_merger",
+                            "remove_civilization",
+                            "resource_competition", "spawn_new_civilization", "update_civilization_sizes"
+                        ]:
+                            try:
+                                # Try to import specific function modules from physics_domains
+                                specific_module = importlib.import_module(f"physics_domains.{base_domain}.{func_name}")
+                                if hasattr(specific_module, func_name):
+                                    func = getattr(specific_module, func_name)
+                                    self._process_function(func, func_name,
+                                                           f"physics_domains.{base_domain}.{func_name}",
+                                                           categorized_equations, physics_domain_pattern,
+                                                           scale_level_pattern, application_domains_pattern)
+                            except ImportError:
+                                continue
+                    continue
+
+                # Get functions from the module
+                for name, obj in inspect.getmembers(module):
+                    if inspect.isfunction(obj) and not name.startswith("_"):
+                        self._process_function(obj, name, module_name, categorized_equations,
+                                               physics_domain_pattern, scale_level_pattern,
+                                               application_domains_pattern)
+
+            except ImportError as e:
+                self.logger.warning(f"Could not import module {module_name}: {e}")
+            except Exception as e:
+                self.logger.error(f"Error scanning module {module_name}: {e}")
+
+        return categorized_equations
+
+    def _process_function(self, func, func_name, module_name, categorized_equations,
+                          physics_domain_pattern, scale_level_pattern, application_domains_pattern):
+        """Process a single function and categorize it based on docstring."""
+        docstring = inspect.getdoc(func)
+        if not docstring:
+            return
+
+        # Extract metadata from docstring
+        physics_domain = None
+        scale_level = None
+        application_domains = []
+
+        # Extract physics domain
+        match = re.search(physics_domain_pattern, docstring, re.IGNORECASE)
+        if match:
+            physics_domain = match.group(1).lower()
+            if physics_domain in self.known_physics_domains:
+                categorized_equations["by_physics_domain"][physics_domain].append(func_name)
+
+        # Extract scale level
+        match = re.search(scale_level_pattern, docstring, re.IGNORECASE)
+        if match:
+            scale_level = match.group(1).lower()
+            if scale_level in self.known_scale_levels:
+                categorized_equations["by_scale_level"][scale_level].append(func_name)
+
+        # Extract application domains
+        match = re.search(application_domains_pattern, docstring, re.IGNORECASE)
+        if match:
+            domains_str = match.group(1)
+            app_domains = [d.strip().lower() for d in domains_str.split(",")]
+            for domain in app_domains:
+                if domain in self.known_application_domains:
+                    categorized_equations["by_application_domain"][domain].append(func_name)
+            application_domains = app_domains
+
+        # Store function metadata
+        categorized_equations["functions"][func_name] = {
+            "name": func_name,
+            "module": module_name,
+            "physics_domain": physics_domain,
+            "scale_level": scale_level,
+            "application_domains": application_domains,
+            "docstring": docstring,
+            "signature": str(inspect.signature(func))
+        }
+
     def _determine_physics_domain(self, name, docstring, source):
         """
         Determine the physics domain for an equation based on name, docstring, and source.

@@ -492,3 +492,121 @@ def update_equations_with_dimensions(equations_module):
     # Add more equations as needed
 
     return updated_equations
+
+
+def run_dimensional_validation(dimensional_equations, output_dir=None):
+    """
+    Run dimensional consistency validation on the provided equations.
+
+    Args:
+        dimensional_equations (dict): Dictionary of dimensionally-validated equation functions
+        output_dir (str, optional): Directory to save output reports
+
+    Returns:
+        dict: Results of dimensional validation
+    """
+    # Run consistency check
+    consistency_results = check_dimensional_consistency(dimensional_equations)
+
+    # Determine overall status
+    validation_status = 'success'
+    issues_found = 0
+
+    for name, result in consistency_results.items():
+        if result.get('status', '') != 'Consistent' and result.get('status', '') != 'consistent':
+            validation_status = 'warning'
+            issues_found += 1
+
+    # Generate report if output directory provided
+    if output_dir:
+        import os
+        from pathlib import Path
+
+        try:
+            # Create output directory
+            Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+            # Write report
+            with open(os.path.join(output_dir, 'consistency_report.txt'), 'w') as f:
+                f.write("Dimensional Consistency Validation Report\n")
+                f.write("=======================================\n\n")
+
+                # Write overall status
+                f.write(f"Overall status: {validation_status.upper()}\n")
+                f.write(f"Issues found: {issues_found}/{len(consistency_results)}\n\n")
+
+                # Write details for each function
+                for name, result in consistency_results.items():
+                    f.write(f"{name}: {result.get('status', 'Unknown')}\n")
+                    if 'message' in result:
+                        f.write(f"  Details: {result['message']}\n")
+                    if 'expected' in result and 'actual' in result:
+                        f.write(f"  Expected: {result['expected']}, Actual: {result['actual']}\n")
+                    f.write("\n")
+        except Exception as e:
+            print(f"Warning: Could not generate dimensional consistency report: {e}")
+            validation_status = 'warning'
+
+
+    # Return results
+    return {
+        'equations': consistency_results,
+        'status': validation_status,
+        'issues_found': issues_found,
+        'total_equations': len(consistency_results)
+    }
+
+
+# Add this at the end of your utils/dimensional_consistency.py file
+
+class DimensionalValidator:
+    """
+    Validator for ensuring proper dimensional consistency in equations.
+    """
+
+    def __init__(self):
+        """Initialize the dimensional validator."""
+        pass
+
+    def validate_dimensional_consistency(self, equation_modules=None):
+        """
+        Validate dimensional consistency of equations.
+
+        Args:
+            equation_modules: List of equation module names to validate
+
+        Returns:
+            Dictionary of validation results
+        """
+        if equation_modules is None:
+            equation_modules = []
+
+        results = {}
+
+        for module_name in equation_modules:
+            try:
+                # Try to import the module
+                module = __import__(module_name, fromlist=['*'])
+
+                # Find all equation functions in the module
+                equations = {}
+                for name in dir(module):
+                    if callable(getattr(module, name)) and not name.startswith('_'):
+                        equations[name] = getattr(module, name)
+
+                # Run dimensional consistency check
+                module_results = check_dimensional_consistency(equations)
+                results[module_name] = module_results
+
+            except ImportError:
+                results[module_name] = {
+                    "status": "Error",
+                    "message": f"Could not import module {module_name}"
+                }
+            except Exception as e:
+                results[module_name] = {
+                    "status": "Error",
+                    "message": str(e)
+                }
+
+        return results

@@ -10,7 +10,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 import logging
-from datetime import datetime
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -116,184 +115,33 @@ class HistoricalValidation:
             # Try to import and run comprehensive simulation
             from simulations.comprehensive_simulation import run_simulation
 
-            # Check what parameters the simulation accepts
-            import inspect
-            sim_params = inspect.signature(run_simulation).parameters
-
-            # Create kwargs dict with the right parameter names
-            sim_kwargs = {}
-
-            # Handle 'timesteps' parameter (error in your logs)
-            if 'timesteps' in sim_params:
-                sim_kwargs['timesteps'] = self.simulation_timesteps
-            elif 'num_steps' in sim_params:
-                sim_kwargs['num_steps'] = self.simulation_timesteps
-            elif 'num_timesteps' in sim_params:
-                sim_kwargs['num_timesteps'] = self.simulation_timesteps
-            elif 'steps' in sim_params:
-                sim_kwargs['steps'] = self.simulation_timesteps
-
-            # Handle parameters dict
-            if 'params' in sim_params:
-                sim_kwargs['params'] = parameters
-            elif 'parameters' in sim_params:
-                sim_kwargs['parameters'] = parameters
-
-            # Handle circuit breaker
-            if 'enable_circuit_breaker' in sim_params:
-                sim_kwargs['enable_circuit_breaker'] = self.enable_circuit_breaker
-
-            if 'enable_adaptive_timestep' in sim_params:
-                sim_kwargs['enable_adaptive_timestep'] = self.enable_adaptive_timestep
-
-            # Run simulation with properly named parameters
             logger.info("Running comprehensive simulation with parameters")
-            results = run_simulation(**sim_kwargs)
-
-            # Convert dict results to DataFrame if needed
-            import pandas as pd
-            import numpy as np
-            if isinstance(results, dict) and not isinstance(results, pd.DataFrame):
-                # Convert dictionary of arrays to DataFrame
-                logger.info("Converting dictionary results to DataFrame")
-
-                # First, check for the time dimension
-                if 'time' in results:
-                    timesteps = results['time']
-                else:
-                    # Find the first non-event value to determine length
-                    for key, value in results.items():
-                        if key != 'events' and hasattr(value, '__len__'):
-                            timesteps = np.arange(len(value))
-                            break
-                    else:
-                        # Fallback if no arrays found
-                        timesteps = np.arange(100)
-
-                # Create base dataframe with timesteps
-                df_data = {'timestep': timesteps}
-
-                # Check each value in the dictionary and handle appropriately
-                for key, value in results.items():
-                    if key == 'time' or key == 'events':
-                        # Skip time (already handled) and events (complex structure)
-                        continue
-
-                    if isinstance(value, np.ndarray):
-                        # Handle differently based on dimensions
-                        if value.ndim == 1:
-                            # 1D array can be added directly
-                            df_data[key] = value
-                        elif value.ndim == 2:
-                            # For 2D arrays, we'll take mean values across civilizations/agents
-                            # and add individual columns for each civilization/agent
-                            df_data[f"{key}_mean"] = np.mean(value, axis=1)
-                            df_data[f"{key}_std"] = np.std(value, axis=1)
-
-                            # Add individual columns for each civilization/agent, limited to first 5
-                            num_entities = min(5, value.shape[1])
-                            for i in range(num_entities):
-                                df_data[f"{key}_{i + 1}"] = value[:, i]
-
-                # Create the DataFrame
-                results = pd.DataFrame(df_data)
-
-                # Add year column if not present
-                if 'year' not in results.columns:
-                    year_range = self.historical_end_year - self.historical_start_year
-                    results['year'] = self.historical_start_year + results['timestep'] * year_range / len(results)
+            results = run_simulation(
+                timesteps=self.simulation_timesteps,
+                params=parameters,
+                enable_circuit_breaker=self.enable_circuit_breaker,
+                enable_adaptive_timestep=self.enable_adaptive_timestep
+            )
 
             return results
-        except Exception as e:
-            logger.warning(f"Error running comprehensive simulation: {e}")
+        except ImportError:
+            logger.warning("Cannot import comprehensive_simulation, trying alternative")
 
             try:
                 # Try alternate simulation
                 from simulations.historical_simulation import run_simulation as run_alt_simulation
 
-                # Similar parameter handling for alternative simulation
-                import inspect
-                sim_params = inspect.signature(run_alt_simulation).parameters
-
-                sim_kwargs = {}
-                if 'params' in sim_params:
-                    sim_kwargs['params'] = parameters
-                elif 'parameters' in sim_params:
-                    sim_kwargs['parameters'] = parameters
-
-                if 'timesteps' in sim_params:
-                    sim_kwargs['timesteps'] = self.simulation_timesteps
-                elif 'num_steps' in sim_params:
-                    sim_kwargs['num_steps'] = self.simulation_timesteps
-
-                if 'enable_circuit_breaker' in sim_params:
-                    sim_kwargs['enable_circuit_breaker'] = self.enable_circuit_breaker
-
-                # Run the simulation
-                results = run_alt_simulation(**sim_kwargs)
-
-                # Convert dict results to DataFrame if needed
-                import pandas as pd
-                import numpy as np
-                if isinstance(results, dict) and not isinstance(results, pd.DataFrame):
-                    # Convert dictionary of arrays to DataFrame
-                    logger.info("Converting dictionary results to DataFrame")
-
-                    # First, check for the time dimension
-                    if 'time' in results:
-                        timesteps = results['time']
-                    else:
-                        # Find the first non-event value to determine length
-                        for key, value in results.items():
-                            if key != 'events' and hasattr(value, '__len__'):
-                                timesteps = np.arange(len(value))
-                                break
-                        else:
-                            # Fallback if no arrays found
-                            timesteps = np.arange(100)
-
-                    # Create base dataframe with timesteps
-                    df_data = {'timestep': timesteps}
-
-                    # Check each value in the dictionary and handle appropriately
-                    for key, value in results.items():
-                        if key == 'time' or key == 'events':
-                            # Skip time (already handled) and events (complex structure)
-                            continue
-
-                        if isinstance(value, np.ndarray):
-                            # Handle differently based on dimensions
-                            if value.ndim == 1:
-                                # 1D array can be added directly
-                                df_data[key] = value
-                            elif value.ndim == 2:
-                                # For 2D arrays, we'll take mean values across civilizations/agents
-                                # and add individual columns for each civilization/agent
-                                df_data[f"{key}_mean"] = np.mean(value, axis=1)
-                                df_data[f"{key}_std"] = np.std(value, axis=1)
-
-                                # Add individual columns for each civilization/agent, limited to first 5
-                                num_entities = min(5, value.shape[1])
-                                for i in range(num_entities):
-                                    df_data[f"{key}_{i + 1}"] = value[:, i]
-
-                    # Create the DataFrame
-                    results = pd.DataFrame(df_data)
-
-                    # Add year column if not present
-                    if 'year' not in results.columns:
-                        year_range = self.historical_end_year - self.historical_start_year
-                        results['year'] = self.historical_start_year + results['timestep'] * year_range / len(results)
+                results = run_alt_simulation(
+                    timesteps=self.simulation_timesteps,
+                    params=parameters,
+                    enable_circuit_breaker=self.enable_circuit_breaker
+                )
 
                 return results
-            except Exception as e:
-                logger.warning(f"Error running alternative simulation: {e}")
+            except ImportError:
                 logger.warning("No simulation module found, using dummy simulation")
 
                 # Create dummy results if no simulation is available
-                import numpy as np
-                import pandas as pd
-
                 timesteps = np.arange(self.simulation_timesteps)
                 k0 = parameters.get('knowledge_growth_rate', 0.15)
                 a0 = parameters.get('truth_adoption_rate', 0.12)
@@ -651,352 +499,46 @@ class HistoricalValidation:
         except Exception as e:
             logger.error(f"Error saving results: {e}")
 
-    def run_validation(self, output_dir=None):
-        """
-        Run the historical validation and generate a report.
 
-        Args:
-            output_dir (str): Directory to save validation report
-
-        Returns:
-            dict: Validation results
-        """
-        if output_dir is None:
-            logger.warning("No output directory provided, using default")
-            output_dir = "validation/reports/historical"
-
-        # Create output directory if it doesn't exist
-        os.makedirs(output_dir, exist_ok=True)
-
-        # Run parameter optimization
-        if self.optimized_parameters is None:
-            logger.info("Running parameter optimization")
-            self.optimize_parameters()
-
-        # Generate comparison visualization
-        logger.info("Generating comparison visualization")
-        fig = self.visualize_comparison(save_path=os.path.join(output_dir, "comparison.png"))
-
-        # Calculate errors if not already calculated
-        if any(metric is None for metric in self.error_metrics.values()):
-            logger.info("Calculating error metrics")
-            self.calculate_error()
-
-        # Save results
-        logger.info("Saving validation results")
-        self.save_results(output_dir)
-
-        # Generate HTML report
-        logger.info("Generating HTML report")
-        report_path = os.path.join(output_dir, "historical_validation_report.html")
-        self._generate_html_report(report_path)
-
-        # Return results
-        return {
-            'status': 'success',
-            'error_metrics': self.error_metrics,
-            'optimized_parameters': self.optimized_parameters,
-            'report_path': report_path
-        }
-
-    def _generate_html_report(self, output_path):
-        """
-        Generate an HTML report for historical validation.
-
-        Args:
-            output_path (str): Path to save HTML report
-        """
-        # Create report timestamp
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-        # Format error metrics for display
-        error_metrics_html = ""
-        if self.error_metrics:
-            error_metrics_html = "<table class='metrics'>"
-            error_metrics_html += "<tr><th>Metric</th><th>Value</th></tr>"
-            for metric, value in self.error_metrics.items():
-                if value is not None and metric != 'valid_metrics':
-                    formatted_value = f"{value:.4f}" if isinstance(value, float) else str(value)
-                    error_metrics_html += f"<tr><td>{metric}</td><td>{formatted_value}</td></tr>"
-            error_metrics_html += "</table>"
-
-        # Format optimized parameters for display
-        parameters_html = ""
-        if self.optimized_parameters:
-            parameters_html = "<table class='parameters'>"
-            parameters_html += "<tr><th>Parameter</th><th>Value</th></tr>"
-            for param, value in self.optimized_parameters.items():
-                formatted_value = f"{value:.6f}" if isinstance(value, float) else str(value)
-                parameters_html += f"<tr><td>{param}</td><td>{formatted_value}</td></tr>"
-            parameters_html += "</table>"
-
-        # Determine validation status
-        overall_rmse = self.error_metrics.get('overall_rmse')
-        if overall_rmse is not None:
-            if overall_rmse < 5.0:
-                status = "Good"
-                status_color = "green"
-            elif overall_rmse < 10.0:
-                status = "Acceptable"
-                status_color = "orange"
-            else:
-                status = "Poor"
-                status_color = "red"
-        else:
-            status = "Unknown"
-            status_color = "gray"
-
-        # Create HTML content
-        html_content = f'''
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Historical Validation Report</title>
-    <style>
-        body {{
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            color: #333;
-        }}
-        .container {{
-            max-width: 1200px;
-            margin: 0 auto;
-        }}
-        h1, h2, h3 {{
-            color: #2c3e50;
-        }}
-        .header {{
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border-left: 5px solid #2c3e50;
-        }}
-        .status {{
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 3px;
-            color: white;
-            font-weight: bold;
-            background-color: {status_color};
-        }}
-        .section {{
-            margin-bottom: 30px;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }}
-        .visualization {{
-            text-align: center;
-            margin: 20px 0;
-        }}
-        .visualization img {{
-            max-width: 100%;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }}
-        table.metrics, table.parameters {{
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }}
-        table.metrics th, table.metrics td,
-        table.parameters th, table.parameters td {{
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }}
-        table.metrics th, table.parameters th {{
-            background-color: #f8f9fa;
-            font-weight: bold;
-        }}
-        table.metrics tr:nth-child(even),
-        table.parameters tr:nth-child(even) {{
-            background-color: #f8f9fa;
-        }}
-        .footer {{
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-            color: #777;
-            font-size: 0.9em;
-        }}
-        .files-list {{
-            list-style: none;
-            padding: 0;
-        }}
-        .files-list li {{
-            padding: 10px;
-            background-color: #f8f9fa;
-            margin-bottom: 5px;
-            border-radius: 3px;
-        }}
-        .files-list li a {{
-            text-decoration: none;
-            color: #3498db;
-        }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Historical Validation Report</h1>
-            <p>Generated on: {timestamp}</p>
-            <p>Status: <span class="status">{status}</span></p>
-        </div>
-        
-        <div class="section">
-            <h2>Visualization</h2>
-            <div class="visualization">
-                <img src="comparison.png" alt="Historical Comparison">
-            </div>
-        </div>
-        
-        <div class="section">
-            <h2>Error Metrics</h2>
-            {error_metrics_html}
-        </div>
-        
-        <div class="section">
-            <h2>Optimized Parameters</h2>
-            {parameters_html}
-        </div>
-        
-        <div class="section">
-            <h2>Validation Files</h2>
-            <ul class="files-list">
-                <li><a href="historical_data.csv">Historical Data</a></li>
-                <li><a href="simulation_results.csv">Simulation Results</a></li>
-                <li><a href="simulation_parameters.csv">Simulation Parameters</a></li>
-                <li><a href="error_metrics.csv">Error Metrics</a></li>
-            </ul>
-        </div>
-        
-        <div class="footer">
-            <p>Generated by Axiomatic Intelligence Growth Simulation - Historical Validation Module</p>
-        </div>
-    </div>
-</body>
-</html>
-'''
-
-        # Write HTML to file
-        with open(output_path, 'w') as f:
-            f.write(html_content)
-
-        logger.info(f"HTML report saved to {output_path}")
-
-
-# In config/historical_validation.py, fix the _run_simulation method:
-
-def _run_simulation(self, parameters):
+def run_historical_validation(output_dir=None, optimize=True, visualize=True, max_iterations=20):
     """
-    Run simulation with given parameters.
+    Run historical validation as a standalone process.
 
     Parameters:
-        parameters: Dictionary of simulation parameters
+        output_dir: Directory to save results
+        optimize: Whether to optimize parameters
+        visualize: Whether to generate visualizations
+        max_iterations: Maximum optimization iterations
 
     Returns:
-        DataFrame containing simulation results
+        HistoricalValidation object
     """
-    try:
-        # Try to import and run comprehensive simulation
-        from simulations.comprehensive_simulation import run_simulation
+    # Create validator
+    validator = HistoricalValidation(
+        enable_circuit_breaker=True,
+        enable_adaptive_timestep=True
+    )
 
-        logger.info("Running comprehensive simulation with parameters")
+    # Optimize parameters
+    if optimize:
+        validator.optimize_parameters(max_iterations=max_iterations)
 
-        # Check what parameters the simulation accepts
-        import inspect
-        sim_params = inspect.signature(run_simulation).parameters
+    # Calculate error
+    error = validator.calculate_error()
+    print(f"Validation error: {error:.2f}")
 
-        sim_args = {}
-        # Map parameters properly
-        if 'params' in sim_params:
-            sim_args['params'] = parameters
-        elif 'parameters' in sim_params:
-            sim_args['parameters'] = parameters
+    # Save results
+    if output_dir:
+        validator.save_results(output_dir)
 
-        # Handle timesteps parameter properly
-        if 'timesteps' in sim_params:
-            sim_args['timesteps'] = self.simulation_timesteps
-        elif 'num_steps' in sim_params:
-            sim_args['num_steps'] = self.simulation_timesteps
-        elif 'num_timesteps' in sim_params:
-            sim_args['num_timesteps'] = self.simulation_timesteps
-        elif 'steps' in sim_params:
-            sim_args['steps'] = self.simulation_timesteps
+    # Generate visualization
+    if visualize:
+        save_path = None
+        if output_dir:
+            save_path = os.path.join(output_dir, 'comparison.png')
+        validator.visualize_comparison(save_path=save_path)
 
-        # Add circuit breaker if supported
-        if 'enable_circuit_breaker' in sim_params:
-            sim_args['enable_circuit_breaker'] = self.enable_circuit_breaker
-
-        # Add adaptive timestep if supported
-        if 'enable_adaptive_timestep' in sim_params:
-            sim_args['enable_adaptive_timestep'] = self.enable_adaptive_timestep
-
-        # Run the simulation with the correct parameters
-        results = run_simulation(**sim_args)
-
-        return results
-    except Exception as e:
-        logger.warning(f"Error running comprehensive simulation: {e}")
-        logger.warning("Trying alternative simulation")
-
-        try:
-            # Try alternate simulation
-            from simulations.historical_simulation import run_simulation as run_alt_simulation
-
-            # Similar parameter handling for alternative simulation
-            import inspect
-            sim_params = inspect.signature(run_alt_simulation).parameters
-
-            sim_args = {}
-            if 'params' in sim_params:
-                sim_args['params'] = parameters
-            elif 'parameters' in sim_params:
-                sim_args['parameters'] = parameters
-
-            if 'timesteps' in sim_params:
-                sim_args['timesteps'] = self.simulation_timesteps
-            elif 'num_steps' in sim_params:
-                sim_args['num_steps'] = self.simulation_timesteps
-
-            if 'enable_circuit_breaker' in sim_params:
-                sim_args['enable_circuit_breaker'] = self.enable_circuit_breaker
-
-            results = run_alt_simulation(**sim_args)
-            return results
-        except Exception as e:
-            logger.warning(f"Error running alternative simulation: {e}")
-            logger.warning("No simulation module found, using dummy simulation")
-
-            # Create dummy results if no simulation is available
-            timesteps = np.arange(self.simulation_timesteps)
-            k0 = parameters.get('knowledge_growth_rate', 0.15)
-            a0 = parameters.get('truth_adoption_rate', 0.12)
-
-            # Simple growth and decay functions
-            knowledge = 1 + 50 * (1 - np.exp(-k0 * timesteps / 100))
-            truth = 1 + 40 * (1 - np.exp(-a0 * timesteps / 100))
-            suppression = 80 * np.exp(-0.005 * timesteps) + 20
-            intelligence = knowledge * (1 - 0.5 * suppression / 100)
-
-            # Create DataFrame
-            results = pd.DataFrame({
-                'timestep': timesteps,
-                'knowledge': knowledge,
-                'truth': truth,
-                'suppression': suppression,
-                'intelligence': intelligence
-            })
-
-            # Map timesteps to years
-            year_range = self.historical_end_year - self.historical_start_year
-            results['year'] = self.historical_start_year + timesteps * year_range / self.simulation_timesteps
-
-            return results
+    return validator
 
 
 if __name__ == "__main__":

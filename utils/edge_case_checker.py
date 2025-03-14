@@ -1190,3 +1190,42 @@ class EdgeCaseTransformer(ast.NodeTransformer):
         # Can't easily fix array indexing with AST transformation
         # as it would require restructuring control flow
         return node
+
+    def run_edge_case_check(equations, output_dir=None):
+        """
+        Run edge case validation on the provided equations.
+
+        Args:
+            equations (dict): Dictionary of equation functions
+            output_dir (str, optional): Directory to save output reports
+
+        Returns:
+            dict: Results of edge case validation
+        """
+        checker = EdgeCaseChecker(equations)
+        checker.analyze_all_functions()
+
+        results = {
+            'recommendations': checker.generate_recommendations(),
+            'coverage': {
+                'total_edge_cases': sum(
+                    result.get('edge_case_count', 0) for result in checker.analysis_results.values()),
+                'protected_cases': sum(
+                    result.get('edge_case_count', 0) - sum(
+                        pattern.get('unprotected_matches', 0)
+                        for pattern in result.get('patterns_found', {}).values()
+                    )
+                    for result in checker.analysis_results.values()
+                )
+            },
+            'status': 'success'
+        }
+
+        if output_dir:
+            try:
+                checker.generate_edge_case_completion_report(output_dir)
+            except Exception as e:
+                print(f"Warning: Could not generate edge case report: {e}")
+                results['status'] = 'warning'
+
+        return results

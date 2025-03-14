@@ -111,6 +111,7 @@ except ImportError as e:
     logger.warning(f"Could not import automated_reports: {e}")
 
 
+
 class ValidationSuite:
     def __init__(self, output_dir=None):
         # Use the global logger
